@@ -7,10 +7,14 @@ const poppins = Poppins({
 	subsets: ['latin'],
 	variable: '--font-poppins',
 })
-const firaSans = Fira_Sans({ weight: '400', variable: '--font-fira-sans' })
-const ibmPlexSerif = IBM_Plex_Serif({
+const firaSans = Fira_Sans({
+	weight: '400',
 	subsets: ['latin'],
+	variable: '--font-fira-sans',
+})
+const ibmPlexSerif = IBM_Plex_Serif({
 	weight: ['400', '700'],
+	subsets: ['latin'],
 	variable: '--font-ibm-plex-serif',
 })
 
