@@ -213,11 +213,11 @@
 	}
 
 	.header-box-title {
-		@apply text-24 lg:text-30 font-semibold text-gray-900;
+		@apply text-24 lg:text-30 font-semibold;
 	}
 
 	.header-box-subtext {
-		@apply text-14 lg:text-16 font-normal text-gray-600;
+		@apply text-16 font-medium text-gray-600;
 	}
 
 	/* Bank Card */
