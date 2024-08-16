@@ -68,10 +68,10 @@ const Navbar = ({ user }: NavbarProps) => {
 						alt="Fortify Logo"
 						className="size-[24px] max-xl:size-10"
 					/>
-					<h1 className="sidebar-logo">Fortify</h1>
+					<h1 className="sidebar-logo text-white">Fortify</h1>
 				</Link>
 
-				<BiBell className="w-5 h-5" />
+				<BiBell className="w-5 h-5 text-white" />
 			</nav>
 		</section>
 	)

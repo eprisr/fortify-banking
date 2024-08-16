@@ -8,7 +8,7 @@ export default function RootLayout({
 	const loggedIn = { firstName: 'Jane', lastName: 'Doe' }
 
 	return (
-		<main className="flex flex-col w-full font-poppins">
+		<main className="flex flex-col w-full font-poppins bg-indigo-700">
 			<Navbar user={loggedIn} />
 			{children}
 		</main>

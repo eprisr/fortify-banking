@@ -3,10 +3,10 @@ import HeaderBox from '@/components/HeaderBox'
 import React from 'react'
 
 const Home = () => {
-	const loggedIn = { firstName: 'Jane' }
+	const loggedIn = { firstName: 'Jane', lastName: 'Doe' }
 
 	return (
-		<section className="home">
+		<section className="home bg-white rounded-t-3xl">
 			<div className="home-content">
 				<header className="home-header">
 					<HeaderBox
@@ -17,8 +17,9 @@ const Home = () => {
 					/>
 				</header>
 				<AccountBox
+					user={loggedIn}
 					accounts={[]}
-					banks={[]}
+					banks={[{ currentBalance: 123.5 }, { currentBalance: 500.0 }]}
 					totalBanks={1}
 					totalBalance={3469.52}
 				/>
