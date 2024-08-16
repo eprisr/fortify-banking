@@ -220,7 +220,9 @@ declare interface RightSidebarProps {
 }
 
 declare interface NavbarProps {
-	user: User
+	user?: User
+	type: string
+	pageTitle?: string
 }
 
 declare interface RecentTransactionsProps {

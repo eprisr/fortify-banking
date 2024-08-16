@@ -9,7 +9,7 @@ export default function RootLayout({
 
 	return (
 		<main className="flex flex-col w-full font-poppins bg-indigo-700">
-			<Navbar user={loggedIn} />
+			<Navbar user={loggedIn} type="main" />
 			{children}
 		</main>
 	)
