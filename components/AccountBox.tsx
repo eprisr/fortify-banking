@@ -5,6 +5,7 @@ interface AccountBoxProps extends TotalBalanceBoxProps {}
 
 const AccountBox = ({
 	accounts = [],
+	banks,
 	totalBanks,
 	totalBalance,
 }: AccountBoxProps) => {

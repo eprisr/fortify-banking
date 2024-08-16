@@ -163,11 +163,11 @@
 	}
 
 	.profile {
-		@apply relative flex px-6 max-xl:justify-center;
+		@apply flex max-xl:justify-center;
 	}
 
 	.profile-img {
-		@apply flex-center absolute -top-8 size-24 rounded-full bg-gray-100 border-8 border-white p-2 shadow-profile;
+		@apply flex-center size-10 rounded-full bg-gray-100 border-2 border-gray-300 p-2;
 	}
 
 	.profile-details {

@@ -19,10 +19,24 @@ const Navbar = ({ user }: NavbarProps) => {
 			<nav className="flex w-full items-center justify-between p-4">
 				<Sheet>
 					<SheetTrigger>
-						<BiMenu className="w-8 h-8" />
+						<div className="profile">
+							<div className="profile-img">
+								<span className="text-1xl font-bold text-blue-500">
+									{user.firstName[0]}
+								</span>
+							</div>
+						</div>
 					</SheetTrigger>
 					<SheetContent side="left" className="flex flex-col bg-white">
-						<SheetHeader>USER</SheetHeader>
+						<SheetHeader>
+							<div className="profile">
+								<div className="profile-img">
+									<span className="text-1xl font-bold text-blue-500">
+										{user.firstName[0]}
+									</span>
+								</div>
+							</div>
+						</SheetHeader>
 						{navLinks.map((item) => {
 							const { Icon, route, label } = item
 							return (
