@@ -195,7 +195,10 @@ export const getTransactionStatus = (date: Date) => {
 	return date > twoDaysAgo ? 'Processing' : 'Success'
 }
 
-export const authFormSchema = z.object({
-	email: z.string().email(),
-	password: z.string().min(8),
-})
+export const authFormSchema = (type: string) =>
+	z.object({
+		firstName: type === 'signin' ? z.string().optional() : z.string(),
+		lastName: type === 'signin' ? z.string().optional() : z.string(),
+		email: z.string().email(),
+		password: z.string().min(8),
+	})

@@ -1,11 +1,15 @@
 import AuthForm from '@/components/AuthForm'
+import Navbar from '@/components/Navbar'
 import React from 'react'
 
 const SignIn = () => {
 	return (
-		<section className="flex-center size-full max-sm:px-6 bg-white rounded-t-3xl">
-			<AuthForm type="signin" />
-		</section>
+		<>
+			<Navbar type="sub" pageTitle="Sign in" />
+			<section className="flex-center size-full max-sm:px-6 bg-white rounded-t-3xl">
+				<AuthForm type="signin" />
+			</section>
+		</>
 	)
 }
 

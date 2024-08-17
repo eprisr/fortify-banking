@@ -1,11 +1,15 @@
 import AuthForm from '@/components/AuthForm'
+import Navbar from '@/components/Navbar'
 import React from 'react'
 
 const SignUp = () => {
 	return (
-		<section className="flex-center size-full max-sm:px-6">
-			<AuthForm type="signup" />
-		</section>
+		<>
+			<Navbar type="sub" pageTitle="Sign up" />
+			<section className="flex-center size-full max-sm:px-6 bg-white rounded-t-3xl">
+				<AuthForm type="signup" />
+			</section>
+		</>
 	)
 }
 
