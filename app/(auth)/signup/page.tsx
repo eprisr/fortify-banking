@@ -2,7 +2,7 @@ import AuthForm from '@/components/AuthForm'
 import Navbar from '@/components/Navbar'
 import React from 'react'
 
-const SignUp = () => {
+const SignUp = async () => {
 	return (
 		<>
 			<Navbar type="sub" pageTitle="Sign up" />

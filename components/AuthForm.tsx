@@ -11,8 +11,11 @@ import { authFormSchema } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { signIn, signUp } from '@/lib/actions/user.actions'
 
 const AuthForm = ({ type }: { type: string }) => {
+	const router = useRouter()
 	const [user, setUser] = useState(null)
 	const [isLoading, setIsLoading] = useState(false)
 
@@ -26,10 +29,26 @@ const AuthForm = ({ type }: { type: string }) => {
 		},
 	})
 
-	function onSubmit(values: z.infer<typeof formSchema>) {
+	const onSubmit = async (data: z.infer<typeof formSchema>) => {
 		setIsLoading(true)
-		console.log(values)
-		setIsLoading(false)
+
+		try {
+			if (type === 'signup') {
+				const newUser = await signUp(data)
+				setUser(newUser)
+			}
+			if (type === 'signin') {
+				const res = await signIn({
+					email: data.email,
+					password: data.password,
+				})
+				if (res) router.push('/')
+			}
+		} catch (error) {
+			console.log(error)
+		} finally {
+			setIsLoading(false)
+		}
 	}
 
 	return (
