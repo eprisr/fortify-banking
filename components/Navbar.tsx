@@ -23,7 +23,7 @@ const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
 							<div className="profile">
 								<div className="profile-img">
 									<span className="text-1xl font-bold text-blue-500">
-										{user?.firstName[0]}
+										{user?.name[0]}
 									</span>
 								</div>
 							</div>
@@ -33,7 +33,7 @@ const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
 								<div className="profile">
 									<div className="profile-img">
 										<span className="text-1xl font-bold text-blue-500">
-											{user?.firstName[0]}
+											{user?.name[0]}
 										</span>
 									</div>
 								</div>

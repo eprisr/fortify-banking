@@ -1,9 +1,10 @@
 import AccountBox from '@/components/AccountBox'
 import HeaderBox from '@/components/HeaderBox'
+import { getLoggedInUser } from '@/lib/actions/user.actions'
 import React from 'react'
 
-const Home = () => {
-	const loggedIn = { firstName: 'Jane', lastName: 'Doe' }
+const Home = async () => {
+	const loggedIn = await getLoggedInUser()
 
 	return (
 		<section className="home bg-white rounded-t-3xl">
@@ -12,7 +13,7 @@ const Home = () => {
 					<HeaderBox
 						type="greeting"
 						title="Good Morning,"
-						user={loggedIn?.firstName || 'Guest'}
+						user={loggedIn?.name || 'Guest'}
 						subtext=""
 					/>
 				</header>

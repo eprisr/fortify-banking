@@ -1,11 +1,12 @@
 import Navbar from '@/components/Navbar'
+import { getLoggedInUser } from '@/lib/actions/user.actions'
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode
 }>) {
-	const loggedIn = { firstName: 'Jane', lastName: 'Doe' }
+	const loggedIn = await getLoggedInUser()
 
 	return (
 		<main className="flex flex-col w-full font-poppins bg-indigo-700">
