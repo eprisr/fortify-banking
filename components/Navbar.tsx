@@ -31,6 +31,12 @@ const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
 						</SheetTrigger>
 						<SheetContent side="left" className="flex flex-col bg-white">
 							<SheetHeader>
+								<SheetTitle className="sr-only">
+									Welcome, {user?.name}
+								</SheetTitle>
+								<SheetDescription className="sr-only">
+									Navigate the Fortify application by using the menu below.
+								</SheetDescription>
 								<div className="profile">
 									<div className="profile-img">
 										<span className="text-1xl font-bold text-blue-500">
