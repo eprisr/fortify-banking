@@ -1,5 +1,6 @@
 import Navbar from '@/components/Navbar'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
+import { redirect } from 'next/navigation'
 
 export default async function RootLayout({
 	children,
@@ -7,6 +8,8 @@ export default async function RootLayout({
 	children: React.ReactNode
 }>) {
 	const loggedIn = await getLoggedInUser()
+
+	if (!loggedIn) redirect('/signin')
 
 	return (
 		<main className="flex flex-col w-full font-poppins bg-indigo-700">

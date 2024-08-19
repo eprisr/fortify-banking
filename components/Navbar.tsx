@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/sheet'
 import { BiBell, BiChevronLeft, BiMenu } from 'react-icons/bi'
 import { navLinks } from '@/constants'
+import Footer from './Footer'
 
 const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
 	return (
@@ -57,7 +58,7 @@ const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
 									</>
 								)
 							})}
-							FOOTER?
+							<Footer user={user} type="mobile" />
 						</SheetContent>
 					</Sheet>
 
