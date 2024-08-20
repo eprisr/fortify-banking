@@ -13,6 +13,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { signIn, signUp } from '@/lib/actions/user.actions'
+import PlaidLink from './PlaidLink'
 
 const AuthForm = ({ type }: { type: string }) => {
 	const router = useRouter()
@@ -33,8 +34,14 @@ const AuthForm = ({ type }: { type: string }) => {
 		setIsLoading(true)
 
 		try {
+			const userData = {
+				firstName: data.firstName!,
+				lastName: data.lastName!,
+				email: data.email,
+				password: data.password,
+			}
 			if (type === 'signup') {
-				const newUser = await signUp(data)
+				const newUser = await signUp(userData)
 				setUser(newUser)
 			}
 			if (type === 'signin') {
@@ -86,7 +93,9 @@ const AuthForm = ({ type }: { type: string }) => {
 				</div>
 			)}
 			{user ? (
-				<div className="flex flex-col gap-4">{/* Plaid Link */}</div>
+				<div className="flex flex-col gap-4">
+					<PlaidLink user={user} variant="primary" />
+				</div>
 			) : (
 				<>
 					<Form {...form}>
