@@ -17,7 +17,7 @@ import Footer from './Footer'
 const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
 	return (
 		<section>
-			{type === 'main' ? (
+			{type === 'main' && user ? (
 				<nav className="flex w-full items-center justify-between p-4">
 					<Sheet>
 						<SheetTrigger>
