@@ -14,6 +14,7 @@ const AccountBox = ({
 	totalBanks,
 	totalBalance,
 }: AccountBoxProps) => {
+	console.log(banks)
 	return (
 		<section className="banks">
 			{banks?.length > 0 && (

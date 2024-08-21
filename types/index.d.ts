@@ -205,7 +205,7 @@ declare interface BankTabItemProps {
 
 declare interface TotalBalanceBoxProps {
 	accounts: Account[]
-	banks: []
+	banks: Bank[] & Accoount[]
 	totalBanks: number
 	totalBalance: number
 }
