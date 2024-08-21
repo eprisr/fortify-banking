@@ -12,6 +12,7 @@ interface CustomInputProps {
 	name: FieldPath<z.infer<typeof formSchema>>
 	label: string
 	placeholder: string
+	required: boolean
 }
 
 const CustomInput = ({
@@ -19,6 +20,7 @@ const CustomInput = ({
 	name,
 	label,
 	placeholder,
+	required,
 }: CustomInputProps) => {
 	return (
 		<FormField
@@ -26,7 +28,10 @@ const CustomInput = ({
 			name={name}
 			render={({ field }) => (
 				<div className="form-item">
-					<FormLabel className="form-label">{label}</FormLabel>
+					<FormLabel className="form-label">
+						{label}
+						{required && <sup>*</sup>}
+					</FormLabel>
 					<div className="flex w-full flex-col">
 						<FormControl>
 							<Input

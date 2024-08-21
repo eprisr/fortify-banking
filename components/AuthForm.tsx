@@ -19,6 +19,7 @@ const AuthForm = ({ type }: { type: string }) => {
 	const router = useRouter()
 	const [user, setUser] = useState(null)
 	const [isLoading, setIsLoading] = useState(false)
+	const [error, setError] = useState('')
 
 	const formSchema = authFormSchema(type)
 
@@ -63,10 +64,13 @@ const AuthForm = ({ type }: { type: string }) => {
 					email: data.email,
 					password: data.password,
 				})
+
+				if (res.error) throw new Error(res.error)
 				if (res) router.push('/')
 			}
-		} catch (error) {
-			console.log(error)
+		} catch (error: any) {
+			setError(error.message)
+			console.error('Auth Error: ', error)
 		} finally {
 			setIsLoading(false)
 		}
@@ -122,12 +126,14 @@ const AuthForm = ({ type }: { type: string }) => {
 											name="firstName"
 											label="First Name"
 											placeholder="Jane"
+											required
 										/>
 										<CustomInput
 											control={form.control}
 											name="lastName"
 											label="Last Name"
 											placeholder="Doe"
+											required
 										/>
 									</div>
 									<CustomInput
@@ -135,12 +141,14 @@ const AuthForm = ({ type }: { type: string }) => {
 										name="address1"
 										label="Address"
 										placeholder="Enter your specific address"
+										required
 									/>
 									<CustomInput
 										control={form.control}
 										name="city"
 										label="City"
 										placeholder="Enter your city"
+										required
 									/>
 									<div className="flex gap-4">
 										<CustomInput
@@ -148,12 +156,14 @@ const AuthForm = ({ type }: { type: string }) => {
 											name="state"
 											label="State"
 											placeholder="Example: NY"
+											required
 										/>
 										<CustomInput
 											control={form.control}
 											name="postalCode"
 											label="Postal Code"
 											placeholder="Example: 11101"
+											required
 										/>
 									</div>
 									<div className="flex gap-4">
@@ -162,12 +172,14 @@ const AuthForm = ({ type }: { type: string }) => {
 											name="dateOfBirth"
 											label="Date of Birth"
 											placeholder="YYYY-MM-DD"
+											required
 										/>
 										<CustomInput
 											control={form.control}
 											name="ssn"
 											label="SSN"
 											placeholder="Example: 1234"
+											required
 										/>
 									</div>
 								</>
@@ -178,16 +190,22 @@ const AuthForm = ({ type }: { type: string }) => {
 								name="email"
 								label="Email"
 								placeholder="email@email.com"
+								required
 							/>
 							<CustomInput
 								control={form.control}
 								name="password"
 								label="Password"
 								placeholder="Enter your password"
+								required
 							/>
 
 							<div className="flex flex-col gap-4">
-								<Button type="submit" disabled={isLoading} className="form-btn">
+								{error !== '' && <p className="form-message">{error}</p>}
+								<Button
+									type="submit"
+									disabled={!form.formState.isValid || isLoading}
+									className="form-btn">
 									{isLoading ? (
 										<>
 											<Loader2 size={20} className="animate-spin" /> &nbsp;

@@ -197,16 +197,48 @@ export const getTransactionStatus = (date: Date) => {
 
 export const authFormSchema = (type: string) =>
 	z.object({
-		firstName: type === 'signin' ? z.string().optional() : z.string(),
-		lastName: type === 'signin' ? z.string().optional() : z.string(),
-		address1: type === 'sign-in' ? z.string().optional() : z.string().max(50),
-		city: type === 'sign-in' ? z.string().optional() : z.string().max(50),
+		firstName:
+			type === 'signin'
+				? z.string().optional()
+				: z.string().min(2, 'First Name is Required'),
+		lastName:
+			type === 'signin'
+				? z.string().optional()
+				: z.string().min(2, 'Last Name is Required'),
+		address1:
+			type === 'signin'
+				? z.string().optional()
+				: z.string().min(5, 'Address is Required').max(50),
+		city:
+			type === 'signin'
+				? z.string().optional()
+				: z.string().min(2, 'City is Required').max(50),
 		state:
-			type === 'sign-in' ? z.string().optional() : z.string().min(2).max(2),
+			type === 'signin'
+				? z.string().optional()
+				: z
+						.string()
+						.min(2, 'State is Required')
+						.max(2, 'A Valid State is Required'),
 		postalCode:
-			type === 'sign-in' ? z.string().optional() : z.string().min(3).max(6),
-		dateOfBirth: type === 'sign-in' ? z.string().optional() : z.string().min(3),
-		ssn: type === 'sign-in' ? z.string().optional() : z.string().min(3),
-		email: z.string().email(),
-		password: z.string().min(8),
+			type === 'signin'
+				? z.string().optional()
+				: z
+						.string()
+						.min(3, 'A Postal Code is Required')
+						.max(6, 'A Valid Postal Code is Required'),
+		dateOfBirth:
+			type === 'signin'
+				? z.string().optional()
+				: z.string().min(3, 'A Birth Date of Required'),
+		ssn:
+			type === 'signin'
+				? z.string().optional()
+				: z.string().min(4, 'A SSN is Required'),
+		email: z.string().email('A Valid Email is Required'),
+		password: z
+			.string()
+			.min(1, 'Password is Required')
+			.min(8, 'Password Must be a Minimum of 8 Characters')
+			.max(256, 'Password Must be Less Than 256 Characters'),
 	})

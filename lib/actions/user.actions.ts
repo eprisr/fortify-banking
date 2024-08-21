@@ -31,7 +31,7 @@ export const getUserInfo = async ({ userId }: getUserInfoProps) => {
 
 		return parseStringify(user.documents[0])
 	} catch (error) {
-		console.log(error)
+		console.error('Get User Info Error: ', error)
 	}
 }
 
@@ -40,6 +40,8 @@ export const signIn = async ({ email, password }: SignInProps) => {
 		const { account } = await createAdminClient()
 
 		const session = await account.createEmailPasswordSession(email, password)
+
+		if (!session) throw Error
 
 		cookies().set('appwrite-session', session.secret, {
 			path: '/',
@@ -51,8 +53,9 @@ export const signIn = async ({ email, password }: SignInProps) => {
 		const user = await getUserInfo({ userId: session.userId })
 
 		return parseStringify(user)
-	} catch (error) {
-		console.error('Error', error)
+	} catch (error: any) {
+		console.error('An Error Occurred while Signing In: ', error)
+		return { error: error.response.message }
 	}
 }
 
@@ -105,7 +108,7 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
 
 		return parseStringify(newUser)
 	} catch (error) {
-		console.error('Error', error)
+		console.error('An Error Occurred while Signing Up: ', error)
 	}
 }
 
@@ -149,7 +152,7 @@ export const createLinkToken = async (user: User) => {
 
 		return parseStringify({ linkToken: res.data.link_token })
 	} catch (error) {
-		console.log(error)
+		console.error('Create Link Token Error: ', error)
 	}
 }
 
@@ -249,7 +252,7 @@ export const getBanks = async ({ userId }: getBanksProps) => {
 
 		return parseStringify(banks.documents)
 	} catch (error) {
-		console.log(error)
+		console.error('Get Banks Error: ', error)
 	}
 }
 
@@ -264,6 +267,6 @@ export const getBank = async ({ documentId }: getBankProps) => {
 
 		return parseStringify(bank.documents[0])
 	} catch (error) {
-		console.log(error)
+		console.error('Get Bank Error: ', error)
 	}
 }
