@@ -78,7 +78,7 @@ const AuthForm = ({ type }: { type: string }) => {
 				<div className="flex flex-col gap-1 md:gap-3">
 					<h1 className="text-24 lg:text-36 font-semibold text-gray-900">
 						{type === 'signin' ? 'Welcome Back' : 'Welcome to us,'}
-						<p className="text-16 font-normal text-gray-600">
+						<p className="text-12 font-normal text-gray-600">
 							{type === 'signin'
 								? 'Hello there, sign in to continue'
 								: 'Hello there, create New account'}
