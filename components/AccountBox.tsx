@@ -22,7 +22,7 @@ const AccountBox = ({
 						<BankCard
 							key={banks[0].$id}
 							account={banks[0]}
-							userName={`${user?.name}`}
+							userName={`${user?.firstName} ${user.lastName}`}
 							showBalance={true}
 						/>
 					</div>
@@ -31,7 +31,7 @@ const AccountBox = ({
 							<BankCard
 								key={banks[1].$id}
 								account={banks[1]}
-								userName={`${user?.name}`}
+								userName={`${user?.firstName} ${user.lastName}`}
 								showBalance={false}
 							/>
 						</div>

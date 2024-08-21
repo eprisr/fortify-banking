@@ -24,7 +24,7 @@ const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
 							<div className="profile">
 								<div className="profile-img">
 									<span className="text-1xl font-bold text-blue-500">
-										{user?.name[0]}
+										{user?.firstName[0]}
 									</span>
 								</div>
 							</div>
@@ -32,7 +32,7 @@ const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
 						<SheetContent side="left" className="flex flex-col bg-white">
 							<SheetHeader>
 								<SheetTitle className="sr-only">
-									Welcome, {user?.name}
+									Welcome, {user?.firstName}
 								</SheetTitle>
 								<SheetDescription className="sr-only">
 									Navigate the Fortify application by using the menu below.
@@ -40,7 +40,7 @@ const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
 								<div className="profile">
 									<div className="profile-img">
 										<span className="text-1xl font-bold text-blue-500">
-											{user?.name[0]}
+											{user?.firstName[0]}
 										</span>
 									</div>
 								</div>
