@@ -198,47 +198,50 @@ export const getTransactionStatus = (date: Date) => {
 export const authFormSchema = (type: string) =>
 	z.object({
 		firstName:
-			type === 'signin'
-				? z.string().optional()
-				: z.string().min(2, 'First Name is Required'),
+			type === 'signup'
+				? z.string().min(2, 'First Name is Required')
+				: z.string().optional(),
 		lastName:
-			type === 'signin'
-				? z.string().optional()
-				: z.string().min(2, 'Last Name is Required'),
+			type === 'signup'
+				? z.string().min(2, 'Last Name is Required')
+				: z.string().optional(),
 		address1:
-			type === 'signin'
-				? z.string().optional()
-				: z.string().min(5, 'Address is Required').max(50),
+			type === 'signup'
+				? z.string().min(5, 'Address is Required').max(50)
+				: z.string().optional(),
 		city:
-			type === 'signin'
-				? z.string().optional()
-				: z.string().min(2, 'City is Required').max(50),
+			type === 'signup'
+				? z.string().min(2, 'City is Required').max(50)
+				: z.string().optional(),
 		state:
-			type === 'signin'
-				? z.string().optional()
-				: z
+			type === 'signup'
+				? z
 						.string()
 						.min(2, 'State is Required')
-						.max(2, 'A Valid State is Required'),
+						.max(2, 'A Valid State is Required')
+				: z.string().optional(),
 		postalCode:
-			type === 'signin'
+			type === 'signup'
+				? z
+						.string()
+						.min(3, 'A Postal Code is Required')
+						.max(6, 'A Valid Postal Code is Required')
+				: z.string().optional(),
+		dateOfBirth:
+			type === 'signup'
+				? z.string().min(3, 'A Birth Date of Required')
+				: z.string().optional(),
+		ssn:
+			type === 'signup'
+				? z.string().min(4, 'A SSN is Required')
+				: z.string().optional(),
+		email: z.string().email('A Valid Email is Required'),
+		password:
+			type === 'forgot-pw'
 				? z.string().optional()
 				: z
 						.string()
-						.min(3, 'A Postal Code is Required')
-						.max(6, 'A Valid Postal Code is Required'),
-		dateOfBirth:
-			type === 'signin'
-				? z.string().optional()
-				: z.string().min(3, 'A Birth Date of Required'),
-		ssn:
-			type === 'signin'
-				? z.string().optional()
-				: z.string().min(4, 'A SSN is Required'),
-		email: z.string().email('A Valid Email is Required'),
-		password: z
-			.string()
-			.min(1, 'Password is Required')
-			.min(8, 'Password Must be a Minimum of 8 Characters')
-			.max(256, 'Password Must be Less Than 256 Characters'),
+						.min(1, 'Password is Required')
+						.min(8, 'Password Must be a Minimum of 8 Characters')
+						.max(256, 'Password Must be Less Than 256 Characters'),
 	})

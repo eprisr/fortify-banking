@@ -225,6 +225,7 @@ declare interface NavbarProps {
 	user?: User
 	type: string
 	pageTitle?: string
+	background?: boolean
 }
 
 declare interface RecentTransactionsProps {
@@ -300,6 +301,9 @@ declare interface getTransactionsByBankIdProps {
 declare interface SignInProps {
 	email: string
 	password: string
+}
+declare interface ForgotPwProps {
+	email: string
 }
 
 declare interface getUserInfoProps {

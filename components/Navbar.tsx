@@ -14,7 +14,7 @@ import { BiBell, BiChevronLeft, BiMenu } from 'react-icons/bi'
 import { navLinks } from '@/constants'
 import Footer from './Footer'
 
-const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
+const Navbar = ({ user, type, pageTitle, background }: NavbarProps) => {
 	return (
 		<section>
 			{type === 'main' && user ? (

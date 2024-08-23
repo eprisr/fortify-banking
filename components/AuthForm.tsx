@@ -12,7 +12,7 @@ import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { signIn, signUp } from '@/lib/actions/user.actions'
+import { forgotPw, signIn, signUp } from '@/lib/actions/user.actions'
 import PlaidLink from './PlaidLink'
 
 const AuthForm = ({ type }: { type: string }) => {
@@ -53,7 +53,7 @@ const AuthForm = ({ type }: { type: string }) => {
 				dateOfBirth: data.dateOfBirth!,
 				ssn: data.ssn!,
 				email: data.email,
-				password: data.password,
+				password: data.password!,
 			}
 			if (type === 'signup') {
 				const newUser = await signUp(userData)
@@ -62,11 +62,23 @@ const AuthForm = ({ type }: { type: string }) => {
 			if (type === 'signin') {
 				const res = await signIn({
 					email: data.email,
-					password: data.password,
+					password: data.password!,
 				})
 
 				if (res.error) throw new Error(res.error)
 				if (res) router.push('/')
+			}
+			if (type === 'forgot-pw') {
+				const res = await forgotPw({
+					email: data.email,
+				})
+
+				if (res?.error) throw new Error(res.error)
+
+				if (res) {
+					setError('')
+					router.push('/signin')
+				}
 			}
 		} catch (error: any) {
 			setError(error.message)
@@ -78,18 +90,20 @@ const AuthForm = ({ type }: { type: string }) => {
 
 	return (
 		<section className="auth-form">
-			<header className="flex flex-col gap-5 md:gap-8">
-				<div className="flex flex-col gap-1 md:gap-3">
-					<h1 className="text-24 lg:text-36 font-semibold text-gray-900">
-						{type === 'signin' ? 'Welcome Back' : 'Welcome to us,'}
-						<p className="text-12 font-normal text-gray-600">
-							{type === 'signin'
-								? 'Hello there, sign in to continue'
-								: 'Hello there, create New account'}
-						</p>
-					</h1>
-				</div>
-			</header>
+			{type !== 'forgot-pw' && (
+				<header className="flex flex-col gap-5 md:gap-8">
+					<div className="flex flex-col gap-1 md:gap-3">
+						<h1 className="text-24 lg:text-36 font-semibold text-gray-900">
+							{type === 'signin' ? 'Welcome Back' : 'Welcome to us,'}
+							<p className="text-12 font-normal text-gray-600">
+								{type === 'signin'
+									? 'Hello there, sign in to continue'
+									: 'Hello there, create New account'}
+							</p>
+						</h1>
+					</div>
+				</header>
+			)}
 			{type === 'signin' && (
 				<div className="flex justify-center my-8">
 					<Image
@@ -117,7 +131,7 @@ const AuthForm = ({ type }: { type: string }) => {
 			) : (
 				<>
 					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
 							{type === 'signup' && (
 								<>
 									<div className="flex gap-4">
@@ -192,13 +206,24 @@ const AuthForm = ({ type }: { type: string }) => {
 								placeholder="email@email.com"
 								required
 							/>
-							<CustomInput
-								control={form.control}
-								name="password"
-								label="Password"
-								placeholder="Enter your password"
-								required
-							/>
+
+							{type !== 'forgot-pw' && (
+								<CustomInput
+									control={form.control}
+									name="password"
+									label="Password"
+									placeholder="Enter your password"
+									required
+								/>
+							)}
+
+							{type === 'signin' && (
+								<div className="flex justify-end !mt-1">
+									<Link className="text-right text-12" href="/forgot-password">
+										Forgot your password?
+									</Link>
+								</div>
+							)}
 
 							<div className="flex flex-col gap-4">
 								{error !== '' && <p className="form-message">{error}</p>}
@@ -213,8 +238,10 @@ const AuthForm = ({ type }: { type: string }) => {
 										</>
 									) : type === 'signin' ? (
 										'Sign In'
-									) : (
+									) : type === 'signup' ? (
 										'Sign Up'
+									) : (
+										'Send'
 									)}
 								</Button>
 							</div>
@@ -225,7 +252,9 @@ const AuthForm = ({ type }: { type: string }) => {
 						<p className="text-14 font-normal text-gray-600">
 							{type === 'signin'
 								? "Don't have an account?"
-								: 'Already have an account?'}
+								: type === 'signup'
+								? 'Already have an account?'
+								: 'Remembered your password?'}
 						</p>
 						<Link
 							href={type === 'signin' ? '/signup' : '/signin'}
