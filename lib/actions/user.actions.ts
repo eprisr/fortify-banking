@@ -80,6 +80,24 @@ export const forgotPw = async ({ email }: ForgotPwProps) => {
 	}
 }
 
+export const resetPw = async ({ userId, secret, password }: ResetPwProps) => {
+	try {
+		const { account } = await createAdminClient()
+
+		const res = await account.updateRecovery(userId, secret, password)
+
+		if (!res) throw Error
+		return parseStringify(res)
+	} catch (error: any) {
+		console.error('An Error Occurred while Resetting Password: ', error)
+		const res =
+			error.response.type === 'user_not_found'
+				? 'User not Found'
+				: error.response
+		return { error: res }
+	}
+}
+
 export const signUp = async ({ password, ...userData }: SignUpParams) => {
 	const { email, firstName, lastName } = userData
 

@@ -305,6 +305,11 @@ declare interface SignInProps {
 declare interface ForgotPwProps {
 	email: string
 }
+declare interface ResetPwProps {
+  userId: string
+  secret: string
+  password: string
+}
 
 declare interface getUserInfoProps {
 	userId: string

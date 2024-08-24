@@ -196,52 +196,79 @@ export const getTransactionStatus = (date: Date) => {
 }
 
 export const authFormSchema = (type: string) =>
-	z.object({
-		firstName:
-			type === 'signup'
-				? z.string().min(2, 'First Name is Required')
-				: z.string().optional(),
-		lastName:
-			type === 'signup'
-				? z.string().min(2, 'Last Name is Required')
-				: z.string().optional(),
-		address1:
-			type === 'signup'
-				? z.string().min(5, 'Address is Required').max(50)
-				: z.string().optional(),
-		city:
-			type === 'signup'
-				? z.string().min(2, 'City is Required').max(50)
-				: z.string().optional(),
-		state:
-			type === 'signup'
-				? z
-						.string()
-						.min(2, 'State is Required')
-						.max(2, 'A Valid State is Required')
-				: z.string().optional(),
-		postalCode:
-			type === 'signup'
-				? z
-						.string()
-						.min(3, 'A Postal Code is Required')
-						.max(6, 'A Valid Postal Code is Required')
-				: z.string().optional(),
-		dateOfBirth:
-			type === 'signup'
-				? z.string().min(3, 'A Birth Date of Required')
-				: z.string().optional(),
-		ssn:
-			type === 'signup'
-				? z.string().min(4, 'A SSN is Required')
-				: z.string().optional(),
-		email: z.string().email('A Valid Email is Required'),
-		password:
-			type === 'forgot-pw'
-				? z.string().optional()
-				: z
-						.string()
-						.min(1, 'Password is Required')
-						.min(8, 'Password Must be a Minimum of 8 Characters')
-						.max(256, 'Password Must be Less Than 256 Characters'),
-	})
+	z
+		.object({
+			firstName:
+				type === 'signup'
+					? z.string().min(2, { message: 'First Name is Required' })
+					: z.string().optional(),
+			lastName:
+				type === 'signup'
+					? z.string().min(2, { message: 'Last Name is Required' })
+					: z.string().optional(),
+			address1:
+				type === 'signup'
+					? z.string().min(5, { message: 'Address is Required' }).max(50)
+					: z.string().optional(),
+			city:
+				type === 'signup'
+					? z.string().min(2, { message: 'City is Required' }).max(50)
+					: z.string().optional(),
+			state:
+				type === 'signup'
+					? z
+							.string()
+							.min(2, { message: 'State is Required' })
+							.max(2, { message: 'A Valid State is Required' })
+					: z.string().optional(),
+			postalCode:
+				type === 'signup'
+					? z
+							.string()
+							.min(3, { message: 'A Postal Code is Required' })
+							.max(6, { message: 'A Valid Postal Code is Required' })
+					: z.string().optional(),
+			dateOfBirth:
+				type === 'signup'
+					? z.string().min(3, { message: 'A Birth Date of Required' })
+					: z.string().optional(),
+			ssn:
+				type === 'signup'
+					? z.string().min(4, { message: 'A SSN is Required' })
+					: z.string().optional(),
+			email:
+				type === 'reset-pw'
+					? z.string().optional()
+					: z.string().email('A Valid Email is Required'),
+			password:
+				type === 'forgot-pw'
+					? z.string().optional()
+					: z
+							.string()
+							.min(1, { message: 'Password is Required' })
+							.min(8, { message: 'Password Must be a Minimum of 8 Characters' })
+							.max(256, {
+								message: 'Password Must be Less Than 256 Characters',
+							}),
+			confirmPassword:
+				type === 'reset-pw'
+					? z
+							.string()
+							.min(1, { message: 'Password is Required' })
+							.min(8, { message: 'Password Must be a Minimum of 8 Characters' })
+							.max(256, {
+								message: 'Password Must be Less Than 256 Characters',
+							})
+					: z.string().optional(),
+		})
+		.superRefine(({ confirmPassword, password }, ctx) => {
+			if (type === 'reset-pw') {
+				if (confirmPassword !== password) {
+					ctx.addIssue({
+						code: z.ZodIssueCode.custom,
+						message: 'Passwords must match',
+						path: ['confirmPassword'],
+					})
+				}
+			}
+		})

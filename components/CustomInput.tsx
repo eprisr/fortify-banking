@@ -1,5 +1,11 @@
 import React from 'react'
-import { FormControl, FormField, FormLabel, FormMessage } from './ui/form'
+import {
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from './ui/form'
 import { Input } from './ui/input'
 import { Control, FieldPath } from 'react-hook-form'
 import { z } from 'zod'
@@ -27,7 +33,7 @@ const CustomInput = ({
 			control={control}
 			name={name}
 			render={({ field }) => (
-				<div className="form-item">
+				<FormItem className="form-item">
 					<FormLabel className="form-label">
 						{label}
 						{required && <sup>*</sup>}
@@ -37,14 +43,18 @@ const CustomInput = ({
 							<Input
 								placeholder={placeholder}
 								className="input-class"
-								type={name === 'password' ? 'password' : 'text'}
+								type={
+									name === 'password' || name === 'confirmPassword'
+										? 'password'
+										: 'text'
+								}
 								id={name}
 								{...field}
 							/>
 						</FormControl>
 						<FormMessage className="form-message mt-2" />
 					</div>
-				</div>
+				</FormItem>
 			)}
 		/>
 	)

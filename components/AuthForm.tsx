@@ -21,10 +21,13 @@ const AuthForm = ({ type }: { type: string }) => {
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState('')
 
+	const renderHeader = type === 'signin' || type === 'signup'
+
 	const formSchema = authFormSchema(type)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
+		mode: 'onTouched',
 		defaultValues: {
 			firstName: '',
 			lastName: '',
@@ -52,7 +55,7 @@ const AuthForm = ({ type }: { type: string }) => {
 				postalCode: data.postalCode!,
 				dateOfBirth: data.dateOfBirth!,
 				ssn: data.ssn!,
-				email: data.email,
+				email: data.email!,
 				password: data.password!,
 			}
 			if (type === 'signup') {
@@ -61,7 +64,7 @@ const AuthForm = ({ type }: { type: string }) => {
 			}
 			if (type === 'signin') {
 				const res = await signIn({
-					email: data.email,
+					email: data.email!,
 					password: data.password!,
 				})
 
@@ -70,7 +73,7 @@ const AuthForm = ({ type }: { type: string }) => {
 			}
 			if (type === 'forgot-pw') {
 				const res = await forgotPw({
-					email: data.email,
+					email: data.email!,
 				})
 
 				if (res?.error) throw new Error(res.error)
@@ -88,9 +91,11 @@ const AuthForm = ({ type }: { type: string }) => {
 		}
 	}
 
+	console.log('Form Errors:', form.formState.errors)
+
 	return (
 		<section className="auth-form">
-			{type !== 'forgot-pw' && (
+			{renderHeader && (
 				<header className="flex flex-col gap-5 md:gap-8">
 					<div className="flex flex-col gap-1 md:gap-3">
 						<h1 className="text-24 lg:text-36 font-semibold text-gray-900">
@@ -199,13 +204,15 @@ const AuthForm = ({ type }: { type: string }) => {
 								</>
 							)}
 
-							<CustomInput
-								control={form.control}
-								name="email"
-								label="Email"
-								placeholder="email@email.com"
-								required
-							/>
+							{type !== 'reset-pw' && (
+								<CustomInput
+									control={form.control}
+									name="email"
+									label="Email"
+									placeholder="email@email.com"
+									required
+								/>
+							)}
 
 							{type !== 'forgot-pw' && (
 								<CustomInput
@@ -213,6 +220,16 @@ const AuthForm = ({ type }: { type: string }) => {
 									name="password"
 									label="Password"
 									placeholder="Enter your password"
+									required
+								/>
+							)}
+
+							{type === 'reset-pw' && (
+								<CustomInput
+									control={form.control}
+									name="confirmPassword"
+									label="Confirm Password"
+									placeholder="Confirm your password"
 									required
 								/>
 							)}
