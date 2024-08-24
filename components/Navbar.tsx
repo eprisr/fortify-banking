@@ -10,11 +10,11 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from '@/components/ui/sheet'
-import { BiBell, BiChevronLeft, BiMenu } from 'react-icons/bi'
+import { BiBell, BiChevronLeft } from 'react-icons/bi'
 import { navLinks } from '@/constants'
 import Footer from './Footer'
 
-const Navbar = ({ user, type, pageTitle, background }: NavbarProps) => {
+const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
 	return (
 		<section>
 			{type === 'main' && user ? (
@@ -82,9 +82,11 @@ const Navbar = ({ user, type, pageTitle, background }: NavbarProps) => {
 					<BiBell className="w-5 h-5 text-white" />
 				</nav>
 			) : (
-				<nav className="flex w-full items-center p-4 gap-4 font-semibold text-white">
-					<BiChevronLeft className="size-6" />
-					<p>{pageTitle}</p>
+				<nav className="p-4 gap-4 font-semibold text-white">
+					<Link href="/signin" className="flex w-full items-center gap-4">
+						{pageTitle !== 'Sign in' && <BiChevronLeft className="size-6" />}
+						<p>{pageTitle}</p>
+					</Link>
 				</nav>
 			)}
 		</section>
