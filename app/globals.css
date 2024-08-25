@@ -213,7 +213,7 @@
 	}
 
 	.header-box-title {
-		@apply text-24 lg:text-30 font-semibold;
+		@apply text-16 lg:text-20 font-light text-white;
 	}
 
 	.header-box-subtext {

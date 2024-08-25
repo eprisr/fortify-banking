@@ -13,12 +13,16 @@ import {
 import { BiBell, BiChevronLeft } from 'react-icons/bi'
 import { navLinks } from '@/constants'
 import Footer from './Footer'
+import HeaderBox from './HeaderBox'
+import { getLoggedInUser } from '@/lib/actions/user.actions'
 
-const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
+const Navbar = async ({ user, type, pageTitle }: NavbarProps) => {
+	const loggedIn = await getLoggedInUser()
+
 	return (
 		<section>
 			{type === 'main' && user ? (
-				<nav className="flex w-full items-center justify-between p-4">
+				<nav className="flex w-full items-center gap-4 p-4">
 					<Sheet>
 						<SheetTrigger>
 							<div className="profile">
@@ -68,18 +72,16 @@ const Navbar = ({ user, type, pageTitle }: NavbarProps) => {
 						</SheetContent>
 					</Sheet>
 
-					<Link href="/" className="flex cursor-pointer items-center gap-2">
-						<Image
-							src="/icons/logo.svg"
-							width={24}
-							height={24}
-							alt="Fortify Logo"
-							className="size-[24px] max-xl:size-10"
+					<header className="home-header">
+						<HeaderBox
+							type="greeting"
+							title="Good Morning,"
+							user={loggedIn?.firstName || 'Guest'}
+							subtext=""
 						/>
-						<h1 className="sidebar-logo text-white">Fortify</h1>
-					</Link>
+					</header>
 
-					<BiBell className="w-5 h-5 text-white" />
+					<BiBell className="w-5 h-5 text-white justify-self-end ml-auto" />
 				</nav>
 			) : (
 				<nav className="p-4 gap-4 font-semibold text-white">
