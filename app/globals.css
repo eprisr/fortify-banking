@@ -222,15 +222,23 @@
 
 	/* Bank Card */
 	.bank-card {
-		@apply relative flex h-[190px] w-full max-w-[320px] justify-between rounded-[20px] border border-white bg-bank-gradient shadow-creditCard backdrop-blur-[6px];
+		@apply relative flex h-[200px] w-[320px] justify-between rounded-[16px] border border-white bg-[#1573FF] shadow-creditCard backdrop-blur-[6px];
 	}
 
 	.bank-card_content {
-		@apply relative z-10 flex size-full max-w-[228px] flex-col justify-between rounded-l-[20px] bg-gray-700 bg-bank-gradient px-5 pb-4 pt-5;
+		@apply relative z-10 flex size-full max-w-[200px] flex-col justify-between rounded-l-[20px] px-5 pb-4 pt-5;
 	}
 
 	.bank-card_icon {
-		@apply flex size-full flex-1 flex-col items-end justify-between rounded-r-[20px] bg-bank-gradient bg-cover bg-center bg-no-repeat py-5 pr-5;
+		@apply flex size-full flex-1 flex-col items-end justify-end py-5 pr-5;
+	}
+
+	.bank-card-circle_one {
+		@apply absolute bg-[#1E1671] rounded-full w-80 h-80 -top-8 -left-28;
+	}
+
+	.bank-card-circle_two {
+		@apply absolute bg-[#4EB4FF] rounded-full w-48 h-48 -top-20 -right-20;
 	}
 
 	/* Bank Info */
