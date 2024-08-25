@@ -1,9 +1,15 @@
 import {
+	BiMobile,
+	BiMoneyWithdraw,
+	BiSolidCreditCard,
 	BiSolidHomeAlt2,
 	BiSolidMap,
 	BiSolidReceipt,
+	BiSolidUserBadge,
+	BiSolidWallet,
 	BiTransferAlt,
 } from 'react-icons/bi'
+import { FaPiggyBank, FaReceipt } from 'react-icons/fa6'
 
 export const navLinks = [
 	{
@@ -25,6 +31,63 @@ export const navLinks = [
 		Icon: BiTransferAlt,
 		route: '/payment-transfer',
 		label: 'Transfer Funds',
+	},
+]
+
+export const homeLinks = [
+	{
+		Icon: BiSolidWallet,
+		route: '/',
+		label: 'Account and Card',
+		color: '#3629B7',
+	},
+	{
+		Icon: BiTransferAlt,
+		route: '/',
+		label: 'Transfer',
+		color: '#FF4267',
+	},
+	{
+		Icon: BiMoneyWithdraw,
+		route: '/',
+		label: 'Withdraw',
+		color: '#0890FE',
+	},
+	{
+		Icon: BiMobile,
+		route: '/',
+		label: 'Mobile prepaid',
+		color: '#FFAF2A',
+	},
+	{
+		Icon: BiSolidReceipt,
+		route: '/',
+		label: 'Pay the bill',
+		color: '#52D5BA',
+	},
+	{
+		Icon: FaPiggyBank,
+		route: '/',
+		label: 'Save online',
+		color: '#5655B9',
+	},
+	{
+		Icon: BiSolidCreditCard,
+		route: '/',
+		label: 'Credit card',
+		color: '#FB6B18',
+	},
+	{
+		Icon: FaReceipt,
+		route: '/',
+		label: 'Transaction report',
+		color: '#3629B7',
+	},
+	{
+		Icon: BiSolidUserBadge,
+		route: '/',
+		label: 'Beneficiary',
+		color: '#FF4267',
 	},
 ]
 
