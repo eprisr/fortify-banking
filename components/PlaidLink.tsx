@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { Button } from './ui/button'
+import { MdOutlineAddCard } from 'react-icons/md'
 import {
 	PlaidLinkOnSuccess,
 	PlaidLinkOptions,
@@ -52,12 +53,23 @@ const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
 					onClick={() => open()}
 					disabled={!ready}
 					className="plaidlink-primary">
-					Connect Bank Primary
+					Connect Bank
 				</Button>
 			) : variant === 'ghost' ? (
-				<Button>Connect Bank Ghost</Button>
+				<Button
+					onClick={() => open()}
+					variant="ghost"
+					className="plaidlink-ghost">
+					<p className="hidden text-16px font-semibold text-black-2 xl:block">
+						<MdOutlineAddCard className="text-24" />
+						<p className="text-16px font-semibold text-black-2">Connect Bank</p>
+					</p>
+				</Button>
 			) : (
-				<Button>Connect Bank Other</Button>
+				<Button onClick={() => open()} className="plaidlink-default px-1">
+					<MdOutlineAddCard className="text-24" />
+					<p className="text-16px font-semibold text-black-2">Connect Bank</p>
+				</Button>
 			)}
 		</>
 	)

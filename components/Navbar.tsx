@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 import {
@@ -15,6 +14,7 @@ import { navLinks } from '@/constants'
 import Footer from './Footer'
 import HeaderBox from './HeaderBox'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
+import PlaidLink from './PlaidLink'
 
 const Navbar = async ({ user, type, pageTitle }: NavbarProps) => {
 	const loggedIn = await getLoggedInUser()
@@ -23,7 +23,7 @@ const Navbar = async ({ user, type, pageTitle }: NavbarProps) => {
 		<section>
 			{type === 'main' && user ? (
 				<nav className="flex w-full items-center gap-4 p-4">
-					<Sheet>
+					<Sheet modal={false}>
 						<SheetTrigger>
 							<div className="profile">
 								<div className="profile-img">
@@ -68,6 +68,8 @@ const Navbar = async ({ user, type, pageTitle }: NavbarProps) => {
 									</>
 								)
 							})}
+
+							<PlaidLink user={user} />
 							<Footer user={user} type="mobile" />
 						</SheetContent>
 					</Sheet>
