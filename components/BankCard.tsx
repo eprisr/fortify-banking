@@ -8,10 +8,15 @@ const BankCard = ({
 	account,
 	userName,
 	showBalance = true,
+	stackNumber = 0,
 }: CreditCardProps) => {
 	return (
-		<div className="flex flex-col">
-			<Link href="/" className="bank-card relative overflow-hidden">
+		<div className={`flex flex-col ${stackNumber === 2 && 'items-center'}`}>
+			<Link
+				href="/"
+				className={`bank-card relative overflow-hidden ${
+					stackNumber === 2 && '!w-[290px]'
+				}`}>
 				<div className="bank-card_content">
 					<div>
 						<h1 className="text-20 text-white">{userName}</h1>

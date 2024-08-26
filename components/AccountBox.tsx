@@ -23,16 +23,17 @@ const AccountBox = ({
 							key={banks[0].$id}
 							account={banks[0]}
 							userName={`${user?.firstName} ${user.lastName}`}
-							showBalance={true}
+							showBalance
+							stackNumber={1}
 						/>
 					</div>
 					{banks[1] && (
-						<div className="absolute top-4 z-0 w-[90%]">
+						<div className="absolute top-2 z-0">
 							<BankCard
 								key={banks[1].$id}
 								account={banks[1]}
 								userName={`${user?.firstName} ${user.lastName}`}
-								showBalance={false}
+								stackNumber={2}
 							/>
 						</div>
 					)}

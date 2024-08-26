@@ -140,7 +140,8 @@ declare type NewDwollaCustomerParams = {
 declare interface CreditCardProps {
 	account: Account
 	userName: string
-	showBalance?: boolean
+  showBalance?: boolean
+  stackNumber?: number
 }
 
 declare interface BankInfoProps {
