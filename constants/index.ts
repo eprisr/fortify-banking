@@ -1,6 +1,9 @@
 import {
+	BiCog,
+	BiEnvelope,
 	BiMobile,
 	BiMoneyWithdraw,
+	BiSearchAlt,
 	BiSolidCreditCard,
 	BiSolidHomeAlt2,
 	BiSolidMap,
@@ -88,6 +91,29 @@ export const homeLinks = [
 		route: '/',
 		label: 'Beneficiary',
 		color: '#FF4267',
+	},
+]
+
+export const mobileLinks = [
+	{
+		Icon: BiSolidHomeAlt2,
+		route: '/',
+		label: 'Home',
+	},
+	{
+		Icon: BiSearchAlt,
+		route: '/search',
+		label: 'Search',
+	},
+	{
+		Icon: BiEnvelope,
+		route: '/message',
+		label: 'Message',
+	},
+	{
+		Icon: BiCog,
+		route: '/settings',
+		label: 'Settings',
 	},
 ]
 
