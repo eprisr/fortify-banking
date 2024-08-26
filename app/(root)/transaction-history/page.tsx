@@ -16,8 +16,6 @@ const TransactionHistory = async ({
 
 	const account = await getAccount({ appwriteItemId })
 
-	console.log(account)
-
 	return (
 		<RecentTransactions
 			accounts={accountsData}
