@@ -29,12 +29,18 @@ const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
 				<div className="grid grid-cols-3 gap-4 justify-items-center">
 					{homeLinks.map((link) => {
 						const { Icon, route, label, color } = link
+						const disabled = route === '#'
 						return (
 							<div key={label} className="h-24 w-24 rounded-2xl shadow-card">
 								<Link
 									href={route}
-									className="grid grid-rows-2 gap-3 items-center justify-items-center text-center p-3">
-									<Icon className="text-[28px]" style={{ color: `${color}` }} />
+									className={`grid grid-rows-2 gap-3 items-center justify-items-center text-center p-3 ${
+										disabled ? 'cursor-default' : 'cursor-pointer'
+									}`}>
+									<Icon
+										className="text-[28px]"
+										style={{ color: `${disabled ? '#898989' : color}` }}
+									/>
 									<p className="text-12 text-gray-400">{label}</p>
 								</Link>
 							</div>
