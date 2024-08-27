@@ -2,6 +2,7 @@
 
 import { mobileLinks } from '@/constants'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React from 'react'
 
@@ -13,16 +14,26 @@ const MobileMenu = () => {
 			{mobileLinks.map((link) => {
 				const { Icon, route, label } = link
 				const active = pathname === route
+				const disabled = route === '#'
+
 				return (
 					<div
 						key={label}
-						className={cn('flex gap-2 items-center justify-center', {
+						className={cn({
 							'px-4 py-2 rounded-full bg-primary-700 text-white': active,
 						})}>
-						<Icon
-							className={cn('text-20 text-gray-500', { 'text-white': active })}
-						/>
-						<p className={cn({ 'hidden': !active })}>{label}</p>
+						<Link
+							href={route}
+							className={cn('flex gap-2 items-center justify-center', {
+								'cursor-default': disabled,
+							})}>
+							<Icon
+								className={cn('text-20 text-gray-500', {
+									'text-white': active,
+								})}
+							/>
+							<p className={cn({ 'hidden': !active })}>{label}</p>
+						</Link>
 					</div>
 				)
 			})}

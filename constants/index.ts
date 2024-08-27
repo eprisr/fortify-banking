@@ -102,17 +102,17 @@ export const mobileLinks = [
 	},
 	{
 		Icon: BiSearchAlt,
-		route: '/search',
+		route: '#',
 		label: 'Search',
 	},
 	{
 		Icon: BiEnvelope,
-		route: '/message',
+		route: '#',
 		label: 'Message',
 	},
 	{
 		Icon: BiCog,
-		route: '/settings',
+		route: '#',
 		label: 'Settings',
 	},
 ]
