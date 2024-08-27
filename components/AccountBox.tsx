@@ -23,7 +23,7 @@ const AccountBox = ({
 							key={banks[0].$id}
 							account={banks[0]}
 							userName={`${user?.firstName} ${user.lastName}`}
-							showBalance
+							showBalance={false}
 							stackNumber={1}
 						/>
 					</div>
@@ -33,6 +33,7 @@ const AccountBox = ({
 								key={banks[1].$id}
 								account={banks[1]}
 								userName={`${user?.firstName} ${user.lastName}`}
+								showBalance={false}
 								stackNumber={2}
 							/>
 						</div>

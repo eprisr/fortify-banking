@@ -1,8 +1,8 @@
 import { formatAmount } from '@/lib/utils'
-import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 import { BiLogoVisa } from 'react-icons/bi'
+import Copy from './Copy'
 
 const BankCard = ({
 	account,
@@ -36,7 +36,7 @@ const BankCard = ({
 							&#9679;&#9679;&#9679;&#9679;{' '}
 							<span className="text-16">{account?.mask}</span>
 						</p>
-						{showBalance && (
+						{stackNumber === 1 && (
 							<p className="text-20 font-semibold text-white">
 								{formatAmount(account.currentBalance)}
 							</p>
@@ -50,6 +50,8 @@ const BankCard = ({
 				<div className="bank-card-circle_one"></div>
 				<div className="bank-card-circle_two"></div>
 			</Link>
+
+			{showBalance && <Copy title={account?.shareableId} />}
 		</div>
 	)
 }

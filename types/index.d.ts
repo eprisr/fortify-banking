@@ -60,7 +60,7 @@ declare type Account = {
 	type: string
 	subtype: string
 	appwriteItemId: string
-	sharableId: string
+	shareableId: string
 }
 
 declare type Transaction = {
@@ -89,7 +89,7 @@ declare type Bank = {
 	accessToken: string
 	fundingSourceUrl: string
 	userId: string
-	sharableId: string
+	shareableId: string
 }
 
 declare type AccountTypes =
@@ -140,8 +140,8 @@ declare type NewDwollaCustomerParams = {
 declare interface CreditCardProps {
 	account: Account
 	userName: string
-  showBalance?: boolean
-  stackNumber?: number
+	showBalance?: boolean
+	stackNumber?: number
 }
 
 declare interface BankInfoProps {
@@ -307,9 +307,9 @@ declare interface ForgotPwProps {
 	email: string
 }
 declare interface ResetPwProps {
-  userId: string
-  secret: string
-  password: string
+	userId: string
+	secret: string
+	password: string
 }
 
 declare interface getUserInfoProps {
