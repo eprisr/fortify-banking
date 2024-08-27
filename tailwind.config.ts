@@ -20,13 +20,25 @@ const config = {
 		},
 		extend: {
 			colors: {
-				fill: {
-					1: 'rgba(255, 255, 255, 0.10)',
+				primary: {
+					100: '#F2F1F9',
+					400: '#A8A3D7',
+					600: '#5655B9',
+					700: '#281C9D',
 				},
-				bankGradient: '#3862F8',
-				indigo: {
-					500: '#6172F3',
-					700: '#3538CD',
+				semantic: {
+					error: '#FF4267',
+					info: '#0890FE',
+					warning: '#FFAF2A',
+					success: '#52D5BA',
+					danger: '#FB6B18',
+				},
+				fortify: {
+					rose: '#FF4267',
+					sky: '#0890FE',
+					amber: '#FFAF2A',
+					peacock: '#52D5BA',
+					mango: '#FB6B18',
 				},
 				success: {
 					25: '#F6FEF9',
@@ -36,14 +48,6 @@ const config = {
 					700: '#027A48',
 					900: '#054F31',
 				},
-				pink: {
-					25: '#FEF6FB',
-					100: '#FCE7F6',
-					500: '#EE46BC',
-					600: '#DD2590',
-					700: '#C11574',
-					900: '#851651',
-				},
 				blue: {
 					25: '#F5FAFF',
 					100: '#D1E9FF',
@@ -52,31 +56,24 @@ const config = {
 					700: '#175CD3',
 					900: '#194185',
 				},
-				navy: {
-					900: '#060F27',
-				},
-				sky: {
-					1: '#F3F9FF',
-					2: '#E9EEFF',
-				},
 				black: {
 					1: '#00214F',
 					2: '#344054',
 				},
 				gray: {
 					25: '#FCFCFD',
-					200: '#EBEDF6',
-					300: '#B2B7C7',
-					400: '#91949F',
-					500: '#667085',
+					200: '#E0E0E0',
+					300: '#CACACA',
+					400: '#989898',
+					500: '#898989',
 					600: '#475467',
 					700: '#344054',
-					900: '#101828',
+					900: '#343434',
 				},
 			},
 			backgroundImage: {
 				'bank-gradient':
-					'linear-gradient(90deg, #469FEF 0%, #5C75F0 26%, #6C56F0 65%)',
+					'linear-gradient(90deg, #A8A3D7 0%, #5655B9 26%, #281C9D 65%)',
 				'gradient-mesh': "url('/icons/gradient-mesh.svg')",
 				'bank-green-gradient':
 					'linear-gradient(90deg, #01797A 0%, #489399 100%)',
@@ -88,6 +85,8 @@ const config = {
 				profile:
 					'0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03)',
 				creditCard: '8px 10px 16px 0px rgba(0, 0, 0, 0.05)',
+				card: '0 4px 30px 0px rgba(54, 41, 183, 0.07)',
+				cardSmall: '0 -5px 30px 0px rgba(54, 41, 183, 0.07)',
 			},
 			fontFamily: {
 				poppins: 'var(--font-poppins)',

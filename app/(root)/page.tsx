@@ -17,7 +17,7 @@ const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
 	const account = await getAccount({ appwriteItemId })
 
 	return (
-		<section className="home bg-white rounded-t-3xl">
+		<section className="home bg-white rounded-t-3xl min-h-[calc(100vh_-_152px)]">
 			<div className="home-content">
 				<AccountBox
 					user={loggedIn}

@@ -6,7 +6,7 @@ export default function RootLayout({
 	children: React.ReactNode
 }>) {
 	return (
-		<main className="flex flex-col w-full font-poppins bg-indigo-700">
+		<main className="flex flex-col w-full font-poppins bg-primary-700">
 			{children}
 		</main>
 	)

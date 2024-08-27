@@ -13,7 +13,7 @@ export default async function RootLayout({
 	if (!loggedIn) redirect('/signin')
 
 	return (
-		<main className="flex flex-col w-full mb-[80px] font-poppins bg-indigo-700">
+		<main className="flex flex-col w-full mb-[80px] font-poppins bg-primary-700">
 			<Navbar user={loggedIn} type="main" />
 			{children}
 			<MobileMenu />

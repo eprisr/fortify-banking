@@ -58,7 +58,7 @@ const Navbar = async ({ user, type, pageTitle }: NavbarProps) => {
 												href={route}
 												key={label}
 												className="flex items-center gap-2 my-2">
-												<div className="p-2 bg-black-1 rounded-full">
+												<div className="p-2 bg-neutral-800 rounded-full">
 													<Icon className="w-4 h-4 text-white" />
 												</div>
 												<p className="font-semibold">{label}</p>
