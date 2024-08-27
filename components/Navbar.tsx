@@ -27,7 +27,7 @@ const Navbar = async ({ user, type, pageTitle }: NavbarProps) => {
 						<SheetTrigger>
 							<div className="profile">
 								<div className="profile-img">
-									<span className="text-1xl font-bold text-blue-500">
+									<span className="text-1xl font-bold text-primary-700">
 										{user?.firstName[0]}
 									</span>
 								</div>
