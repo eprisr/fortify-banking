@@ -1,3 +1,4 @@
+import Navbar from '@/components/Navbar'
 import PaymentTransferForm from '@/components/PaymentTransferForm'
 import { getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
@@ -12,11 +13,12 @@ const Transfer = async () => {
 	const accountsData = accounts?.data
 
 	return (
-		<section className="payment-transfer">
-			<section className="size-full pt-5">
+		<>
+			<Navbar type="sub" pageTitle="Transfer" />
+			<section className="payment-transfer size-full pt-5">
 				<PaymentTransferForm accounts={accountsData} />
 			</section>
-		</section>
+		</>
 	)
 }
 

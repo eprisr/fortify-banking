@@ -22,7 +22,7 @@ const RecentTransactions = ({
 	)
 
 	return (
-		<section className="recent-transactions home-content bg-white rounded-t-3xl">
+		<>
 			<header className="flex items-center justify-between">
 				<h2 className="recent-transactions-label">Recent Transactions</h2>
 				<Link
@@ -64,7 +64,7 @@ const RecentTransactions = ({
 					</TabsContent>
 				))}
 			</Tabs>
-		</section>
+		</>
 	)
 }
 

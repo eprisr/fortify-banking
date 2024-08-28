@@ -15,13 +15,35 @@ import Footer from './Footer'
 import HeaderBox from './HeaderBox'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
 import PlaidLink from './PlaidLink'
+import { cn } from '@/lib/utils'
 
-const Navbar = async ({ user, type, pageTitle }: NavbarProps) => {
+const Navbar = async ({
+	user,
+	type,
+	pageTitle = '',
+	background = false,
+}: NavbarProps) => {
 	const loggedIn = await getLoggedInUser()
-	const path = pageTitle === 'Reset Password' ? '/forgot-password' : '/signin'
+	let path
+
+	switch (pageTitle) {
+		case 'Reset Password':
+			path = '/forgot-password'
+			break
+
+		case 'Sign up':
+		case 'Forgot password':
+			path = '/signin'
+			break
+
+		default:
+			path = '/'
+			break
+	}
 
 	return (
-		<section>
+		<section
+			className={cn('pt-4 pb-0', { 'bg-primary-700 pb-5 -mb-5': background })}>
 			{type === 'main' && user ? (
 				<nav className="flex w-full items-center gap-4 p-4">
 					<Sheet modal={false}>
@@ -87,7 +109,10 @@ const Navbar = async ({ user, type, pageTitle }: NavbarProps) => {
 					<BiBell className="w-5 h-5 text-white justify-self-end ml-auto" />
 				</nav>
 			) : (
-				<nav className="p-4 gap-4 font-semibold text-white">
+				<nav
+					className={cn('p-4 gap-4 font-semibold', {
+						'text-white': background,
+					})}>
 					<Link href={path} className="flex w-full items-center gap-4">
 						{pageTitle !== 'Sign in' && <BiChevronLeft className="size-6" />}
 						<p>{pageTitle}</p>

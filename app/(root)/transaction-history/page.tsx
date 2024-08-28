@@ -1,3 +1,4 @@
+import Navbar from '@/components/Navbar'
 import RecentTransactions from '@/components/RecentTransactions'
 import { getAccount, getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
@@ -17,12 +18,17 @@ const TransactionHistory = async ({
 	const account = await getAccount({ appwriteItemId })
 
 	return (
-		<RecentTransactions
-			accounts={accountsData}
-			transactions={account?.transactions}
-			appwriteItemId={appwriteItemId}
-			page={currentPage}
-		/>
+		<>
+			<Navbar type="sub" pageTitle="Transaction history" background />
+			<section className="flex flex-col px-5 sm:px-6 py-5 lg:py-6 bg-white rounded-t-3xl min-h-[calc(100vh_-_152px)]">
+				<RecentTransactions
+					accounts={accountsData}
+					transactions={account?.transactions}
+					appwriteItemId={appwriteItemId}
+					page={currentPage}
+				/>
+			</section>
+		</>
 	)
 }
 

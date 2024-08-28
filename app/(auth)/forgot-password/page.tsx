@@ -5,8 +5,8 @@ import React from 'react'
 const ForgotPassword = () => {
 	return (
 		<>
-			<Navbar type="sub " pageTitle="Forgot Password" background />
-			<section className="flex-center size-full max-sm:px-6 bg-white rounded-t-3xl">
+			<Navbar type="sub" pageTitle="Forgot password" />
+			<section className="flex-center size-full max-sm:px-6 bg-white">
 				<AuthForm type="forgot-pw" />
 			</section>
 		</>

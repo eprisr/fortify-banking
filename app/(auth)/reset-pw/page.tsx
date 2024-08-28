@@ -19,8 +19,8 @@ const ResetPassword = ({
 
 	return (
 		<>
-			<Navbar type="sub " pageTitle="Reset Password" background />
-			<section className="flex-center size-full max-sm:px-6 bg-white rounded-t-3xl">
+			<Navbar type="sub" pageTitle="Reset password" />
+			<section className="flex-center size-full max-sm:px-6 bg-white">
 				{expired ? (
 					<div className="flex flex-col items-center py-10">
 						<Image

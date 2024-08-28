@@ -1,5 +1,4 @@
 import MobileMenu from '@/components/MobileMenu'
-import Navbar from '@/components/Navbar'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
 import { redirect } from 'next/navigation'
 
@@ -13,8 +12,7 @@ export default async function RootLayout({
 	if (!loggedIn) redirect('/signin')
 
 	return (
-		<main className="flex flex-col w-full mb-[80px] font-poppins bg-primary-700">
-			<Navbar user={loggedIn} type="main" />
+		<main className="flex flex-col w-full mb-[80px] font-poppins">
 			{children}
 			<MobileMenu />
 		</main>
