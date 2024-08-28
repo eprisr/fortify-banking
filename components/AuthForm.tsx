@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -11,17 +11,39 @@ import { authFormSchema } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
-import { forgotPw, signIn, signUp } from '@/lib/actions/user.actions'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { forgotPw, resetPw, signIn, signUp } from '@/lib/actions/user.actions'
 import PlaidLink from './PlaidLink'
 
-const AuthForm = ({ type }: { type: string }) => {
+const AuthForm = ({
+	type,
+	resetParams,
+}: {
+	type: string
+	resetParams?: {
+		userId: string | undefined
+		secret: string | undefined
+	}
+}) => {
 	const router = useRouter()
+	const pathname = usePathname()
+	const searchParams = useSearchParams()
 	const [user, setUser] = useState(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState('')
 
 	const renderHeader = type === 'signin' || type === 'signup'
+
+	const createQueryString = useCallback(
+		(name: string, value: string) => {
+			const params = new URLSearchParams(searchParams.toString())
+			params.delete('expire')
+			params.set(name, value)
+
+			return params.toString()
+		},
+		[searchParams]
+	)
 
 	const formSchema = authFormSchema(type)
 
@@ -39,6 +61,7 @@ const AuthForm = ({ type }: { type: string }) => {
 			ssn: '',
 			email: '',
 			password: '',
+			confirmPassword: '',
 		},
 	})
 
@@ -81,6 +104,20 @@ const AuthForm = ({ type }: { type: string }) => {
 				if (res) {
 					setError('')
 					router.push('/signin')
+				}
+			}
+			if (type === 'reset-pw') {
+				const res = await resetPw({
+					userId: resetParams?.userId!,
+					secret: resetParams?.secret!,
+					password: data.password!,
+				})
+
+				if (res?.error) throw new Error(res.error)
+
+				if (res) {
+					setError('')
+					router.push(pathname + '?' + createQueryString('success', 'true'))
 				}
 			}
 		} catch (error: any) {

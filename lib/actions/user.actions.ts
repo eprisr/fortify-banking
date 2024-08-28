@@ -90,11 +90,7 @@ export const resetPw = async ({ userId, secret, password }: ResetPwProps) => {
 		return parseStringify(res)
 	} catch (error: any) {
 		console.error('An Error Occurred while Resetting Password: ', error)
-		const res =
-			error.response.type === 'user_not_found'
-				? 'User not Found'
-				: error.response
-		return { error: res }
+		return { error: error.response.message }
 	}
 }
 
@@ -319,9 +315,9 @@ export const getBankByAccountId = async ({
 			DATABASE_ID!,
 			BANK_COLLECTION_ID!,
 			[Query.equal('accountId', [accountId])]
-    )
-    
-    if(bank.total !== 1) return null
+		)
+
+		if (bank.total !== 1) return null
 
 		return parseStringify(bank.documents[0])
 	} catch (error) {

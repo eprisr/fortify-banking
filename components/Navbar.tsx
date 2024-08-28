@@ -18,6 +18,7 @@ import PlaidLink from './PlaidLink'
 
 const Navbar = async ({ user, type, pageTitle }: NavbarProps) => {
 	const loggedIn = await getLoggedInUser()
+	const path = pageTitle === 'Reset Password' ? '/forgot-password' : '/signin'
 
 	return (
 		<section>
@@ -87,7 +88,7 @@ const Navbar = async ({ user, type, pageTitle }: NavbarProps) => {
 				</nav>
 			) : (
 				<nav className="p-4 gap-4 font-semibold text-white">
-					<Link href="/signin" className="flex w-full items-center gap-4">
+					<Link href={path} className="flex w-full items-center gap-4">
 						{pageTitle !== 'Sign in' && <BiChevronLeft className="size-6" />}
 						<p>{pageTitle}</p>
 					</Link>
