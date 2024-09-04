@@ -8,7 +8,7 @@ import React from 'react'
 
 const Home = async ({ searchParams: { id } }: SearchParamProps) => {
 	const loggedIn = await getLoggedInUser()
-	const accounts = await getAccounts({ userId: loggedIn.$id })
+	const accounts = await getAccounts({ userId: loggedIn?.$id })
 
 	if (!accounts) return
 
