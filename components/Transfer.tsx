@@ -46,7 +46,7 @@ const Transfer = () => {
 								/>
 								<Label
 									htmlFor="send"
-									className="h-28 flex flex-col items-center justify-between rounded-xl bg-gray-200 p-4 text-center text-sm hover:bg-gray-300 peer-data-[state=checked]:bg-primary-700 [&:has([data-state=checked])]:bg-primary-700 peer-data-[state=checked]:text-white [&:has([data-state=checked])]:text-white">
+									className="h-28 flex flex-col items-center justify-between rounded-xl bg-gray-200 shadow-lg p-4 text-center text-sm hover:bg-gray-300 peer-data-[state=checked]:bg-primary-700 [&:has([data-state=checked])]:bg-primary-700 peer-data-[state=checked]:text-white [&:has([data-state=checked])]:text-white">
 									<BiExport className="mb-3 h-6 w-6" />
 									Send
 									<br />
@@ -61,7 +61,7 @@ const Transfer = () => {
 								/>
 								<Label
 									htmlFor="internal"
-									className="h-28 flex flex-col items-center justify-between rounded-xl bg-gray-200 p-4 text-center text-sm hover:bg-gray-300 peer-data-[state=checked]:bg-primary-700 [&:has([data-state=checked])]:bg-primary-700 peer-data-[state=checked]:text-white [&:has([data-state=checked])]:text-white">
+									className="h-28 flex flex-col items-center justify-between rounded-xl bg-gray-200 shadow-lg p-4 text-center text-sm hover:bg-gray-300 peer-data-[state=checked]:bg-primary-700 [&:has([data-state=checked])]:bg-primary-700 peer-data-[state=checked]:text-white [&:has([data-state=checked])]:text-white">
 									<BiTransferAlt className="mb-3 h-6 w-6" />
 									Internal Transfer
 								</Label>
@@ -74,7 +74,7 @@ const Transfer = () => {
 								/>
 								<Label
 									htmlFor="external"
-									className="h-28 flex flex-col items-center justify-between rounded-xl bg-gray-200 p-4 text-center text-sm hover:bg-gray-300 peer-data-[state=checked]:bg-primary-700 [&:has([data-state=checked])]:bg-primary-700 peer-data-[state=checked]:text-white [&:has([data-state=checked])]:text-white">
+									className="h-28 flex flex-col items-center justify-between rounded-xl bg-gray-200 shadow-lg p-4 text-center text-sm hover:bg-gray-300 peer-data-[state=checked]:bg-primary-700 [&:has([data-state=checked])]:bg-primary-700 peer-data-[state=checked]:text-white [&:has([data-state=checked])]:text-white">
 									<BiSolidBank className="mb-3 h-6 w-6" />
 									External Transfer
 								</Label>

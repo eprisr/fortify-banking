@@ -15,7 +15,7 @@ const Transfer = async () => {
 	return (
 		<>
 			<Navbar type="sub" pageTitle="Transfer" />
-			<section className="payment-transfer size-full pt-5">
+			<section className="payment-transfer size-full">
 				<PaymentTransferForm accounts={accountsData} />
 			</section>
 		</>

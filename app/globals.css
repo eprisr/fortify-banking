@@ -314,7 +314,7 @@
 	}
 
 	.payment-transfer_form-details {
-		@apply flex flex-col gap-1 border-t border-gray-200 pb-5 pt-6;
+		@apply flex flex-col gap-1 pb-5 pt-6;
 	}
 
 	.payment-transfer_btn-box {
