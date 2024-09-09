@@ -195,13 +195,23 @@ export const getTransactionStatus = (date: Date) => {
 	return date > twoDaysAgo ? 'Processing' : 'Success'
 }
 
+export const transferFormSchema = () =>
+	z.object({
+		senderBank: z.string().min(4, 'Please select a valid bank account'),
+		recipientName: z.string().min(1, 'Please enter the name of the recipient'),
+		recipientEmail: z.string().email('Invalid email address'),
+		sharableId: z.string().min(8, 'Please select a valid sharable Id'),
+		amount: z.string().min(4, 'Amount is too short'),
+		note: z.string().optional(),
+	})
+
 export const authFormSchema = (type: string) =>
 	z
 		.object({
 			firstName:
 				type === 'signup'
 					? z.string().min(2, { message: 'First Name is Required' })
-					: z.string().optional(),
+					: z.string(),
 			lastName:
 				type === 'signup'
 					? z.string().min(2, { message: 'Last Name is Required' })

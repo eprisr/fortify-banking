@@ -287,12 +287,13 @@ declare interface CreateFundingSourceOptions {
 
 declare interface CreateTransactionProps {
 	name: string
+	email: string
 	amount: string
 	senderId: string
 	senderBankId: string
 	receiverId: string
 	receiverBankId: string
-	email: string
+	note?: string
 }
 
 declare interface getTransactionsByBankIdProps {

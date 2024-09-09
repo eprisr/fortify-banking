@@ -85,8 +85,8 @@ export const createTransfer = async ({
 		return await dwollaClient
 			.post('transfers', requestBody)
 			.then((res) => res.headers.get('location'))
-	} catch (err) {
-		console.error('Transfer fund failed: ', err)
+	} catch (err: any) {
+		console.error('Creating transfer failed: ', err.body._embedded)
 	}
 }
 
@@ -105,7 +105,7 @@ export const addFundingSource = async ({
 			_links: dwollaAuthLinks,
 		}
 		return await createFundingSource(fundingSourceOptions)
-	} catch (err) {
-		console.error('Transfer fund failed: ', err)
+	} catch (err: any) {
+		console.error('Failed to add funds: ', err, err.body._embedded)
 	}
 }
