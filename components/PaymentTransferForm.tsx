@@ -122,6 +122,8 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 					)}
 				/>
 
+				<Transfer />
+
 				<div className="payment-transfer_form-details">
 					<h2 className="text-18 font-semibold text-gray-900">
 						Bank account details
