@@ -12,7 +12,7 @@ import {
 	FormMessage,
 } from '@/components/ui/form'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { BiExport, BiSend, BiSolidBank, BiTransferAlt } from 'react-icons/bi'
+import { BiExport, BiSolidBank, BiTransferAlt } from 'react-icons/bi'
 import { Label } from '@radix-ui/react-label'
 
 const FormSchema = z.object({

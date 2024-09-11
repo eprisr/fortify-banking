@@ -33,6 +33,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from './ui/card'
+import Contacts from './Contacts'
 
 const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 	const router = useRouter()
@@ -132,6 +133,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 				/>
 
 				<Transfer />
+				<Contacts />
 
 				<Card className="mt-4 shadow-xl border-none">
 					<CardHeader>
