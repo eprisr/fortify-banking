@@ -104,6 +104,10 @@
 		@apply text-[36px] leading-[44px];
 	}
 
+	.currency-input {
+		@apply after:content-['$'] after:pointer-events-none after:flex after:items-center after:justify-center after:border-r after:border-r-gray-300 after:absolute after:top-[1px] after:bottom-[1px] after:w-12;
+	}
+
 	/* Home */
 	.home {
 		@apply no-scrollbar flex w-full flex-row max-xl:max-h-screen max-xl:overflow-y-scroll;
