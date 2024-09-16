@@ -3,14 +3,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useReducer, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
 import { createTransfer } from '@/lib/actions/dwolla.actions'
 import { createTransaction } from '@/lib/actions/transaction.actions'
 import { getBank, getBankByAccountId } from '@/lib/actions/user.actions'
-import { decryptId, transferFormSchema } from '@/lib/utils'
+import { decryptId, formatAmount, transferFormSchema } from '@/lib/utils'
 
 import { BankDropdown } from './BankDropdown'
 import { Button } from './ui/button'
@@ -38,6 +38,17 @@ import Contacts from './Contacts'
 const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 	const router = useRouter()
 	const [isLoading, setIsLoading] = useState(false)
+
+	const [value, setValue] = useReducer((_: any, next: string) => {
+		const digits = next.replace(/\D/g, '')
+		return formatAmount(Number(digits) / 100)
+	}, '')
+
+	function handleChange(realChangeFn: Function, formattedValue: string) {
+		const digits = formattedValue.replace(/\D/g, '')
+		const realValue = Number(digits) / 100
+		realChangeFn(realValue)
+	}
 
 	const formSchema = transferFormSchema()
 
@@ -216,25 +227,36 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 						<FormField
 							control={form.control}
 							name="amount"
-							render={({ field }) => (
-								<FormItem>
-									<div className="payment-transfer_form-item py-5">
-										<FormLabel className="text-14 w-full max-w-[280px] font-medium text-gray-700">
-											Amount
-										</FormLabel>
-										<div className="flex w-full flex-col relative currency-input">
-											<FormControl>
-												<Input
-													placeholder="ex: 5.00"
-													className="input-class pl-16"
-													{...field}
-												/>
-											</FormControl>
-											<FormMessage className="text-12 text-red-500" />
+							render={({ field }) => {
+								field.value = value
+								const _change = field.onChange
+
+								return (
+									<FormItem>
+										<div className="payment-transfer_form-item py-5">
+											<FormLabel className="text-14 w-full max-w-[280px] font-medium text-gray-700">
+												Amount
+											</FormLabel>
+											<div className="flex w-full flex-col relative currency-input">
+												<FormControl>
+													<Input
+														className="input-class pl-16"
+														placeholder="ex: 5.00"
+														type="text"
+														{...field}
+														onChange={(ev) => {
+															setValue(ev.target.value)
+															handleChange(_change, ev.target.value)
+														}}
+														value={value}
+													/>
+												</FormControl>
+												<FormMessage className="text-12 text-red-500" />
+											</div>
 										</div>
-									</div>
-								</FormItem>
-							)}
+									</FormItem>
+								)
+							}}
 						/>
 
 						<FormField
