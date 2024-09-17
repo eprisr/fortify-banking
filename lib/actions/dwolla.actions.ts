@@ -109,3 +109,23 @@ export const addFundingSource = async ({
 		console.error('Failed to add funds: ', err, err.body._embedded)
 	}
 }
+
+export const getCustomerFundingSource = async (customerId: string) => {
+	try {
+		return await dwollaClient
+			.get(`customers/${customerId}/funding-sources`)
+			.then((res) => res.body._embedded['funding-sources'][0].name)
+	} catch (err) {
+		console.error('Getting a Funding Source Failed: ', err)
+	}
+}
+
+export const getMasterFundingSource = async (masterId: string) => {
+	try {
+		return await dwollaClient
+			.get(`accounts/${masterId}/funding-sources?removed=false`)
+			.then((res) => res.body._embedded['funding-sources'][0].name)
+	} catch (err) {
+		console.error('Getting a Funding Source Failed: ', err)
+	}
+}
