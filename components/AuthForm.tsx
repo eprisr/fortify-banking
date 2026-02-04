@@ -42,14 +42,14 @@ const AuthForm = ({
 
 			return params.toString()
 		},
-		[searchParams]
+		[searchParams],
 	)
 
 	const formSchema = authFormSchema(type)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
-		mode: 'onTouched',
+		mode: 'onSubmit',
 		defaultValues: {
 			firstName: '',
 			lastName: '',
@@ -279,10 +279,7 @@ const AuthForm = ({
 
 							<div className="flex flex-col gap-4">
 								{error !== '' && <p className="form-message">{error}</p>}
-								<Button
-									type="submit"
-									disabled={!form.formState.isValid || isLoading}
-									className="form-btn">
+								<Button type="submit" disabled={isLoading} className="form-btn">
 									{isLoading ? (
 										<>
 											<Loader2 size={20} className="animate-spin" /> &nbsp;
@@ -305,8 +302,8 @@ const AuthForm = ({
 							{type === 'signin'
 								? "Don't have an account?"
 								: type === 'signup'
-								? 'Already have an account?'
-								: 'Remembered your password?'}
+									? 'Already have an account?'
+									: 'Remembered your password?'}
 						</p>
 						<Link
 							href={type === 'signin' ? '/signup' : '/signin'}
