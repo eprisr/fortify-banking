@@ -13,7 +13,12 @@ import { plaidClient } from '../plaid'
 import { parseStringify } from '../utils'
 
 import { getTransactionsByBankId } from './transaction.actions'
-import { getBanks, getBank } from './user.actions'
+import {
+	getBanks,
+	getBank,
+	createLinkToken,
+	getLoggedInUser,
+} from './user.actions'
 
 // Get multiple bank accounts
 export const getAccounts = async ({ userId }: getAccountsProps) => {
@@ -23,10 +28,12 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 
 		const accounts = await Promise.all(
 			banks?.map(async (bank: Bank) => {
+				console.log('Error 1')
 				// get each account info from plaid
 				const accountsResponse = await plaidClient.accountsGet({
 					access_token: bank.accessToken,
 				})
+
 				const accountData = accountsResponse.data.accounts[0]
 
 				// get institution info from plaid
@@ -58,7 +65,10 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 		}, 0)
 
 		return parseStringify({ data: accounts, totalBanks, totalCurrentBalance })
-	} catch (error) {
+	} catch (error: any) {
+		if (error.response.data.error_code === 'ITEM_LOGIN_REQUIRED') {
+			return 'UPDATE_MODE'
+		}
 		console.error('An error occurred while getting the accounts:', error)
 	}
 }
@@ -142,7 +152,7 @@ export const getInstitution = async ({
 
 		return parseStringify(intitution)
 	} catch (error) {
-		console.error('An error occurred while getting the accounts:', error)
+		console.error('An error occurred while getting the institution:', error)
 	}
 }
 
@@ -180,7 +190,7 @@ export const getTransactions = async ({
 
 		return parseStringify(transactions)
 	} catch (error) {
-		console.error('An error occurred while getting the accounts:', error)
+		console.error('An error occurred while getting the transactions:', error)
 	}
 }
 

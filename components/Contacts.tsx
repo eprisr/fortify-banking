@@ -1,7 +1,11 @@
-import React from 'react'
+import React, { Dispatch, SetStateAction } from 'react'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { Label } from './ui/label'
 import { BiSolidPlusCircle, BiSolidUserCircle } from 'react-icons/bi'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { FormControl, FormField, FormItem, FormLabel } from './ui/form'
 
 const contacts = [
 	{
@@ -36,32 +40,65 @@ const contacts = [
 	},
 ]
 
-const Contacts = () => {
+const contactSchema = z.object({
+	contact: z.object({
+		_links: z.object({
+			self: z.object({
+				href: z.string(),
+			}),
+		}),
+		id: z.string(),
+		firstName: z.string(),
+		lastName: z.string(),
+		email: z.string(),
+		type: z.string(),
+		status: z.string(),
+		created: z.string(),
+	}),
+})
+
+const Contacts = (populateContact: any) => {
+	const form = useForm<z.infer<typeof contactSchema>>({
+		resolver: zodResolver(contactSchema),
+	})
+
 	return (
 		<div className="space-y-3 mt-8 overflow-x-hidden">
-			<p className="text-sm font-medium leading-none">Choose beneficiary</p>
-			<div className="flex gap-4 pl-5 pb-10 overflow-x-auto">
-				<div className="w-36 h-40 flex flex-col items-center justify-center rounded-xl shadow-card py-4 px-5 mt-4 text-center text-sm hover:bg-gray-300 peer-data-[state=checked]:bg-primary-700 [&:has([data-state=checked])]:bg-primary-700 peer-data-[state=checked]:text-white [&:has([data-state=checked])]:text-white">
-					<BiSolidPlusCircle className="text-primary-100 text-8xl" />
-				</div>
-				<RadioGroup className="flex gap-4">
-					{contacts.map((contact) => (
-						<div key={contact.id}>
-							<RadioGroupItem
-								value={contact.email}
-								id={contact.email}
-								className="peer sr-only"
-							/>
-							<Label
-								htmlFor={contact.email}
-								className="w-36 h-40 flex flex-col items-center justify-center rounded-xl shadow-card py-4 px-5 mt-4 text-center text-sm hover:bg-gray-300 peer-data-[state=checked]:bg-primary-700 [&:has([data-state=checked])]:bg-primary-700 peer-data-[state=checked]:text-white [&:has([data-state=checked])]:text-white">
-								<BiSolidUserCircle className="text-primary-400 text-8xl" />
-								{contact.firstName}
-							</Label>
-						</div>
-					))}
-				</RadioGroup>
-			</div>
+			<FormField
+				control={form.control}
+				name="contact"
+				render={({ field }) => (
+					<FormItem className="space-y-3">
+						<FormLabel>Choose beneficiary</FormLabel>
+						<FormControl>
+							<div className="flex gap-4 pl-5 pb-10 overflow-x-auto">
+								<div className="w-36 h-40 flex flex-col items-center justify-center rounded-xl shadow-card py-4 px-5 mt-4 text-center text-sm hover:bg-gray-300 peer-data-[state=checked]:bg-primary-700 [&:has([data-state=checked])]:bg-primary-700 peer-data-[state=checked]:text-white [&:has([data-state=checked])]:text-white">
+									<BiSolidPlusCircle className="text-primary-100 text-8xl" />
+								</div>
+								<RadioGroup
+									className="flex gap-4"
+									onValueChange={populateContact}>
+									{contacts.map((contact) => (
+										<div key={contact.id}>
+											<RadioGroupItem
+												value={contact.email}
+												id={contact.email}
+												className="peer sr-only"
+											/>
+											<Label
+												htmlFor={contact.email}
+												className="w-36 h-40 flex flex-col items-center justify-center rounded-xl shadow-card py-4 px-5 mt-4 text-center text-sm hover:bg-gray-300 peer-data-[state=checked]:bg-primary-700 [&:has([data-state=checked])]:bg-primary-700 peer-data-[state=checked]:text-white [&:has([data-state=checked])]:text-white">
+												<BiSolidUserCircle className="text-primary-400 text-8xl" />
+												{contact.firstName}
+											</Label>
+										</div>
+									))}
+								</RadioGroup>
+							</div>
+						</FormControl>
+					</FormItem>
+				)}
+			/>
 		</div>
 	)
 }

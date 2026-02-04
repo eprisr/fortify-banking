@@ -26,7 +26,7 @@ export const getUserInfo = async ({ userId }: getUserInfoProps) => {
 		const user = await database.listDocuments(
 			DATABASE_ID!,
 			USER_COLLECTION_ID!,
-			[Query.equal('userId', [userId])]
+			[Query.equal('userId', [userId])],
 		)
 
 		return parseStringify(user.documents[0])
@@ -43,7 +43,8 @@ export const signIn = async ({ email, password }: SignInProps) => {
 
 		if (!session) throw Error
 
-		cookies().set('appwrite-session', session.secret, {
+		const cookieStore = await cookies()
+		cookieStore.set('appwrite-session', session.secret, {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'strict',
@@ -65,7 +66,7 @@ export const forgotPw = async ({ email }: ForgotPwProps) => {
 
 		const res = await account.createRecovery(
 			email,
-			`${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`
+			`${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`,
 		)
 
 		if (!res) throw Error
@@ -106,7 +107,7 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
 			ID.unique(),
 			email,
 			password,
-			`${firstName} ${lastName}`
+			`${firstName} ${lastName}`,
 		)
 
 		if (!newUserAccount) throw new Error('Error creating user')
@@ -129,12 +130,13 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
 				userId: newUserAccount.$id,
 				dwollaCustomerId,
 				dwollaCustomerUrl,
-			}
+			},
 		)
 
 		const session = await account.createEmailPasswordSession(email, password)
 
-		cookies().set('appwrite-session', session.secret, {
+		const cookieStore = await cookies()
+		cookieStore.set('appwrite-session', session.secret, {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'strict',
@@ -164,14 +166,19 @@ export const logoutAccount = async () => {
 	try {
 		const { account } = await createSessionClient()
 
-		cookies().delete('appwrite-session')
+		const cookieStore = await cookies()
+		cookieStore.delete('appwrite-session')
 		await account.deleteSession('current')
 	} catch (error) {
 		return null
 	}
 }
 
-export const createLinkToken = async (user: User) => {
+export const createLinkToken = async (
+	user: User,
+	update?: boolean,
+	accessToken?: string,
+) => {
 	try {
 		const tokenParams = {
 			user: {
@@ -181,6 +188,7 @@ export const createLinkToken = async (user: User) => {
 			products: ['auth'] as Products[],
 			language: 'en',
 			country_codes: ['US'] as CountryCode[],
+			...(update && { access_token: accessToken }),
 		}
 
 		const res = await plaidClient.linkTokenCreate(tokenParams)
@@ -213,7 +221,7 @@ export const createBankAccount = async ({
 				accessToken,
 				fundingSourceUrl,
 				shareableId,
-			}
+			},
 		)
 
 		return parseStringify(bankAccount)
@@ -282,7 +290,7 @@ export const getBanks = async ({ userId }: getBanksProps) => {
 		const banks = await database.listDocuments(
 			DATABASE_ID!,
 			BANK_COLLECTION_ID!,
-			[Query.equal('userId', [userId])]
+			[Query.equal('userId', [userId])],
 		)
 
 		return parseStringify(banks.documents)
@@ -297,7 +305,7 @@ export const getBank = async ({ documentId }: getBankProps) => {
 		const bank = await database.listDocuments(
 			DATABASE_ID!,
 			BANK_COLLECTION_ID!,
-			[Query.equal('$id', [documentId])]
+			[Query.equal('$id', [documentId])],
 		)
 
 		return parseStringify(bank.documents[0])
@@ -314,7 +322,7 @@ export const getBankByAccountId = async ({
 		const bank = await database.listDocuments(
 			DATABASE_ID!,
 			BANK_COLLECTION_ID!,
-			[Query.equal('accountId', [accountId])]
+			[Query.equal('accountId', [accountId])],
 		)
 
 		if (bank.total !== 1) return null
