@@ -6,7 +6,8 @@ import { getLoggedInUser } from '@/lib/actions/user.actions'
 import Link from 'next/link'
 import React from 'react'
 
-const Home = async ({ searchParams: { id } }: SearchParamProps) => {
+const Home = async ({ searchParams }: SearchParamProps) => {
+	const { id } = await searchParams
 	const loggedIn = await getLoggedInUser()
 	const accounts = await getAccounts({ userId: loggedIn?.$id })
 

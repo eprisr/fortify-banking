@@ -4,9 +4,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 
-const ResetPassword = ({
-	searchParams: { userId, secret, expire, success },
-}: SearchParamProps) => {
+const ResetPassword = async ({ searchParams }: SearchParamProps) => {
+	const { userId, secret, expire, success } = await searchParams
+
 	const expireToTime = expire?.toString().replace(' ', 'T')
 
 	const expireDate = new Date(`${expireToTime!}Z`)

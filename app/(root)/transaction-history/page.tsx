@@ -4,9 +4,9 @@ import { getAccount, getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
 import React from 'react'
 
-const TransactionHistory = async ({
-	searchParams: { id, page },
-}: SearchParamProps) => {
+const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
+	const { id, page } = await searchParams
+
 	const currentPage = Number(page as string) || 1
 	const loggedIn = await getLoggedInUser()
 	const accounts = await getAccounts({ userId: loggedIn.$id })
