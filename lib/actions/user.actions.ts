@@ -225,7 +225,10 @@ export const createBankAccount = async ({
 		)
 
 		return parseStringify(bankAccount)
-	} catch (error) {}
+	} catch (error) {
+		console.error('Appwrite createBankAccount failed:', error)
+		return null
+	}
 }
 
 export const exchangePublicToken = async ({
