@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import React from 'react'
+import React, { Fragment } from 'react'
 import {
 	Sheet,
 	SheetClose,
@@ -72,10 +72,10 @@ const Navbar = async ({
 									</div>
 								</div>
 							</SheetHeader>
-							{navLinks.map((item) => {
+							{navLinks.map((item, i) => {
 								const { Icon, route, label } = item
 								return (
-									<>
+									<Fragment key={i}>
 										<SheetClose asChild key={item.route}>
 											<Link
 												href={route}
@@ -88,7 +88,7 @@ const Navbar = async ({
 											</Link>
 										</SheetClose>
 										<div className="border-b-2 border-black" />
-									</>
+									</Fragment>
 								)
 							})}
 

@@ -42,7 +42,7 @@ export const BankDropdown = ({
 	return (
 		<>
 			<Select
-				defaultValue={selected.id}
+				defaultValue={selected?.id || ''}
 				onValueChange={(value) => handleBankChange(value)}>
 				<SelectTrigger
 					className={`flex w-full gap-3 md:w-[300px] bg-white ${otherStyles}`}>
@@ -52,7 +52,7 @@ export const BankDropdown = ({
 						height={20}
 						alt="account"
 					/>
-					<p className="line-clamp-1 w-full text-left">{selected.name}</p>
+					<p className="line-clamp-1 w-full text-left">{selected?.name}</p>
 				</SelectTrigger>
 				<SelectContent
 					className={`w-full md:w-[300px] bg-white ${otherStyles}`}
@@ -67,9 +67,9 @@ export const BankDropdown = ({
 								value={account.appwriteItemId}
 								className="cursor-pointer border-t">
 								<div className="flex flex-col ">
-									<p className="text-16 font-medium">{account.name}</p>
+									<p className="text-16 font-medium">{account?.name}</p>
 									<p className="text-14 font-medium text-primary-700">
-										{formatAmount(account.currentBalance)}
+										{formatAmount(account?.currentBalance)}
 									</p>
 								</div>
 							</SelectItem>
@@ -78,7 +78,7 @@ export const BankDropdown = ({
 				</SelectContent>
 			</Select>
 			<p className="text-14 font-medium text-primary-700 mt-2 pl-4">
-				Current Balance: {formatAmount(selected.currentBalance)}
+				Current Balance: {formatAmount(selected?.currentBalance)}
 			</p>
 		</>
 	)
