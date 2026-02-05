@@ -39,11 +39,11 @@ import { consoleIntegration } from '@sentry/nextjs'
 const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 	const router = useRouter()
 	const [isLoading, setIsLoading] = useState(false)
-  const [contact, setContact] = useState()
-  
-  const populateContact = (contact: any) => {
-    setContact(contact)
-  }
+	const [contact, setContact] = useState()
+
+	const populateContact = (contact: any) => {
+		setContact(contact)
+	}
 
 	const [value, setValue] = useReducer((_: any, next: string) => {
 		const digits = next.replace(/\D/g, '')
@@ -298,7 +298,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 						<div className="payment-transfer_btn-box">
 							<Button
 								type="submit"
-								disabled={!form.formState.isValid || isLoading}
+								disabled={isLoading}
 								className="form-btn w-full">
 								{isLoading ? (
 									<>
