@@ -15,12 +15,13 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 	const accountsData = accounts?.data
 	// const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId
 
+	console.log(accounts)
 	return (
 		<>
 			<Navbar user={loggedIn} type="main" background />
 			<section className="home bg-white rounded-t-3xl min-h-[calc(100vh_-_152px)]">
 				<div className="home-content">
-					{accounts === 'UPDATE_MODE' ? (
+					{accounts === 'UPDATE_MODE' || accounts.totalBanks === 0 ? (
 						<>
 							<h3>
 								You account was disconnected from our app. Please
