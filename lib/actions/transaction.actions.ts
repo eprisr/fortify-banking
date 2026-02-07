@@ -10,21 +10,21 @@ const {
 } = process.env
 
 export const createTransaction = async (
-	transaction: CreateTransactionProps
+	transaction: CreateTransactionProps,
 ) => {
 	try {
-		const { database } = await createAdminClient()
+		const { table } = await createAdminClient()
 
-		const newTransaction = await database.createDocument(
-			DATABASE_ID!,
-			TRANSACTION_COLLECTION_ID!,
-			ID.unique(),
-			{
+		const newTransaction = await table.createRow({
+			databaseId: DATABASE_ID!,
+			tableId: TRANSACTION_COLLECTION_ID!,
+			rowId: ID.unique(),
+			data: {
 				channel: 'online',
 				category: 'Transfer',
 				...transaction,
-			}
-		)
+			},
+		})
 
 		return parseStringify(newTransaction)
 	} catch (error) {
@@ -36,26 +36,23 @@ export const getTransactionsByBankId = async ({
 	bankId,
 }: getTransactionsByBankIdProps) => {
 	try {
-		const { database } = await createAdminClient()
+		const { table } = await createAdminClient()
 
-		const senderTransactions = await database.listDocuments(
-			DATABASE_ID!,
-			TRANSACTION_COLLECTION_ID!,
-			[Query.equal('senderBankId', bankId)]
-		)
+		const senderTransactions = await table.listRows({
+			databaseId: DATABASE_ID!,
+			tableId: TRANSACTION_COLLECTION_ID!,
+			queries: [Query.equal('senderBankId', bankId)],
+		})
 
-		const receiverTransactions = await database.listDocuments(
-			DATABASE_ID!,
-			TRANSACTION_COLLECTION_ID!,
-			[Query.equal('receiverBankId', bankId)]
-		)
+		const receiverTransactions = await table.listRows({
+			databaseId: DATABASE_ID!,
+			tableId: TRANSACTION_COLLECTION_ID!,
+			queries: [Query.equal('receiverBankId', bankId)],
+		})
 
 		const transactions = {
 			total: senderTransactions.total + receiverTransactions.total,
-			documents: [
-				...senderTransactions.documents,
-				...receiverTransactions.documents,
-			],
+			documents: [...senderTransactions.rows, ...receiverTransactions.rows],
 		}
 
 		return parseStringify(transactions)
