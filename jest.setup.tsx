@@ -2,18 +2,14 @@ import '@testing-library/jest-dom'
 import React from 'react' //
 
 jest.mock('next/navigation', () => ({
-	useRouter() {
-		return {
-			push: jest.fn(),
-			replace: jest.fn(),
-			refresh: jest.fn(),
-			back: jest.fn(),
-			forward: jest.fn(),
-		}
-	},
-	usePathname() {
-		return ''
-	},
+	useRouter: jest.fn(() => ({
+		push: jest.fn(),
+		replace: jest.fn(),
+		refresh: jest.fn(),
+		back: jest.fn(),
+		forward: jest.fn(),
+	})),
+	usePathname: jest.fn(() => ''),
 	useSearchParams: jest.fn(() => new URLSearchParams()),
 	redirect: jest.fn(),
 }))
