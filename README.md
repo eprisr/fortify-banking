@@ -2,6 +2,7 @@
 
 A secure and modern banking application. This project serves as a deep dive into secure data handling, real-time transaction tracking, and scalable frontend architecture.
 
+![UI - iBank by Seju](https://www.figma.com/community/file/1322236579213422290)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=flat&logo=react&logoColor=%2361DAFB)
