@@ -58,8 +58,12 @@ export const signIn = async ({ email, password }: SignInProps) => {
 
 		return parseStringify(user)
 	} catch (error: any) {
-		console.error('An Error Occurred while Signing In: ', error)
-		return { error: error.response.message }
+		console.error('An Error Occurred While Signing In: ', error)
+		const message =
+			error?.response?.message ?? // Appwrite API error
+			error?.message ?? // standard JS Error
+			'An unexpected error occurred while signing in'
+		return { error: message }
 	}
 }
 
