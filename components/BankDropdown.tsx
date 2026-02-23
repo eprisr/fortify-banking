@@ -21,12 +21,12 @@ export const BankDropdown = ({
 }: BankDropdownProps) => {
 	const searchParams = useSearchParams()
 	const router = useRouter()
-	const [selected, setSeclected] = useState(accounts[0])
+	const [selected, setSelected] = useState<Account>(accounts[0])
 
 	const handleBankChange = (id: string) => {
 		const account = accounts.find((account) => account.appwriteItemId === id)!
 
-		setSeclected(account)
+		setSelected(account)
 		const newUrl = formUrlQuery({
 			params: searchParams.toString(),
 			key: 'id',
@@ -40,41 +40,46 @@ export const BankDropdown = ({
 	}
 
 	return (
-		<Select
-			defaultValue={selected.id}
-			onValueChange={(value) => handleBankChange(value)}>
-			<SelectTrigger
-				className={`flex w-full gap-3 md:w-[300px] bg-white ${otherStyles}`}>
-				<Image
-					src="icons/credit-card.svg"
-					width={20}
-					height={20}
-					alt="account"
-				/>
-				<p className="line-clamp-1 w-full text-left">{selected.name}</p>
-			</SelectTrigger>
-			<SelectContent
-				className={`w-full md:w-[300px] bg-white ${otherStyles}`}
-				align="end">
-				<SelectGroup>
-					<SelectLabel className="py-2 font-normal text-gray-500">
-						Select a bank to display
-					</SelectLabel>
-					{accounts.map((account: Account) => (
-						<SelectItem
-							key={account.id}
-							value={account.appwriteItemId}
-							className="cursor-pointer border-t">
-							<div className="flex flex-col ">
-								<p className="text-16 font-medium">{account.name}</p>
-								<p className="text-14 font-medium text-blue-600">
-									{formatAmount(account.currentBalance)}
-								</p>
-							</div>
-						</SelectItem>
-					))}
-				</SelectGroup>
-			</SelectContent>
-		</Select>
+		<>
+			<Select
+				defaultValue={selected?.id || ''}
+				onValueChange={(value) => handleBankChange(value)}>
+				<SelectTrigger
+					className={`flex w-full gap-3 md:w-[300px] bg-white ${otherStyles}`}>
+					<Image
+						src="icons/credit-card.svg"
+						width={20}
+						height={20}
+						alt="account"
+					/>
+					<p className="line-clamp-1 w-full text-left">{selected?.name}</p>
+				</SelectTrigger>
+				<SelectContent
+					className={`w-full md:w-[300px] bg-white ${otherStyles}`}
+					align="end">
+					<SelectGroup>
+						<SelectLabel className="py-2 font-normal text-gray-500">
+							Select a bank to display
+						</SelectLabel>
+						{accounts.map((account: Account) => (
+							<SelectItem
+								key={account.id}
+								value={account.appwriteItemId}
+								className="cursor-pointer border-t">
+								<div className="flex flex-col ">
+									<p className="text-16 font-medium">{account?.name}</p>
+									<p className="text-14 font-medium text-primary-700">
+										{formatAmount(account?.currentBalance)}
+									</p>
+								</div>
+							</SelectItem>
+						))}
+					</SelectGroup>
+				</SelectContent>
+			</Select>
+			<p className="text-14 font-medium text-primary-700 mt-2 pl-4">
+				Current Balance: {formatAmount(selected?.currentBalance)}
+			</p>
+		</>
 	)
 }

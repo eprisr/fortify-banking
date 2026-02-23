@@ -1,5 +1,6 @@
 import AccountBox from '@/components/AccountBox'
 import Navbar from '@/components/Navbar'
+import PlaidLink from '@/components/PlaidLink'
 import { homeLinks } from '@/constants'
 import { getAccount, getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
@@ -11,23 +12,32 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 	const loggedIn = await getLoggedInUser()
 	const accounts = await getAccounts({ userId: loggedIn?.$id })
 
-	if (!accounts) return
-
 	const accountsData = accounts?.data
-	const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId
+	// const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId
 
+	console.log(accounts)
 	return (
 		<>
 			<Navbar user={loggedIn} type="main" background />
 			<section className="home bg-white rounded-t-3xl min-h-[calc(100vh_-_152px)]">
 				<div className="home-content">
-					<AccountBox
-						user={loggedIn}
-						accounts={accountsData}
-						banks={accountsData?.slice(0, 2)}
-						totalBanks={accounts?.totalBanks}
-						totalBalance={accounts?.totalBalance}
-					/>
+					{accounts === 'UPDATE_MODE' || accounts.totalBanks === 0 ? (
+						<>
+							<h3>
+								You account was disconnected from our app. Please
+								re-authenticate it.
+							</h3>
+							<PlaidLink user={loggedIn} update />
+						</>
+					) : (
+						<AccountBox
+							user={loggedIn}
+							accounts={accountsData}
+							banks={accountsData?.slice(0, 2)}
+							totalBanks={accounts?.totalBanks}
+							totalBalance={accounts?.totalBalance}
+						/>
+					)}
 					<div className="grid grid-cols-3 gap-4 justify-items-center">
 						{homeLinks.map((link) => {
 							const { Icon, route, label, color } = link

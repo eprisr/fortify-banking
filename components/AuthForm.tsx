@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useState } from 'react'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
@@ -30,7 +30,7 @@ const AuthForm = ({
 	const searchParams = useSearchParams()
 	const [user, setUser] = useState(null)
 	const [isLoading, setIsLoading] = useState(false)
-	const [error, setError] = useState('')
+	const [serverError, setServerError] = useState('')
 
 	const renderHeader = type === 'signin' || type === 'signup'
 
@@ -65,8 +65,15 @@ const AuthForm = ({
 		},
 	})
 
+	const getFormValidationError = () => {
+		const errors = form.formState.errors
+		const firstError = Object.values(errors)[0]
+		return firstError?.message as string | undefined
+	}
+
 	const onSubmit = async (data: z.infer<typeof formSchema>) => {
 		setIsLoading(true)
+		setServerError('')
 
 		try {
 			const userData = {
@@ -102,7 +109,6 @@ const AuthForm = ({
 				if (res?.error) throw new Error(res.error)
 
 				if (res) {
-					setError('')
 					router.push('/signin')
 				}
 			}
@@ -116,12 +122,11 @@ const AuthForm = ({
 				if (res?.error) throw new Error(res.error)
 
 				if (res) {
-					setError('')
 					router.push(pathname + '?' + createQueryString('success', 'true'))
 				}
 			}
 		} catch (error: any) {
-			setError(error.message)
+			setServerError(error.message)
 			console.error('Auth Error: ', error)
 		} finally {
 			setIsLoading(false)
@@ -278,7 +283,9 @@ const AuthForm = ({
 							)}
 
 							<div className="flex flex-col gap-4">
-								{error !== '' && <p className="form-message">{error}</p>}
+								{serverError !== '' && (
+									<p className="form-message">{serverError}</p>
+								)}
 								<Button type="submit" disabled={isLoading} className="form-btn">
 									{isLoading ? (
 										<>

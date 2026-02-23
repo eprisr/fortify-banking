@@ -13,7 +13,12 @@ import { plaidClient } from '../plaid'
 import { parseStringify } from '../utils'
 
 import { getTransactionsByBankId } from './transaction.actions'
-import { getBanks, getBank } from './user.actions'
+import {
+	getBanks,
+	getBank,
+	createLinkToken,
+	getLoggedInUser,
+} from './user.actions'
 
 // Get multiple bank accounts
 export const getAccounts = async ({ userId }: getAccountsProps) => {
@@ -21,12 +26,19 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 		// get banks from db
 		const banks = await getBanks({ userId })
 
-		const accounts = await Promise.all(
-			banks?.map(async (bank: Bank) => {
+		const accountsPromises = banks?.map(async (bank: Bank) => {
+			try {
+				// 1. Check if token exists before calling Plaid
+				if (!bank.accessToken) {
+					console.warn(`Bank ${bank.$id} has no access token. Skipping.`)
+					return null
+				}
+
 				// get each account info from plaid
 				const accountsResponse = await plaidClient.accountsGet({
 					access_token: bank.accessToken,
 				})
+
 				const accountData = accountsResponse.data.accounts[0]
 
 				// get institution info from plaid
@@ -49,7 +61,22 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 				}
 
 				return account
-			})
+			} catch (error: any) {
+				// 2. Catch individual bank errors so they don't crash the whole Promise.all
+				console.error(
+					`Failed to fetch account for bank ${bank.$id}:`,
+					JSON.stringify(error.response?.data, null, 2),
+				)
+				if (error.response.data.error_code === 'ITEM_LOGIN_REQUIRED') {
+					return 'UPDATE_MODE'
+				}
+				return null
+			}
+		})
+
+		// 3. Wait for all, then filter out the nulls (failed banks)
+		const accounts = (await Promise.all(accountsPromises || [])).filter(
+			(account) => account !== null,
 		)
 
 		const totalBanks = accounts.length
@@ -58,7 +85,10 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 		}, 0)
 
 		return parseStringify({ data: accounts, totalBanks, totalCurrentBalance })
-	} catch (error) {
+	} catch (error: any) {
+		if (error.response.data.error_code === 'ITEM_LOGIN_REQUIRED') {
+			return 'UPDATE_MODE'
+		}
 		console.error('An error occurred while getting the accounts:', error)
 	}
 }
@@ -89,7 +119,7 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
 				paymentChannel: transferData.channel,
 				category: transferData.category,
 				type: transferData.senderBankId === bank.$id ? 'debit' : 'credit',
-			})
+			}),
 		)
 
 		// get institution info from plaid
@@ -116,7 +146,7 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
 
 		// sort transactions by date such that the most recent transaction is first
 		const allTransactions = [...transactions, ...transferTransactions].sort(
-			(a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+			(a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
 		)
 
 		return parseStringify({
@@ -142,7 +172,7 @@ export const getInstitution = async ({
 
 		return parseStringify(intitution)
 	} catch (error) {
-		console.error('An error occurred while getting the accounts:', error)
+		console.error('An error occurred while getting the institution:', error)
 	}
 }
 
@@ -180,7 +210,7 @@ export const getTransactions = async ({
 
 		return parseStringify(transactions)
 	} catch (error) {
-		console.error('An error occurred while getting the accounts:', error)
+		console.error('An error occurred while getting the transactions:', error)
 	}
 }
 
@@ -199,9 +229,8 @@ export const createTransfer = async () => {
 		},
 	}
 	try {
-		const transferAuthResponse = await plaidClient.transferAuthorizationCreate(
-			transferAuthRequest
-		)
+		const transferAuthResponse =
+			await plaidClient.transferAuthorizationCreate(transferAuthRequest)
 		const authorizationId = transferAuthResponse.data.authorization.id
 
 		const transferCreateRequest: TransferCreateRequest = {
@@ -212,7 +241,7 @@ export const createTransfer = async () => {
 		}
 
 		const responseCreateResponse = await plaidClient.transferCreate(
-			transferCreateRequest
+			transferCreateRequest,
 		)
 
 		const transfer = responseCreateResponse.data.transfer
@@ -220,7 +249,7 @@ export const createTransfer = async () => {
 	} catch (error) {
 		console.error(
 			'An error occurred while creating transfer authorization:',
-			error
+			error,
 		)
 	}
 }

@@ -14,13 +14,13 @@ import {
 	exchangePublicToken,
 } from '@/lib/actions/user.actions'
 
-const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
+const PlaidLink = ({ user, variant, update }: PlaidLinkProps) => {
 	const router = useRouter()
 	const [token, setToken] = useState('')
 
 	useEffect(() => {
 		const getLinkToken = async () => {
-			const data = await createLinkToken(user)
+			const data = await createLinkToken(user, update)
 			setToken(data?.linkToken)
 		}
 

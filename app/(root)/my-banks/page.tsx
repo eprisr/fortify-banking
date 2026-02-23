@@ -7,6 +7,7 @@ import React from 'react'
 const MyBanks = async () => {
 	const loggedIn = await getLoggedInUser()
 	const accounts = await getAccounts({ userId: loggedIn.$id })
+	console.log(accounts)
 
 	return (
 		<>
@@ -16,10 +17,10 @@ const MyBanks = async () => {
 					<div>
 						<div className="flex flex-wrap justify-center gap-6">
 							{accounts &&
-								accounts.data.map((a: Account) => (
+								accounts.data.map((account: Account) => (
 									<BankCard
-										key={accounts.id}
-										account={a}
+										key={account.id}
+										account={account}
 										userName={loggedIn?.firstName}
 									/>
 								))}

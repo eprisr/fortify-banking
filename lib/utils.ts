@@ -40,22 +40,22 @@ export const formatDateTime = (dateString: Date) => {
 
 	const formattedDateTime: string = new Date(dateString).toLocaleString(
 		'en-US',
-		dateTimeOptions
+		dateTimeOptions,
 	)
 
 	const formattedDateDay: string = new Date(dateString).toLocaleString(
 		'en-US',
-		dateDayOptions
+		dateDayOptions,
 	)
 
 	const formattedDate: string = new Date(dateString).toLocaleString(
 		'en-US',
-		dateOptions
+		dateOptions,
 	)
 
 	const formattedTime: string = new Date(dateString).toLocaleString(
 		'en-US',
-		timeOptions
+		timeOptions,
 	)
 
 	return {
@@ -98,7 +98,7 @@ export function formUrlQuery({ params, key, value }: UrlQueryParams) {
 			url: window.location.pathname,
 			query: currentUrl,
 		},
-		{ skipNull: true }
+		{ skipNull: true },
 	)
 }
 
@@ -131,7 +131,7 @@ export function getAccountTypeColors(type: AccountTypes) {
 }
 
 export function countTransactionCategories(
-	transactions: Transaction[]
+	transactions: Transaction[],
 ): CategoryCount[] {
 	const categoryCounts: { [category: string]: number } = {}
 	let totalCount = 0
@@ -160,7 +160,7 @@ export function countTransactionCategories(
 			name: category,
 			count: categoryCounts[category],
 			totalCount,
-		})
+		}),
 	)
 
 	// Sort the aggregatedCategories array by count in descending order
@@ -199,7 +199,7 @@ export const transferFormSchema = () =>
 	z.object({
 		senderBank: z.string().min(4, 'Please select a valid bank account'),
 		recipientName: z.string().min(1, 'Please enter the name of the recipient'),
-		recipientEmail: z.string().email('Invalid email address'),
+		recipientEmail: z.email('Invalid email address'),
 		sharableId: z.string().min(8, 'Please select a valid sharable Id'),
 		amount: z.string().min(4, 'Amount is too short'),
 		note: z.string().optional(),
@@ -210,64 +210,64 @@ export const authFormSchema = (type: string) =>
 		.object({
 			firstName:
 				type === 'signup'
-					? z.string().min(2, { message: 'First Name is Required' })
-					: z.string(),
+					? z.string().min(2, { error: 'First Name is Required' })
+					: z.string().optional(),
 			lastName:
 				type === 'signup'
-					? z.string().min(2, { message: 'Last Name is Required' })
+					? z.string().min(2, { error: 'Last Name is Required' })
 					: z.string().optional(),
 			address1:
 				type === 'signup'
-					? z.string().min(5, { message: 'Address is Required' }).max(50)
+					? z.string().min(5, { error: 'Address is Required' }).max(50)
 					: z.string().optional(),
 			city:
 				type === 'signup'
-					? z.string().min(2, { message: 'City is Required' }).max(50)
+					? z.string().min(2, { error: 'City is Required' }).max(50)
 					: z.string().optional(),
 			state:
 				type === 'signup'
 					? z
 							.string()
-							.min(2, { message: 'State is Required' })
-							.max(2, { message: 'A Valid State is Required' })
+							.min(2, { error: 'State is Required' })
+							.max(2, { error: 'A Valid State is Required' })
 					: z.string().optional(),
 			postalCode:
 				type === 'signup'
 					? z
 							.string()
-							.min(3, { message: 'A Postal Code is Required' })
-							.max(6, { message: 'A Valid Postal Code is Required' })
+							.min(3, { error: 'A Postal Code is Required' })
+							.max(6, { error: 'A Valid Postal Code is Required' })
 					: z.string().optional(),
 			dateOfBirth:
 				type === 'signup'
-					? z.string().min(3, { message: 'A Birth Date of Required' })
+					? z.string().min(3, { error: 'A Birth Date of Required' })
 					: z.string().optional(),
 			ssn:
 				type === 'signup'
-					? z.string().min(4, { message: 'A SSN is Required' })
+					? z.string().min(4, { error: 'A SSN is Required' })
 					: z.string().optional(),
 			email:
 				type === 'reset-pw'
 					? z.string().optional()
-					: z.string().email('A Valid Email is Required'),
+					: z.email('A Valid Email is Required'),
 			password:
 				type === 'forgot-pw'
 					? z.string().optional()
 					: z
 							.string()
-							.min(1, { message: 'Password is Required' })
-							.min(8, { message: 'Password Must be a Minimum of 8 Characters' })
+							.min(1, { error: 'Password is Required' })
+							.min(8, { error: 'Password Must be a Minimum of 8 Characters' })
 							.max(256, {
-								message: 'Password Must be Less Than 256 Characters',
+								error: 'Password Must be Less Than 256 Characters',
 							}),
 			confirmPassword:
 				type === 'reset-pw'
 					? z
 							.string()
-							.min(1, { message: 'Password is Required' })
-							.min(8, { message: 'Password Must be a Minimum of 8 Characters' })
+							.min(1, { error: 'Password is Required' })
+							.min(8, { error: 'Password Must be a Minimum of 8 Characters' })
 							.max(256, {
-								message: 'Password Must be Less Than 256 Characters',
+								error: 'Password Must be Less Than 256 Characters',
 							})
 					: z.string().optional(),
 		})
@@ -275,7 +275,7 @@ export const authFormSchema = (type: string) =>
 			if (type === 'reset-pw') {
 				if (confirmPassword !== password) {
 					ctx.addIssue({
-						code: z.ZodIssueCode.custom,
+						code: 'custom',
 						message: 'Passwords must match',
 						path: ['confirmPassword'],
 					})

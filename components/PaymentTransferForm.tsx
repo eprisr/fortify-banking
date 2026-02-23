@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useReducer, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
@@ -34,10 +34,16 @@ import {
 	CardTitle,
 } from './ui/card'
 import Contacts from './Contacts'
+import { consoleIntegration } from '@sentry/nextjs'
 
 const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 	const router = useRouter()
 	const [isLoading, setIsLoading] = useState(false)
+	const [contact, setContact] = useState()
+
+	const populateContact = (contact: any) => {
+		setContact(contact)
+	}
 
 	const [value, setValue] = useReducer((_: any, next: string) => {
 		const digits = next.replace(/\D/g, '')
@@ -144,7 +150,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 				/>
 
 				<Transfer />
-				<Contacts />
+				<Contacts setContact={populateContact} />
 
 				<Card className="mt-4 shadow-xl border-none">
 					<CardHeader>
@@ -164,7 +170,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 										<div className="flex w-full flex-col">
 											<FormControl>
 												<Input
-													placeholder="Enter the recipient's name"
+													placeholder="J Doe"
 													className="input-class"
 													{...field}
 												/>
@@ -188,7 +194,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 										<div className="flex w-full flex-col">
 											<FormControl>
 												<Input
-													placeholder="ex: johndoe@gmail.com"
+													placeholder="ex: johndoe@email.com"
 													className="input-class"
 													{...field}
 												/>
@@ -207,12 +213,12 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 								<FormItem>
 									<div className="payment-transfer_form-item pb-5 pt-6">
 										<FormLabel className="text-14 w-full max-w-[280px] font-medium text-gray-700">
-											Receiver&apos;s Plaid Sharable Id
+											Recipient&apos;s Sharable Id
 										</FormLabel>
 										<div className="flex w-full flex-col">
 											<FormControl>
 												<Input
-													placeholder="Enter the public account number"
+													placeholder="ex: fdewkl8JF23fS93ngr8984"
 													className="input-class"
 													{...field}
 												/>
@@ -292,7 +298,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 						<div className="payment-transfer_btn-box">
 							<Button
 								type="submit"
-								disabled={!form.formState.isValid || isLoading}
+								disabled={isLoading}
 								className="form-btn w-full">
 								{isLoading ? (
 									<>

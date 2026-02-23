@@ -22,14 +22,14 @@ const {
 
 export const getUserInfo = async ({ userId }: getUserInfoProps) => {
 	try {
-		const { database } = await createAdminClient()
-		const user = await database.listDocuments(
-			DATABASE_ID!,
-			USER_COLLECTION_ID!,
-			[Query.equal('userId', [userId])]
-		)
+		const { table } = await createAdminClient()
+		const user = await table.listRows({
+			databaseId: DATABASE_ID!,
+			tableId: USER_COLLECTION_ID!,
+			queries: [Query.equal('userId', [userId])],
+		})
 
-		return parseStringify(user.documents[0])
+		return parseStringify(user.rows[0])
 	} catch (error) {
 		console.error('Get User Info Error: ', error)
 	}
@@ -39,11 +39,15 @@ export const signIn = async ({ email, password }: SignInProps) => {
 	try {
 		const { account } = await createAdminClient()
 
-		const session = await account.createEmailPasswordSession(email, password)
+		const session = await account.createEmailPasswordSession({
+			email,
+			password,
+		})
 
 		if (!session) throw Error
 
-		cookies().set('appwrite-session', session.secret, {
+		const cookieStore = await cookies()
+		cookieStore.set('appwrite-session', session.secret, {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'strict',
@@ -54,8 +58,12 @@ export const signIn = async ({ email, password }: SignInProps) => {
 
 		return parseStringify(user)
 	} catch (error: any) {
-		console.error('An Error Occurred while Signing In: ', error)
-		return { error: error.response.message }
+		console.error('An Error Occurred While Signing In: ', error)
+		const message =
+			error?.response?.message ?? // Appwrite API error
+			error?.message ?? // standard JS Error
+			'An unexpected error occurred while signing in'
+		return { error: message }
 	}
 }
 
@@ -63,10 +71,10 @@ export const forgotPw = async ({ email }: ForgotPwProps) => {
 	try {
 		const { account } = await createAdminClient()
 
-		const res = await account.createRecovery(
-			email,
-			`${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`
-		)
+		const res = await account.createRecovery({
+			email: email,
+			url: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`,
+		})
 
 		if (!res) throw Error
 		return parseStringify(res)
@@ -84,7 +92,7 @@ export const resetPw = async ({ userId, secret, password }: ResetPwProps) => {
 	try {
 		const { account } = await createAdminClient()
 
-		const res = await account.updateRecovery(userId, secret, password)
+		const res = await account.updateRecovery({ userId, secret, password })
 
 		if (!res) throw Error
 		return parseStringify(res)
@@ -102,12 +110,12 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
 	try {
 		const { account, database } = await createAdminClient()
 
-		newUserAccount = await account.create(
-			ID.unique(),
-			email,
-			password,
-			`${firstName} ${lastName}`
-		)
+		newUserAccount = await account.create({
+			userId: ID.unique(),
+			email: email,
+			password: password,
+			name: `${firstName} ${lastName}`,
+		})
 
 		if (!newUserAccount) throw new Error('Error creating user')
 
@@ -129,12 +137,16 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
 				userId: newUserAccount.$id,
 				dwollaCustomerId,
 				dwollaCustomerUrl,
-			}
+			},
 		)
 
-		const session = await account.createEmailPasswordSession(email, password)
+		const session = await account.createEmailPasswordSession({
+			email,
+			password,
+		})
 
-		cookies().set('appwrite-session', session.secret, {
+		const cookieStore = await cookies()
+		cookieStore.set('appwrite-session', session.secret, {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'strict',
@@ -164,14 +176,19 @@ export const logoutAccount = async () => {
 	try {
 		const { account } = await createSessionClient()
 
-		cookies().delete('appwrite-session')
-		await account.deleteSession('current')
+		const cookieStore = await cookies()
+		cookieStore.delete('appwrite-session')
+		await account.deleteSession({ sessionId: 'current' })
 	} catch (error) {
 		return null
 	}
 }
 
-export const createLinkToken = async (user: User) => {
+export const createLinkToken = async (
+	user: User,
+	update?: boolean,
+	accessToken?: string,
+) => {
 	try {
 		const tokenParams = {
 			user: {
@@ -181,6 +198,7 @@ export const createLinkToken = async (user: User) => {
 			products: ['auth'] as Products[],
 			language: 'en',
 			country_codes: ['US'] as CountryCode[],
+			...(update && { access_token: accessToken }),
 		}
 
 		const res = await plaidClient.linkTokenCreate(tokenParams)
@@ -200,24 +218,27 @@ export const createBankAccount = async ({
 	shareableId,
 }: CreateBankAccountProps) => {
 	try {
-		const { database } = await createAdminClient()
+		const { table } = await createAdminClient()
 
-		const bankAccount = await database.createDocument(
-			DATABASE_ID!,
-			BANK_COLLECTION_ID!,
-			ID.unique(),
-			{
+		const bankAccount = await table.createRow({
+			databaseId: DATABASE_ID!,
+			tableId: BANK_COLLECTION_ID!,
+			rowId: ID.unique(),
+			data: {
 				userId,
 				bankId,
 				accountId,
 				accessToken,
 				fundingSourceUrl,
 				shareableId,
-			}
-		)
+			},
+		})
 
 		return parseStringify(bankAccount)
-	} catch (error) {}
+	} catch (error) {
+		console.error('Appwrite createBankAccount failed:', error)
+		return null
+	}
 }
 
 export const exchangePublicToken = async ({
@@ -278,14 +299,14 @@ export const exchangePublicToken = async ({
 
 export const getBanks = async ({ userId }: getBanksProps) => {
 	try {
-		const { database } = await createAdminClient()
-		const banks = await database.listDocuments(
-			DATABASE_ID!,
-			BANK_COLLECTION_ID!,
-			[Query.equal('userId', [userId])]
-		)
+		const { table } = await createAdminClient()
+		const banks = await table.listRows({
+			databaseId: DATABASE_ID!,
+			tableId: BANK_COLLECTION_ID!,
+			queries: [Query.equal('userId', [userId])],
+		})
 
-		return parseStringify(banks.documents)
+		return parseStringify(banks.rows)
 	} catch (error) {
 		console.error('Get Banks Error: ', error)
 	}
@@ -293,14 +314,14 @@ export const getBanks = async ({ userId }: getBanksProps) => {
 
 export const getBank = async ({ documentId }: getBankProps) => {
 	try {
-		const { database } = await createAdminClient()
-		const bank = await database.listDocuments(
-			DATABASE_ID!,
-			BANK_COLLECTION_ID!,
-			[Query.equal('$id', [documentId])]
-		)
+		const { table } = await createAdminClient()
+		const bank = await table.listRows({
+			databaseId: DATABASE_ID!,
+			tableId: BANK_COLLECTION_ID!,
+			queries: [Query.equal('$id', [documentId])],
+		})
 
-		return parseStringify(bank.documents[0])
+		return parseStringify(bank.rows[0])
 	} catch (error) {
 		console.error('Get Bank Error: ', error)
 	}
@@ -310,16 +331,16 @@ export const getBankByAccountId = async ({
 	accountId,
 }: getBankByAccountIdProps) => {
 	try {
-		const { database } = await createAdminClient()
-		const bank = await database.listDocuments(
-			DATABASE_ID!,
-			BANK_COLLECTION_ID!,
-			[Query.equal('accountId', [accountId])]
-		)
+		const { table } = await createAdminClient()
+		const bank = await table.listRows({
+			databaseId: DATABASE_ID!,
+			tableId: BANK_COLLECTION_ID!,
+			queries: [Query.equal('accountId', [accountId])],
+		})
 
 		if (bank.total !== 1) return null
 
-		return parseStringify(bank.documents[0])
+		return parseStringify(bank.rows[0])
 	} catch (error) {
 		console.error('Get Bank Error: ', error)
 	}
