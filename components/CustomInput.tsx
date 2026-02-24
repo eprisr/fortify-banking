@@ -7,6 +7,7 @@ import {
 	FormMessage,
 } from './ui/form'
 import { Input } from './ui/input'
+import * as VisuallyHiddenPrimative from '@radix-ui/react-visually-hidden'
 import { Control, FieldPath } from 'react-hook-form'
 import { z } from 'zod'
 import { authFormSchema } from '@/lib/utils'
@@ -34,10 +35,12 @@ const CustomInput = ({
 			name={name}
 			render={({ field }) => (
 				<FormItem className="form-item">
-					<FormLabel className="form-label">
-						{label}
-						{required && <sup>*</sup>}
-					</FormLabel>
+					<VisuallyHiddenPrimative.Root>
+						<FormLabel className="form-label">
+							{label}
+							{required && <sup>*</sup>}
+						</FormLabel>
+					</VisuallyHiddenPrimative.Root>
 					<div className="flex w-full flex-col">
 						<FormControl>
 							<Input
