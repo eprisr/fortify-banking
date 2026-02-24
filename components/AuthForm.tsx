@@ -135,20 +135,6 @@ const AuthForm = ({
 
 	return (
 		<section className="auth-form">
-			{renderHeader && (
-				<header className="flex flex-col gap-5 md:gap-8">
-					<div className="flex flex-col gap-1 md:gap-3">
-						<h1 className="text-24 lg:text-36 font-semibold text-primary-700">
-							{type === 'signin' ? 'Welcome Back!' : 'Welcome to Fortify!'}
-						</h1>
-						<p className="text-12 font-normal text-gray-600">
-							{type === 'signin'
-								? 'Hello there, sign in to continue.'
-								: 'Hello there, create a new account.'}
-						</p>
-					</div>
-				</header>
-			)}
 			{type === 'signin' && (
 				<div className="flex justify-center my-8">
 					<Image
@@ -168,6 +154,20 @@ const AuthForm = ({
 						alt="Sign Up Mobile Illustration"
 					/>
 				</div>
+			)}
+			{renderHeader && (
+				<header className="flex flex-col gap-5 md:gap-8">
+					<div className="flex flex-col gap-1 md:gap-3">
+						<h1 className="text-24 lg:text-36 font-semibold text-primary-700 text-center">
+							{type === 'signin' ? 'Welcome Back!' : 'Welcome to Fortify!'}
+						</h1>
+						<p className="text-12 font-normal text-gray-600 text-center">
+							{type === 'signin'
+								? 'Hello there, sign in to continue.'
+								: 'Hello there, create a new account.'}
+						</p>
+					</div>
+				</header>
 			)}
 			{user ? (
 				<div className="flex flex-col gap-4">
