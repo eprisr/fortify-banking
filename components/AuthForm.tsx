@@ -139,12 +139,12 @@ const AuthForm = ({
 				<header className="flex flex-col gap-5 md:gap-8">
 					<div className="flex flex-col gap-1 md:gap-3">
 						<h1 className="text-24 lg:text-36 font-semibold text-primary-700">
-							{type === 'signin' ? 'Welcome Back' : 'Welcome to us,'}
+							{type === 'signin' ? 'Welcome Back!' : 'Welcome to Fortify!'}
 						</h1>
 						<p className="text-12 font-normal text-gray-600">
 							{type === 'signin'
-								? 'Hello there, sign in to continue'
-								: 'Hello there, create New account'}
+								? 'Hello there, sign in to continue.'
+								: 'Hello there, create a new account.'}
 						</p>
 					</div>
 				</header>
