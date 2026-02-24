@@ -259,7 +259,7 @@ const AuthForm = ({
 									control={form.control}
 									name="password"
 									label="Password"
-									placeholder="Enter your password"
+									placeholder="Password"
 									required
 								/>
 							)}
@@ -277,7 +277,7 @@ const AuthForm = ({
 							{type === 'signin' && (
 								<div className="flex justify-end !mt-1">
 									<Link className="text-right text-12" href="/forgot-password">
-										Forgot your password?
+										Forgot password?
 									</Link>
 								</div>
 							)}
