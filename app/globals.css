@@ -286,6 +286,12 @@
 	.home-header {
 		@apply flex flex-col justify-between gap-8;
 	}
+	.account-update {
+		@apply flex bg-primary-700 text-white px-5 py-10 -mx-5 -mt-6;
+	}
+	.connect-box {
+		@apply flex flex-center border-2 border-primary-100 bg-primary-400 p-5 rounded-lg w-full mb-3;
+	}
 	.total-balance {
 		@apply flex w-full items-center gap-4 rounded-xl border border-gray-200 p-4 shadow-chart sm:gap-6 sm:p-6;
 	}
@@ -415,6 +421,7 @@
 	.plaidlink-default {
 		@apply flex !justify-start cursor-pointer gap-3 rounded-lg !bg-transparent flex-row;
 	}
+
 	/* Footer */
 	.footer {
 		@apply flex cursor-pointer items-center justify-between gap-2 py-6;

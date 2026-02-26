@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { Button } from './ui/button'
-import { MdOutlineAddCard } from 'react-icons/md'
+import { MdOutlineAddCard, MdOutlineArrowCircleRight } from 'react-icons/md'
 import {
 	PlaidLinkOnSuccess,
 	PlaidLinkOptions,
@@ -36,7 +36,7 @@ const PlaidLink = ({ user, variant, update }: PlaidLinkProps) => {
 
 			router.push('/')
 		},
-		[user]
+		[user],
 	)
 
 	const config: PlaidLinkOptions = {
@@ -66,6 +66,19 @@ const PlaidLink = ({ user, variant, update }: PlaidLinkProps) => {
 							Connect Bank
 						</p>
 					</p>
+				</Button>
+			) : variant === 'reconnect' ? (
+				<Button onClick={() => open()} disabled={!ready} className="w-full p-0">
+					<div className="connect-box">
+						<MdOutlineAddCard className="text-24 mr-2" />
+						<div className="text-left shrink-[5]">
+							<h3 className="font-extrabold">Connect your bank</h3>
+							<p className="font-extralight text-12 text-wrap">
+								Link an account to unlock your full dashboard
+							</p>
+						</div>
+						<MdOutlineArrowCircleRight className="text-24 ml-5" />
+					</div>
 				</Button>
 			) : (
 				<Button onClick={() => open()} className="plaidlink-default px-1">
