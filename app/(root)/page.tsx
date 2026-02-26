@@ -13,6 +13,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 	const accounts = await getAccounts({ userId: loggedIn?.$id })
 
 	const accountsData = accounts?.data
+	const emptyAccounts = accounts === 'UPDATE_MODE' || accounts.totalBanks === 0
 	// const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId
 
 	console.log(accounts)
@@ -21,14 +22,10 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 			<Navbar user={loggedIn} type="main" background />
 			<section className="home bg-white rounded-t-3xl min-h-[calc(100vh_-_152px)]">
 				<div className="home-content">
-					{accounts === 'UPDATE_MODE' || accounts.totalBanks === 0 ? (
-						<>
-							<h3>
-								You account was disconnected from our app. Please
-								re-authenticate it.
-							</h3>
-							<PlaidLink user={loggedIn} update />
-						</>
+					{emptyAccounts ? (
+						<div className={`${emptyAccounts && 'account-update'}`}>
+							<PlaidLink user={loggedIn} variant="reconnect" update />
+						</div>
 					) : (
 						<AccountBox
 							user={loggedIn}
