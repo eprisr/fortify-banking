@@ -101,7 +101,9 @@ const Navbar = async ({
 						<HeaderBox
 							type="greeting"
 							title="Good Morning,"
-							user={loggedIn?.firstName || 'Guest'}
+							user={
+								`${loggedIn?.firstName + ' ' + loggedIn?.lastName}` || 'Guest'
+							}
 							subtext=""
 						/>
 					</header>

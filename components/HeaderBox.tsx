@@ -9,9 +9,9 @@ const HeaderBox = ({
 	return (
 		<div className="header-box">
 			<h1 className="header-box-title">
-				{title}
+				{title} <br />
 				{type === 'greeting' && user !== 'Guest' && (
-					<span className="">&nbsp;{user}!</span>
+					<span className="text-18 text-white font-semibold">{user}!</span>
 				)}
 			</h1>
 			<p className="header-box-subtext">{subtext}</p>

@@ -393,7 +393,7 @@
 	}
 
 	.header-box-title {
-		@apply text-16 lg:text-20 font-light text-white;
+		@apply text-12 lg:text-18 font-light text-primary-400;
 	}
 
 	.header-box-subtext {
