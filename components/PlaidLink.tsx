@@ -2,7 +2,11 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { Button } from './ui/button'
-import { MdOutlineAddCard, MdOutlineArrowCircleRight } from 'react-icons/md'
+import {
+	MdArrowRight,
+	MdOutlineAddCard,
+	MdOutlineArrowCircleRight,
+} from 'react-icons/md'
 import {
 	PlaidLinkOnSuccess,
 	PlaidLinkOptions,
@@ -79,6 +83,13 @@ const PlaidLink = ({ user, variant, update }: PlaidLinkProps) => {
 						</div>
 						<MdOutlineArrowCircleRight className="text-24 ml-5" />
 					</div>
+				</Button>
+			) : variant === 'relink' ? (
+				<Button
+					onClick={() => open()}
+					className="plaidlink-ghost gap-1 bg-primary-700 text-white px-3">
+					<p className="text-12 font-semibold">Re-Link</p>
+					<MdArrowRight className="text-18" />
 				</Button>
 			) : (
 				<Button onClick={() => open()} className="plaidlink-default px-1">

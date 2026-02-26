@@ -6,7 +6,7 @@ import { getAccount, getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
 import Link from 'next/link'
 import React from 'react'
-import { MdLockOutline } from 'react-icons/md'
+import { MdInfoOutline, MdLockOutline } from 'react-icons/md'
 
 const Home = async ({ searchParams }: SearchParamProps) => {
 	const { id } = await searchParams
@@ -68,6 +68,22 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 							})}
 						</div>
 					</div>
+					{emptyAccounts && (
+						<div>
+							<div className="flex flex-center border-2 border-primary-100 bg-white p-5 rounded-lg w-full mb-3connect-box">
+								<MdInfoOutline className="text-16 mr-2" />
+								<div className="text-left mx-2 shrink-[5]">
+									<h3 className="font-extrabold text-12">
+										Your session expired
+									</h3>
+									<p className="font-extralight text-10 text-wrap">
+										Re-link your bank to restore access. Takes under 30 seconds.
+									</p>
+								</div>
+								<PlaidLink user={loggedIn} variant="relink" update />
+							</div>
+						</div>
+					)}
 				</div>
 			</section>
 		</>
