@@ -121,12 +121,12 @@ export const signUp = async ({
 	let newUserAccountId: string | null = null
 
 	try {
-		const { account, table, user } = await createAdminClient()
+		const { account, table } = await createAdminClient()
 
 		const newUserAccount = await account.create({
 			userId: ID.unique(),
-			email: email,
-			password: password,
+			email,
+			password,
 			name: `${firstName} ${lastName}`,
 		})
 
