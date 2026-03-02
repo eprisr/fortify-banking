@@ -3,7 +3,12 @@
 import { ID, Query } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../server/appwrite'
 import { cookies } from 'next/headers'
-import { encryptId, extractCustomerIdFromUrl, parseStringify } from '../utils'
+import {
+	encryptId,
+	extractCustomerIdFromUrl,
+	handleError,
+	parseStringify,
+} from '../utils'
 import {
 	CountryCode,
 	ProcessorTokenCreateRequest,
@@ -29,13 +34,18 @@ export const getUserInfo = async ({ userId }: getUserInfoProps) => {
 			queries: [Query.equal('userId', [userId])],
 		})
 
+		if (!user.rows[0]) return null
 		return parseStringify(user.rows[0])
 	} catch (error) {
 		console.error('Get User Info Error: ', error)
+		return null
 	}
 }
 
-export const signIn = async ({ email, password }: SignInProps) => {
+export const signIn = async ({
+	email,
+	password,
+}: SignInProps): Promise<ActionResponse<User>> => {
 	try {
 		const { account } = await createAdminClient()
 
@@ -44,7 +54,7 @@ export const signIn = async ({ email, password }: SignInProps) => {
 			password,
 		})
 
-		if (!session) throw Error
+		if (!session) throw new Error('Authentication Failed')
 
 		const cookieStore = await cookies()
 		cookieStore.set('appwrite-session', session.secret, {
@@ -56,18 +66,15 @@ export const signIn = async ({ email, password }: SignInProps) => {
 
 		const user = await getUserInfo({ userId: session.userId })
 
-		return parseStringify(user)
+		return { success: true, data: parseStringify(user) }
 	} catch (error: any) {
-		console.error('An Error Occurred While Signing In: ', error)
-		const message =
-			error?.response?.message ?? // Appwrite API error
-			error?.message ?? // standard JS Error
-			'An unexpected error occurred while signing in'
-		return { error: message }
+		return handleError(error, 'An error occurred while signing in')
 	}
 }
 
-export const forgotPw = async ({ email }: ForgotPwProps) => {
+export const forgotPw = async ({
+	email,
+}: ForgotPwProps): Promise<ActionResponse<User>> => {
 	try {
 		const { account } = await createAdminClient()
 
@@ -76,69 +83,77 @@ export const forgotPw = async ({ email }: ForgotPwProps) => {
 			url: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`,
 		})
 
-		if (!res) throw Error
-		return parseStringify(res)
+		return { success: true, data: parseStringify(res) }
 	} catch (error: any) {
 		console.error('An Error Occurred while Resetting Password: ', error)
-		const res =
-			error.response.type === 'user_not_found'
-				? 'User not Found'
-				: error.response
-		return { error: res }
+		const message =
+			error.type === 'user_not_found'
+				? 'No account found with this email'
+				: 'Failed to send recovery email'
+		return { success: false, error: message }
 	}
 }
 
-export const resetPw = async ({ userId, secret, password }: ResetPwProps) => {
+export const resetPw = async ({
+	userId,
+	secret,
+	password,
+}: ResetPwProps): Promise<ActionResponse<Account>> => {
 	try {
 		const { account } = await createAdminClient()
 
 		const res = await account.updateRecovery({ userId, secret, password })
 
-		if (!res) throw Error
-		return parseStringify(res)
+		return { success: true, data: parseStringify(res) }
 	} catch (error: any) {
-		console.error('An Error Occurred while Resetting Password: ', error)
-		return { error: error.response.message }
+		return {
+			success: false,
+			error: error?.response?.message || 'Failed to update password',
+		}
 	}
 }
 
-export const signUp = async ({ password, ...userData }: SignUpParams) => {
+export const signUp = async ({
+	password,
+	...userData
+}: SignUpParams): Promise<ActionResponse<User>> => {
 	const { email, firstName, lastName } = userData
-
-	let newUserAccount
+	let newUserAccountId: string | null = null
 
 	try {
-		const { account, database } = await createAdminClient()
+		const { account, table, user } = await createAdminClient()
 
-		newUserAccount = await account.create({
+		const newUserAccount = await account.create({
 			userId: ID.unique(),
 			email: email,
 			password: password,
 			name: `${firstName} ${lastName}`,
 		})
 
-		if (!newUserAccount) throw new Error('Error creating user')
+		if (!newUserAccount) throw new Error('Could not create auth account')
+
+		newUserAccountId = newUserAccount.$id
 
 		const dwollaCustomerUrl = await createDwollaCustomer({
 			...userData,
 			type: 'personal',
 		})
 
-		if (!dwollaCustomerUrl) throw new Error('Error creating Dwolla customer')
+		if (!dwollaCustomerUrl) throw new Error('Payment provider setup failed')
 
 		const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl)
 
-		const newUser = await database.createDocument(
-			DATABASE_ID!,
-			USER_COLLECTION_ID!,
-			ID.unique(),
-			{
+		const newUser = await table.createRow({
+			databaseId: DATABASE_ID!,
+			tableId: USER_COLLECTION_ID!,
+			rowId: ID.unique(),
+			data: {
 				...userData,
 				userId: newUserAccount.$id,
 				dwollaCustomerId,
 				dwollaCustomerUrl,
 			},
-		)
+		})
 
 		const session = await account.createEmailPasswordSession({
 			email,
@@ -153,9 +168,14 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
 			secure: true,
 		})
 
-		return parseStringify(newUser)
-	} catch (error) {
-		console.error('An Error Occurred while Signing Up: ', error)
+		return { success: true, data: parseStringify(newUser) }
+	} catch (error: any) {
+		if (newUserAccountId) {
+			const { user } = await createAdminClient()
+			await user.delete({ userId: newUserAccountId })
+		}
+
+		return handleError(error, 'An error occurred during sign up')
 	}
 }
 
@@ -203,9 +223,10 @@ export const createLinkToken = async (
 
 		const res = await plaidClient.linkTokenCreate(tokenParams)
 
-		return parseStringify({ linkToken: res.data.link_token })
+		return { success: true, linkToken: res.data.link_token }
 	} catch (error) {
 		console.error('Create Link Token Error: ', error)
+		return { success: false, error: 'Could not initialize bank connection' }
 	}
 }
 
@@ -251,8 +272,7 @@ export const exchangePublicToken = async ({
 			public_token: publicToken,
 		})
 
-		const accessToken = res.data.access_token
-		const itemId = res.data.item_id
+		const { access_token: accessToken, item_id: itemId } = res.data
 
 		// Get account information from Plaid using the access token
 		const accountsResponse = await plaidClient.accountsGet({
@@ -278,7 +298,7 @@ export const exchangePublicToken = async ({
 			bankName: accountData.name,
 		})
 
-		if (!fundingSourceUrl) throw Error
+		if (!fundingSourceUrl) throw new Error('Failed to link funding source')
 
 		await createBankAccount({
 			userId: user.$id,
@@ -291,9 +311,9 @@ export const exchangePublicToken = async ({
 
 		revalidatePath('/')
 
-		return parseStringify({ publicTokenExchange: 'complete' })
+		return { success: true }
 	} catch (error) {
-		console.error('An error occured while creating exchanging token: ', error)
+		return handleError(error, 'Bank connection failed')
 	}
 }
 
@@ -306,9 +326,10 @@ export const getBanks = async ({ userId }: getBanksProps) => {
 			queries: [Query.equal('userId', [userId])],
 		})
 
-		return parseStringify(banks.rows)
+		return { success: true, data: parseStringify(banks.rows) }
 	} catch (error) {
 		console.error('Get Banks Error: ', error)
+		return { success: false, error: 'Failed to fetch bank accounts' }
 	}
 }
 
@@ -338,10 +359,11 @@ export const getBankByAccountId = async ({
 			queries: [Query.equal('accountId', [accountId])],
 		})
 
-		if (bank.total !== 1) return null
+		if (bank.total !== 1) return { success: false, error: 'Bank not found' }
 
-		return parseStringify(bank.rows[0])
+		return { success: true, data: parseStringify(bank.rows[0]) }
 	} catch (error) {
 		console.error('Get Bank Error: ', error)
+		return { success: false, error: 'Internal server error' }
 	}
 }
