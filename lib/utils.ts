@@ -8,6 +8,21 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs))
 }
 
+export const handleError = (
+	error: any,
+	customMessage: string,
+): ActionResponse<any> => {
+	console.error(`${customMessage}:`, error)
+
+	// Appwrite-specific error extraction
+	const message = error?.response?.message || error?.message || customMessage
+
+	return {
+		success: false,
+		error: message,
+	}
+}
+
 // FORMAT DATE TIME
 export const formatDateTime = (dateString: Date) => {
 	const dateTimeOptions: Intl.DateTimeFormatOptions = {

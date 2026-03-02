@@ -28,7 +28,7 @@ const AuthForm = ({
 	const router = useRouter()
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
-	const [user, setUser] = useState(null)
+	const [user, setUser] = useState<User | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [serverError, setServerError] = useState('')
 
@@ -65,12 +65,6 @@ const AuthForm = ({
 		},
 	})
 
-	const getFormValidationError = () => {
-		const errors = form.formState.errors
-		const firstError = Object.values(errors)[0]
-		return firstError?.message as string | undefined
-	}
-
 	const onSubmit = async (data: z.infer<typeof formSchema>) => {
 		setIsLoading(true)
 		setServerError('')
@@ -90,7 +84,11 @@ const AuthForm = ({
 			}
 			if (type === 'signup') {
 				const newUser = await signUp(userData)
-				setUser(newUser)
+				if (newUser.success) {
+					setUser(newUser.data)
+				} else {
+					setServerError(newUser.error)
+				}
 			}
 			if (type === 'signin') {
 				const res = await signIn({
@@ -98,18 +96,21 @@ const AuthForm = ({
 					password: data.password!,
 				})
 
-				if (res.error) throw new Error(res.error)
-				if (res) router.push('/')
+				if (res.success) {
+					router.push('/')
+				} else {
+					setServerError(res.error)
+				}
 			}
 			if (type === 'forgot-pw') {
 				const res = await forgotPw({
 					email: data.email!,
 				})
 
-				if (res?.error) throw new Error(res.error)
-
-				if (res) {
+				if (res.success) {
 					router.push('/signin')
+				} else {
+					setServerError(res.error)
 				}
 			}
 			if (type === 'reset-pw') {
@@ -119,10 +120,10 @@ const AuthForm = ({
 					password: data.password!,
 				})
 
-				if (res?.error) throw new Error(res.error)
-
-				if (res) {
+				if (res.success) {
 					router.push(pathname + '?' + createQueryString('success', 'true'))
+				} else {
+					setServerError(res.error)
 				}
 			}
 		} catch (error: any) {

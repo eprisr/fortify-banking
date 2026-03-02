@@ -5,6 +5,10 @@ declare type SearchParamProps = {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
+declare type ActionResponse<T> =
+	| { success: true; data: T; error?: never }
+	| { success: false; data?: never; error: string }
+
 // ========================================
 
 declare type SignUpParams = {
