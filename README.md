@@ -1,97 +1,158 @@
 # Fortify Banking
 
-A secure and modern banking application. This project serves as a deep dive into secure data handling, real-time transaction tracking, and scalable frontend architecture.
+> A full-stack fintech application wiring together real banking infrastructure (Plaid, Dwolla, and Appwrite) to explore what it actually takes to move money securely on the web.
 
-![UI - iBank by Seju](https://www.figma.com/community/file/1322236579213422290)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white)
-![React](https://img.shields.io/badge/react-%2320232a.svg?style=flat&logo=react&logoColor=%2361DAFB)
+[![UI - iBank by Seju](https://img.shields.io/badge/Figma-iBank_by_Seju-blue?logo=figma&logoColor=white)](https://www.figma.com/community/file/1322236579213422290) [![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Next.js](https://img.shields.io/badge/Next.js-black?style=flat&logo=next.js&logoColor=white)](https://nextjs.org/) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ---
 
-## Table of Contents
+<!-- Replace with an actual screenshot or screen recording -->
+<!-- ![Fortify Banking Dashboard](public/screenshot.png) -->
 
-- [Fortify Banking](#fortify-banking)
-  - [Table of Contents](#table-of-contents)
-    - [Key Features](#key-features)
-    - [Tech Stack](#tech-stack)
-    - [Architecture and Principles](#architecture-and-principles)
-    - [Getting Started](#getting-started)
-    - [Project Roadmap](#project-roadmap)
-      - [**Completed \& Integrated**](#completed--integrated)
-      - [**In Progress**](#in-progress)
-      - [**Future Releases**](#future-releases)
+## What This Is
+
+Most web apps deal with user accounts and data. A banking application deals with all of that plus real money movement, bank-grade authentication, decimal precision where floating-point errors have consequences, and integrations with financial institutions that don't tolerate loose error handling.
+
+Fortify is a full-stack banking application built to work through those problems hands-on. It's connected to real fintech infrastructure: Plaid for bank account linking, Dwolla for ACH payment processing, and Appwrite for identity and data management. The goal wasn't to ship a product; it was to understand, at an implementation level, how these systems fit together and where the hard parts actually live.
 
 ---
 
-### Key Features
+## Features
 
-- **Secure Authentication**: Robust user login, registration system, and session management to ensure user data remains private.
-- **Real-time Dashboard**: View account balances and recent activities instantly.
-- **Transaction Management**: Easy-to-use interface for transferring funds and viewing history.
-- **Responsive Design**: Optimized for both desktop and mobile devices.
+- **Secure Authentication** - Registration, login, and session management via Appwrite, with protected routes throughout
+- **Bank Account Linking** - OAuth-based institution connectivity via Plaid, with real account and balance data in sandbox
+- **Real-Time Dashboard** - Live account balances and recent transactions pulled from linked accounts
+- **Fund Transfers** - Peer-to-peer transfer workflow built on Dwolla's ACH infrastructure _(in progress)_
+- **Type-Safe Financial Logic** - Explicit decimal precision handling with TypeScript and Zod to prevent floating-point errors on currency values
+- **Error Monitoring** - End-to-end observability across client, server, and edge runtimes with Sentry
+- **Responsive UI** - Optimized for desktop and mobile using Tailwind CSS and shadcn/ui
 
-### Tech Stack
+---
 
-- **Framework & Language**: Next.js, TypeScript, Node.js
-- **FinTech Infrastructure**: Plaid (Account Linking), Dwolla (Payment Processing)
-- **Backend & Database**: Appwrite
-- **Validation & Safety**: Zod (Schema Validation), Decimal Precision Logic
-- **UI & Styling**: Tailwind CSS, Material UI (MUI), Shadcn/UI
-- **Testing**: Jest, React Testing Library, Mock Service Worker (MSW)
+## Tech Stack
 
-### Architecture and Principles
+| Layer           | Technology                         | Purpose                                            |
+| --------------- | ---------------------------------- | -------------------------------------------------- |
+| Framework       | Next.js (App Router)               | Full-stack React with SSR, SSG, and edge support   |
+| Language        | TypeScript                         | End-to-end type safety                             |
+| Auth & Database | Appwrite                           | User management, sessions, and application data    |
+| Bank Linking    | Plaid                              | Secure OAuth handshake with financial institutions |
+| Payments        | Dwolla                             | ACH transfer processing                            |
+| Validation      | Zod                                | Runtime schema validation at data boundaries       |
+| Styling         | Tailwind CSS + shadcn/ui           | Utility-first styling with accessible components   |
+| Testing         | Jest + React Testing Library + MSW | Unit, integration, and API-level mocking           |
+| Monitoring      | Sentry                             | Error tracking across all Next.js runtimes         |
 
-This application follows a modern, component-based architecture using React and Next.js. Key principles include:
+---
 
-- **Security**: Prioritizing data protection and secure transactions.
-- **Performance**: Utilizing Server-Side Rendering (SSR) and Static Site Generation (SSG) where appropriate for fast load times.
-- **Scalability**: Built with modular code to support future growth and feature additions.
+## Architecture
 
-### Getting Started
+Fortify is built on Next.js's App Router, which gives explicit control over where code runs: browser, server, or edge. That distinction matters more in a fintech context than in most web apps.
+
+### Server-first by default
+
+Sensitive operations (fetching balances, validating sessions, calling Plaid and Dwolla) happen server-side. API keys stay out of the browser, and response data is shaped before it reaches the client. Next.js Server Components make this the path of least resistance rather than something you have to fight for.
+
+### Three services, one responsibility each
+
+The external service layer is deliberately separated:
+
+- **Appwrite** owns identity and application data - user records, sessions, and the transaction ledger.
+- **Plaid** owns the bank connection - the OAuth flow, institution credentials, and account verification. It never touches money movement directly.
+- **Dwolla** owns the actual transfer - ACH processing using account credentials that Plaid has already verified.
+
+Keeping these boundaries clean means each service does one thing well and failures stay isolated.
+
+### Zod at every data boundary
+
+TypeScript provides compile-time safety, but financial data crosses runtime boundaries: API responses, form submissions, external webhook payloads. Zod validates the shape and type of that data at those boundaries, so the application fails loudly and early rather than silently passing a malformed value into a ledger calculation.
+
+Currency values are handled with explicit decimal precision logic rather than native JavaScript floats. `0.1 + 0.2` is not a banking number.
+
+### Sentry across all runtimes
+
+Next.js runs code in three distinct environments: the browser, the Node.js server, and the edge runtime (used for middleware). Sentry is configured separately for each. This means an authentication failure at the edge, a server-side Plaid API error, and a client-side rendering bug all land in the right context rather than a single undifferentiated error log.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+You'll need accounts with the following services — all offer free sandbox/developer tiers:
+
+- [Appwrite](https://appwrite.io) - auth and database
+- [Plaid](https://plaid.com/docs/sandbox/) - use Sandbox mode for local development
+- [Dwolla](https://developers.dwolla.com/) - Sandbox available
+- [Sentry](https://sentry.io) - error monitoring
+
+### Setup
 
 **1. Clone the repository**
 
 ```bash
-git clone [https://github.com/eprisr/your-repo-name.git](https://github.com/eprisr/your-repo-name.git)
+git clone https://github.com/eprisr/fortify-banking.git
+cd fortify-banking
 ```
 
 **2. Install dependencies**
 
-```
+```bash
 npm install
 ```
 
 **3. Configure environment variables**
-Create a .env file in the root directory and add your API keys (see .env.example).
+
+```bash
+cp .env.example .env.local
+```
+
+Open `.env.local` and fill in your credentials for each service. The `.env.example` file documents every required key.
 
 **4. Run the development server**
 
-```
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Project Roadmap
+### Running Tests
 
-#### **Completed & Integrated**
+```bash
+npm test
+```
 
-- **Core Banking UI:** High-fidelity dashboard based on Figma specifications.
-- **Bank Linking:** Secure account integration via **Plaid**.
-- **Identity & Backend:** User management and database orchestration using **Appwrite**.
-- **Type-Safe Ledger:** Financial logic built with **TypeScript** and **Zod** for decimal precision.
+Tests use Jest and React Testing Library. API calls are mocked with Mock Service Worker (MSW), so no live credentials are needed to run the test suite.
 
-#### **In Progress**
+---
 
-- **P2P Transfers:** Engineering a secure "Transfer to Friends" workflow using **Dwolla**.
-- **Account Management:** Comprehensive **Account Settings** and profile customization.
-- **Communication Hub:** Integrated **Messages & Alerts** for transaction notifications.
+## Roadmap
 
-#### **Future Releases**
+### Completed
 
-- **Financial Products:** Dedicated modules for **Savings**, **Credit Card** management, and **Interest Rate** tracking.
-- **Utility Payments:** Support for **Mobile Prepaid** top-ups and **Bill Pay** services.
-- **Market Data:** Real-time **Exchange Rate** tracking and **Branch/ATM Search** via geolocation integration.
-- **Branch & ATM Search:** Utilizing geolocation services to help users find the nearest physical banking locations, providing a comprehensive "Omni-channel" banking experience.
-- **Simulated Withdrawal Workflow:** While physical cash dispensing is outside the scope of a web app, I will attempt a full-stack simulation of the withdrawal process. This includes real-time balance checks, transaction ledger updates in Appwrite, and toast notifications for user feedback.
+- Core dashboard UI (based on [iBank Figma spec by Seju](https://www.figma.com/community/file/1322236579213422290))
+- Bank account linking via Plaid
+- User authentication and session management via Appwrite
+- Type-safe financial logic with TypeScript and Zod
+- End-to-end error monitoring with Sentry
+
+### In Progress
+
+- P2P fund transfers via Dwolla ACH
+- Account settings and profile management
+- Transaction notifications and alerts
+
+### Planned
+
+- Savings and credit card management modules
+- Bill pay and mobile prepaid support
+- Real-time exchange rate tracking
+- Branch and ATM locator via geolocation
+- Full-stack simulated withdrawal workflow with ledger updates and toast notifications
+
+---
+
+## License
+
+MIT - see [LICENSE](LICENSE) for details.
