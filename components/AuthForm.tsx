@@ -1,29 +1,32 @@
 'use client'
 
 import React, { useCallback, useState } from 'react'
-import { z } from 'zod/v4'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
-import CustomInput from './CustomInput'
-import { authFormSchema } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { forgotPw, resetPw, signIn, signUp } from '@/lib/actions/user.actions'
+import { authFormSchema } from '@/lib/utils'
+import {
+	AuthFormType,
+	FORM_CONFIG,
+	FormValues,
+	ResetParams,
+	SUBMIT_HANDLERS,
+} from '@/lib/auth-form-config'
+import CustomInput from './CustomInput'
 import PlaidLink from './PlaidLink'
+import SignUpFields from './SignUpFields'
 
 const AuthForm = ({
 	type,
 	resetParams,
 }: {
-	type: string
-	resetParams?: {
-		userId: string | undefined
-		secret: string | undefined
-	}
+	type: AuthFormType
+	resetParams?: ResetParams
 }) => {
 	const router = useRouter()
 	const pathname = usePathname()
@@ -32,23 +35,20 @@ const AuthForm = ({
 	const [isLoading, setIsLoading] = useState(false)
 	const [serverError, setServerError] = useState('')
 
-	const renderHeader = type === 'signin' || type === 'signup'
+	const config = FORM_CONFIG[type]
 
 	const createQueryString = useCallback(
 		(name: string, value: string) => {
 			const params = new URLSearchParams(searchParams.toString())
 			params.delete('expire')
 			params.set(name, value)
-
 			return params.toString()
 		},
 		[searchParams],
 	)
 
-	const formSchema = authFormSchema(type)
-
-	const form = useForm<z.infer<typeof formSchema>>({
-		resolver: zodResolver(formSchema),
+	const form = useForm<FormValues>({
+		resolver: zodResolver(authFormSchema(type)),
 		mode: 'onSubmit',
 		defaultValues: {
 			firstName: '',
@@ -65,67 +65,11 @@ const AuthForm = ({
 		},
 	})
 
-	const onSubmit = async (data: z.infer<typeof formSchema>) => {
+	const onSubmit = async (data: FormValues) => {
 		setIsLoading(true)
 		setServerError('')
-
 		try {
-			const userData = {
-				firstName: data.firstName!,
-				lastName: data.lastName!,
-				address1: data.address1!,
-				city: data.city!,
-				state: data.state!,
-				postalCode: data.postalCode!,
-				dateOfBirth: data.dateOfBirth!,
-				ssn: data.ssn!,
-				email: data.email!,
-				password: data.password!,
-			}
-			if (type === 'signup') {
-				const newUser = await signUp(userData)
-				if (newUser.success) {
-					setUser(newUser.data)
-				} else {
-					setServerError(newUser.error)
-				}
-			}
-			if (type === 'signin') {
-				const res = await signIn({
-					email: data.email!,
-					password: data.password!,
-				})
-
-				if (res.success) {
-					router.push('/')
-				} else {
-					setServerError(res.error)
-				}
-			}
-			if (type === 'forgot-pw') {
-				const res = await forgotPw({
-					email: data.email!,
-				})
-
-				if (res.success) {
-					router.push('/signin')
-				} else {
-					setServerError(res.error)
-				}
-			}
-			if (type === 'reset-pw') {
-				const res = await resetPw({
-					userId: resetParams?.userId!,
-					secret: resetParams?.secret!,
-					password: data.password!,
-				})
-
-				if (res.success) {
-					router.push(pathname + '?' + createQueryString('success', 'true'))
-				} else {
-					setServerError(res.error)
-				}
-			}
+			await SUBMIT_HANDLERS[type](data, { router, pathname, createQueryString, resetParams, setUser })
 		} catch (error: any) {
 			setServerError(error.message)
 			console.error('Auth Error: ', error)
@@ -136,40 +80,30 @@ const AuthForm = ({
 
 	return (
 		<section className="auth-form">
-			{type === 'signin' && (
+			{config.illustration && (
 				<div className="flex justify-center my-8">
 					<Image
-						src="/icons/signin.svg"
+						src={config.illustration.src}
 						height={165}
 						width={213}
-						alt="Sign In Lock Illustration"
+						alt={config.illustration.alt}
 					/>
 				</div>
 			)}
-			{type === 'signup' && (
-				<div className="flex justify-center my-8">
-					<Image
-						src="/icons/signup.svg"
-						height={165}
-						width={213}
-						alt="Sign Up Mobile Illustration"
-					/>
-				</div>
-			)}
-			{renderHeader && (
+
+			{config.heading && (
 				<header className="flex flex-col gap-5 md:gap-8">
 					<div className="flex flex-col gap-1 md:gap-3">
 						<h1 className="text-24 lg:text-36 font-semibold text-primary-700 text-center">
-							{type === 'signin' ? 'Welcome Back!' : 'Welcome to Fortify!'}
+							{config.heading}
 						</h1>
 						<p className="text-12 font-normal text-gray-600 text-center">
-							{type === 'signin'
-								? 'Hello there, sign in to continue.'
-								: 'Hello there, create a new account.'}
+							{config.subheading}
 						</p>
 					</div>
 				</header>
 			)}
+
 			{user ? (
 				<div className="flex flex-col gap-4">
 					<PlaidLink user={user} variant="primary" />
@@ -178,74 +112,9 @@ const AuthForm = ({
 				<>
 					<Form {...form}>
 						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-							{type === 'signup' && (
-								<>
-									<div className="flex gap-4">
-										<CustomInput
-											control={form.control}
-											name="firstName"
-											label="First Name"
-											placeholder="Jane"
-											required
-										/>
-										<CustomInput
-											control={form.control}
-											name="lastName"
-											label="Last Name"
-											placeholder="Doe"
-											required
-										/>
-									</div>
-									<CustomInput
-										control={form.control}
-										name="address1"
-										label="Address"
-										placeholder="Enter your specific address"
-										required
-									/>
-									<CustomInput
-										control={form.control}
-										name="city"
-										label="City"
-										placeholder="Enter your city"
-										required
-									/>
-									<div className="flex gap-4">
-										<CustomInput
-											control={form.control}
-											name="state"
-											label="State"
-											placeholder="Example: NY"
-											required
-										/>
-										<CustomInput
-											control={form.control}
-											name="postalCode"
-											label="Postal Code"
-											placeholder="Example: 11101"
-											required
-										/>
-									</div>
-									<div className="flex gap-4">
-										<CustomInput
-											control={form.control}
-											name="dateOfBirth"
-											label="Date of Birth"
-											placeholder="YYYY-MM-DD"
-											required
-										/>
-										<CustomInput
-											control={form.control}
-											name="ssn"
-											label="SSN"
-											placeholder="Example: 1234"
-											required
-										/>
-									</div>
-								</>
-							)}
+							{config.fields.profileFields && <SignUpFields control={form.control} />}
 
-							{type !== 'reset-pw' && (
+							{config.fields.email && (
 								<CustomInput
 									control={form.control}
 									name="email"
@@ -255,7 +124,7 @@ const AuthForm = ({
 								/>
 							)}
 
-							{type !== 'forgot-pw' && (
+							{config.fields.password && (
 								<CustomInput
 									control={form.control}
 									name="password"
@@ -265,7 +134,7 @@ const AuthForm = ({
 								/>
 							)}
 
-							{type === 'reset-pw' && (
+							{config.fields.confirmPassword && (
 								<CustomInput
 									control={form.control}
 									name="confirmPassword"
@@ -275,7 +144,7 @@ const AuthForm = ({
 								/>
 							)}
 
-							{type === 'signin' && (
+							{config.fields.forgotPasswordLink && (
 								<div className="flex justify-end !mt-1">
 									<Link className="text-right text-12" href="/forgot-password">
 										Forgot password?
@@ -284,21 +153,14 @@ const AuthForm = ({
 							)}
 
 							<div className="flex flex-col gap-4">
-								{serverError !== '' && (
-									<p className="form-message">{serverError}</p>
-								)}
+								{serverError && <p className="form-message">{serverError}</p>}
 								<Button type="submit" disabled={isLoading} className="form-btn">
 									{isLoading ? (
 										<>
-											<Loader2 size={20} className="animate-spin" /> &nbsp;
-											Loading...
+											<Loader2 size={20} className="animate-spin" /> &nbsp; Loading...
 										</>
-									) : type === 'signin' ? (
-										'Sign In'
-									) : type === 'signup' ? (
-										'Sign Up'
 									) : (
-										'Send'
+										config.submitLabel
 									)}
 								</Button>
 							</div>
@@ -306,17 +168,9 @@ const AuthForm = ({
 					</Form>
 
 					<footer className="flex justify-center gap-1">
-						<p className="text-14 font-normal text-gray-600">
-							{type === 'signin'
-								? "Don't have an account?"
-								: type === 'signup'
-									? 'Already have an account?'
-									: 'Remembered your password?'}
-						</p>
-						<Link
-							href={type === 'signin' ? '/signup' : '/signin'}
-							className="form-link">
-							{type === 'signin' ? 'Sign Up' : 'Sign In'}
+						<p className="text-14 font-normal text-gray-600">{config.footer.prompt}</p>
+						<Link href={config.footer.linkHref} className="form-link">
+							{config.footer.linkLabel}
 						</Link>
 					</footer>
 				</>
