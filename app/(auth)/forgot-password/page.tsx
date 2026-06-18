@@ -1,8 +1,10 @@
+import React from 'react'
+import { connection } from 'next/server'
 import AuthForm from '@/components/AuthForm'
 import Navbar from '@/components/Navbar'
-import React from 'react'
 
-const ForgotPassword = () => {
+const ForgotPassword = async () => {
+	await connection()
 	return (
 		<>
 			<Navbar type="sub" pageTitle="Forgot password" />

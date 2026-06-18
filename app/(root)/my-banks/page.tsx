@@ -5,9 +5,23 @@ import { getLoggedInUser } from '@/lib/actions/user.actions'
 import React from 'react'
 
 const MyBanks = async () => {
-	const loggedIn = await getLoggedInUser()
-	const accounts = await getAccounts({ userId: loggedIn.$id })
-	console.log(accounts)
+	let loggedIn = null
+	let accounts = null
+
+	try {
+		loggedIn = await getLoggedInUser()
+
+		if (loggedIn) {
+			accounts = await getAccounts({ userId: loggedIn.$id })
+		}
+	} catch (error) {
+		console.error('Failed to fetch user or accounts:', error)
+	}
+
+	if (!loggedIn) {
+		// TODO: render temporary unauthenticated screen
+		return null
+	}
 
 	return (
 		<>

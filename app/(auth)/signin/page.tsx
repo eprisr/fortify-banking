@@ -1,8 +1,10 @@
+import { connection } from 'next/server'
 import AuthForm from '@/components/AuthForm'
 import Navbar from '@/components/Navbar'
 import React from 'react'
 
-const SignIn = () => {
+const SignIn = async () => {
+	await connection()
 	return (
 		<>
 			<Navbar type="sub" pageTitle="Sign in" background />

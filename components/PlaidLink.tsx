@@ -25,7 +25,7 @@ const PlaidLink = ({ user, variant, update }: PlaidLinkProps) => {
 	useEffect(() => {
 		const getLinkToken = async () => {
 			const data = await createLinkToken(user, update)
-			setToken(data?.linkToken)
+			setToken(data?.linkToken ?? '')
 		}
 
 		getLinkToken()
