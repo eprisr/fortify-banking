@@ -9,8 +9,6 @@ export default async function RootLayout({
 }>) {
 	const loggedIn = await getLoggedInUser()
 
-	if (!loggedIn) redirect('/signin')
-
 	return (
 		<main className="flex flex-col w-full mb-[80px] font-poppins">
 			{children}
