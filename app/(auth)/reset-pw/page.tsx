@@ -1,3 +1,4 @@
+import { connection } from 'next/server'
 import AuthForm from '@/components/AuthForm'
 import Navbar from '@/components/Navbar'
 import Image from 'next/image'
@@ -5,6 +6,8 @@ import Link from 'next/link'
 import React from 'react'
 
 const ResetPassword = async ({ searchParams }: SearchParamProps) => {
+	await connection()
+
 	const { userId, secret, expire, success } = await searchParams
 
 	const expireToTime = expire?.toString().replace(' ', 'T')

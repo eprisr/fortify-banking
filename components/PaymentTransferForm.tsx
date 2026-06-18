@@ -82,7 +82,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 
 			const transferParams = {
 				sourceFundingSourceUrl: senderBank.fundingSourceUrl,
-				destinationFundingSourceUrl: receiverBank.fundingSourceUrl,
+				destinationFundingSourceUrl: receiverBank.data.fundingSourceUrl,
 				amount: data.amount,
 			}
 			// create transfer
@@ -96,8 +96,8 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 					amount: data.amount,
 					senderId: senderBank.userId.$id,
 					senderBankId: senderBank.$id,
-					receiverId: receiverBank.userId.$id,
-					receiverBankId: receiverBank.$id,
+					receiverId: receiverBank.data.userId.$id,
+					receiverBankId: receiverBank.data.$id,
 					note: data.note,
 				}
 

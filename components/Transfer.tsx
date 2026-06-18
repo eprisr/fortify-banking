@@ -17,7 +17,7 @@ import { Label } from '@radix-ui/react-label'
 
 const FormSchema = z.object({
 	type: z.enum(['send', 'internal', 'external'], {
-		required_error: 'You need to select a transaction type.',
+		error: 'You need to select a transaction type.',
 	}),
 })
 

@@ -26,7 +26,7 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 		// get banks from db
 		const banks = await getBanks({ userId })
 
-		const accountsPromises = banks?.map(async (bank: Bank) => {
+		const accountsPromises = banks?.data.map(async (bank: Bank) => {
 			try {
 				// 1. Check if token exists before calling Plaid
 				if (!bank.accessToken) {
