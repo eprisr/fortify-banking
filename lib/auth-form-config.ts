@@ -37,7 +37,10 @@ type FormConfig = {
 
 export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 	signin: {
-		illustration: { src: '/icons/signin.svg', alt: 'Sign In Lock Illustration' },
+		illustration: {
+			src: '/icons/signin.svg',
+			alt: 'Sign In Lock Illustration',
+		},
 		heading: 'Welcome Back!',
 		subheading: 'Hello there, sign in to continue.',
 		submitLabel: 'Sign In',
@@ -48,10 +51,17 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 			confirmPassword: false,
 			forgotPasswordLink: true,
 		},
-		footer: { prompt: "Don't have an account?", linkHref: '/signup', linkLabel: 'Sign Up' },
+		footer: {
+			prompt: 'New to Fortify?',
+			linkHref: '/signup',
+			linkLabel: 'Create account',
+		},
 	},
 	signup: {
-		illustration: { src: '/icons/signup.svg', alt: 'Sign Up Mobile Illustration' },
+		illustration: {
+			src: '/icons/signup.svg',
+			alt: 'Sign Up Mobile Illustration',
+		},
 		heading: 'Welcome to Fortify!',
 		subheading: 'Hello there, create a new account.',
 		submitLabel: 'Sign Up',
@@ -62,7 +72,11 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 			confirmPassword: false,
 			forgotPasswordLink: false,
 		},
-		footer: { prompt: 'Already have an account?', linkHref: '/signin', linkLabel: 'Sign In' },
+		footer: {
+			prompt: 'Already have an account?',
+			linkHref: '/signin',
+			linkLabel: 'Sign In',
+		},
 	},
 	'forgot-pw': {
 		illustration: null,
@@ -76,7 +90,11 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 			confirmPassword: false,
 			forgotPasswordLink: false,
 		},
-		footer: { prompt: 'Remembered your password?', linkHref: '/signin', linkLabel: 'Sign In' },
+		footer: {
+			prompt: 'Remembered your password?',
+			linkHref: '/signin',
+			linkLabel: 'Sign In',
+		},
 	},
 	'reset-pw': {
 		illustration: null,
@@ -90,7 +108,11 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 			confirmPassword: true,
 			forgotPasswordLink: false,
 		},
-		footer: { prompt: 'Remembered your password?', linkHref: '/signin', linkLabel: 'Sign In' },
+		footer: {
+			prompt: 'Remembered your password?',
+			linkHref: '/signin',
+			linkLabel: 'Sign In',
+		},
 	},
 }
 
@@ -134,7 +156,10 @@ export const SUBMIT_HANDLERS: Record<
 		if (!res.success) throw new Error(res.error)
 		router.push('/signin')
 	},
-	'reset-pw': async (data, { router, pathname, createQueryString, resetParams }) => {
+	'reset-pw': async (
+		data,
+		{ router, pathname, createQueryString, resetParams },
+	) => {
 		const res = await resetPw({
 			userId: resetParams!.userId!,
 			secret: resetParams!.secret!,
