@@ -1,7 +1,6 @@
 import { connection } from 'next/server'
-import AuthForm from '@/components/AuthForm'
+import SignUpForm from '@/components/SignUpForm'
 import Navbar from '@/components/Navbar'
-import React from 'react'
 
 const SignUp = async () => {
 	await connection()
@@ -9,7 +8,7 @@ const SignUp = async () => {
 		<>
 			<Navbar type="sub" pageTitle="Sign up" background />
 			<section className="flex-center size-full max-sm:px-6 bg-white rounded-t-3xl">
-				<AuthForm type="signup" />
+				<SignUpForm />
 			</section>
 		</>
 	)

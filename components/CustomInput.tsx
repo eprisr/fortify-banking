@@ -1,4 +1,3 @@
-import React from 'react'
 import {
 	FormControl,
 	FormField,
@@ -8,27 +7,23 @@ import {
 } from './ui/form'
 import { Input } from './ui/input'
 import * as VisuallyHiddenPrimative from '@radix-ui/react-visually-hidden'
-import { Control, FieldPath } from 'react-hook-form'
-import { z } from 'zod'
-import { authFormSchema } from '@/lib/utils'
+import { Control, FieldPath, FieldValues } from 'react-hook-form'
 
-const formSchema = authFormSchema('signup')
-
-interface CustomInputProps {
-	control: Control<z.infer<typeof formSchema>>
-	name: FieldPath<z.infer<typeof formSchema>>
+interface CustomInputProps<T extends FieldValues> {
+	control: Control<T>
+	name: FieldPath<T>
 	label: string
 	placeholder: string
-	required: boolean
+	required?: boolean
 }
 
-const CustomInput = ({
+function CustomInput<T extends FieldValues>({
 	control,
 	name,
 	label,
 	placeholder,
 	required,
-}: CustomInputProps) => {
+}: CustomInputProps<T>) {
 	return (
 		<FormField
 			control={control}

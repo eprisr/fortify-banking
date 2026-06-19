@@ -220,80 +220,61 @@ export const transferFormSchema = () =>
 		note: z.string().optional(),
 	})
 
-export const authFormSchema = (type: string) =>
-	z
-		.object({
-			firstName:
-				type === 'signup'
-					? z.string().min(2, { error: 'First Name is Required' })
-					: z.string().optional(),
-			lastName:
-				type === 'signup'
-					? z.string().min(2, { error: 'Last Name is Required' })
-					: z.string().optional(),
-			address1:
-				type === 'signup'
-					? z.string().min(5, { error: 'Address is Required' }).max(50)
-					: z.string().optional(),
-			city:
-				type === 'signup'
-					? z.string().min(2, { error: 'City is Required' }).max(50)
-					: z.string().optional(),
-			state:
-				type === 'signup'
-					? z
-							.string()
-							.min(2, { error: 'State is Required' })
-							.max(2, { error: 'A Valid State is Required' })
-					: z.string().optional(),
-			postalCode:
-				type === 'signup'
-					? z
-							.string()
-							.min(3, { error: 'A Postal Code is Required' })
-							.max(6, { error: 'A Valid Postal Code is Required' })
-					: z.string().optional(),
-			dateOfBirth:
-				type === 'signup'
-					? z.string().min(3, { error: 'A Birth Date of Required' })
-					: z.string().optional(),
-			ssn:
-				type === 'signup'
-					? z.string().min(4, { error: 'A SSN is Required' })
-					: z.string().optional(),
-			email:
-				type === 'reset-pw'
-					? z.string().optional()
-					: z.email('A Valid Email is Required'),
-			password:
-				type === 'forgot-pw'
-					? z.string().optional()
-					: z
-							.string()
-							.min(1, { error: 'Password is Required' })
-							.min(8, { error: 'Password Must be a Minimum of 8 Characters' })
-							.max(256, {
-								error: 'Password Must be Less Than 256 Characters',
-							}),
-			confirmPassword:
-				type === 'reset-pw'
-					? z
-							.string()
-							.min(1, { error: 'Password is Required' })
-							.min(8, { error: 'Password Must be a Minimum of 8 Characters' })
-							.max(256, {
-								error: 'Password Must be Less Than 256 Characters',
-							})
-					: z.string().optional(),
-		})
-		.superRefine(({ confirmPassword, password }, ctx) => {
-			if (type === 'reset-pw') {
-				if (confirmPassword !== password) {
-					ctx.addIssue({
-						code: 'custom',
-						message: 'Passwords must match',
-						path: ['confirmPassword'],
-					})
-				}
-			}
-		})
+const emailField = z.email('A Valid Email is Required')
+
+const passwordField = z
+	.string()
+	.min(1, { error: 'Password is Required' })
+	.min(8, { error: 'Password Must be a Minimum of 8 Characters' })
+	.max(256, { error: 'Password Must be Less Than 256 Characters' })
+
+export const signinSchema = z.object({
+	email: emailField,
+	password: passwordField,
+})
+
+export const forgotPwSchema = z.object({
+	email: emailField,
+})
+
+export const resetPwSchema = z
+	.object({
+		password: passwordField,
+		confirmPassword: passwordField,
+	})
+	.superRefine(({ confirmPassword, password }, ctx) => {
+		if (confirmPassword !== password) {
+			ctx.addIssue({
+				code: 'custom',
+				message: 'Passwords must match',
+				path: ['confirmPassword'],
+			})
+		}
+	})
+
+export const signupStepOneSchema = z.object({
+	firstName: z.string().min(2, { error: 'First Name is Required' }),
+	lastName: z.string().min(2, { error: 'Last Name is Required' }),
+	email: emailField,
+	password: passwordField,
+})
+
+export const signupStepTwoSchema = z.object({
+	address1: z.string().min(5, { error: 'Address is Required' }).max(50),
+	city: z.string().min(2, { error: 'City is Required' }).max(50),
+	state: z
+		.string()
+		.min(2, { error: 'State is Required' })
+		.max(2, { error: 'A Valid State is Required' }),
+	postalCode: z
+		.string()
+		.min(3, { error: 'A Postal Code is Required' })
+		.max(6, { error: 'A Valid Postal Code is Required' }),
+	dateOfBirth: z.string().min(3, { error: 'A Birth Date is Required' }),
+	ssn: z.string().min(4, { error: 'A SSN is Required' }),
+})
+
+export const signupSchema = z.object({
+	...signupStepOneSchema.shape,
+	...signupStepTwoSchema.shape,
+})

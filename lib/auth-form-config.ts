@@ -1,18 +1,41 @@
 import { z } from 'zod/v4'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { type Resolver } from 'react-hook-form'
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'
-import { authFormSchema } from '@/lib/utils'
-import { forgotPw, resetPw, signIn, signUp } from '@/lib/actions/user.actions'
+import {
+	signinSchema,
+	forgotPwSchema,
+	resetPwSchema,
+	signupSchema,
+} from '@/lib/utils'
+import { forgotPw, resetPw, signIn } from '@/lib/actions/user.actions'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-export type AuthFormType = 'signin' | 'signup' | 'forgot-pw' | 'reset-pw'
 
 export type ResetParams = {
 	userId: string | undefined
 	secret: string | undefined
 }
 
-export type FormValues = z.infer<ReturnType<typeof authFormSchema>>
+export const AUTH_SCHEMAS = {
+	signin: signinSchema,
+	'forgot-pw': forgotPwSchema,
+	'reset-pw': resetPwSchema,
+} as const
+
+export type AuthFormType = keyof typeof AUTH_SCHEMAS
+
+// Intersection of all three schemas gives us the union of their fields
+export type AuthFormValues = z.infer<typeof signinSchema> &
+	z.infer<typeof forgotPwSchema> &
+	z.infer<typeof resetPwSchema>
+
+export type SignUpValues = z.infer<typeof signupSchema>
+
+// Each schema only validates its own field subset; the cast widens that to
+// the shared AuthFormValues shape, which the unused form fields satisfy.
+export const getAuthResolver = (type: AuthFormType): Resolver<AuthFormValues> =>
+	zodResolver(AUTH_SCHEMAS[type]) as unknown as Resolver<AuthFormValues>
 
 // ─── Form Config ──────────────────────────────────────────────────────────────
 
@@ -22,7 +45,6 @@ type FormConfig = {
 	subheading: string | null
 	submitLabel: string
 	fields: {
-		profileFields: boolean
 		email: boolean
 		password: boolean
 		confirmPassword: boolean
@@ -45,7 +67,6 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 		subheading: 'Hello there, sign in to continue.',
 		submitLabel: 'Sign In',
 		fields: {
-			profileFields: false,
 			email: true,
 			password: true,
 			confirmPassword: false,
@@ -57,34 +78,12 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 			linkLabel: 'Create account',
 		},
 	},
-	signup: {
-		illustration: {
-			src: '/icons/signup.svg',
-			alt: 'Sign Up Mobile Illustration',
-		},
-		heading: 'Welcome to Fortify!',
-		subheading: 'Hello there, create a new account.',
-		submitLabel: 'Sign Up',
-		fields: {
-			profileFields: true,
-			email: true,
-			password: true,
-			confirmPassword: false,
-			forgotPasswordLink: false,
-		},
-		footer: {
-			prompt: 'Already have an account?',
-			linkHref: '/signin',
-			linkLabel: 'Sign In',
-		},
-	},
 	'forgot-pw': {
 		illustration: null,
 		heading: null,
 		subheading: null,
 		submitLabel: 'Send',
 		fields: {
-			profileFields: false,
 			email: true,
 			password: false,
 			confirmPassword: false,
@@ -100,9 +99,8 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 		illustration: null,
 		heading: null,
 		subheading: null,
-		submitLabel: 'Send',
+		submitLabel: 'Reset Password',
 		fields: {
-			profileFields: false,
 			email: false,
 			password: true,
 			confirmPassword: true,
@@ -123,47 +121,27 @@ export type SubmitContext = {
 	pathname: string
 	createQueryString: (name: string, value: string) => string
 	resetParams?: ResetParams
-	setUser: (user: User) => void
 }
 
 export const SUBMIT_HANDLERS: Record<
 	AuthFormType,
-	(data: FormValues, ctx: SubmitContext) => Promise<void>
+	(data: AuthFormValues, ctx: SubmitContext) => Promise<void>
 > = {
-	signup: async (data, { setUser }) => {
-		const res = await signUp({
-			firstName: data.firstName!,
-			lastName: data.lastName!,
-			address1: data.address1!,
-			city: data.city!,
-			state: data.state!,
-			postalCode: data.postalCode!,
-			dateOfBirth: data.dateOfBirth!,
-			ssn: data.ssn!,
-			email: data.email!,
-			password: data.password!,
-		})
-		if (!res.success) throw new Error(res.error)
-		setUser(res.data)
-	},
 	signin: async (data, { router }) => {
-		const res = await signIn({ email: data.email!, password: data.password! })
+		const res = await signIn({ email: data.email, password: data.password })
 		if (!res.success) throw new Error(res.error)
 		router.push('/')
 	},
 	'forgot-pw': async (data, { router }) => {
-		const res = await forgotPw({ email: data.email! })
+		const res = await forgotPw({ email: data.email })
 		if (!res.success) throw new Error(res.error)
 		router.push('/signin')
 	},
-	'reset-pw': async (
-		data,
-		{ router, pathname, createQueryString, resetParams },
-	) => {
+	'reset-pw': async (data, { router, pathname, createQueryString, resetParams }) => {
 		const res = await resetPw({
 			userId: resetParams!.userId!,
 			secret: resetParams!.secret!,
-			password: data.password!,
+			password: data.password,
 		})
 		if (!res.success) throw new Error(res.error)
 		router.push(pathname + '?' + createQueryString('success', 'true'))

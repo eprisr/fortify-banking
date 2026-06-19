@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useCallback, useState } from 'react'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
@@ -9,17 +8,15 @@ import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { authFormSchema } from '@/lib/utils'
 import {
 	AuthFormType,
+	AuthFormValues,
 	FORM_CONFIG,
-	FormValues,
 	ResetParams,
 	SUBMIT_HANDLERS,
+	getAuthResolver,
 } from '@/lib/auth-form-config'
 import CustomInput from './CustomInput'
-import PlaidLink from './PlaidLink'
-import SignUpFields from './SignUpFields'
 
 const AuthForm = ({
 	type,
@@ -31,7 +28,6 @@ const AuthForm = ({
 	const router = useRouter()
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
-	const [user, setUser] = useState<User | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [serverError, setServerError] = useState('')
 
@@ -47,29 +43,26 @@ const AuthForm = ({
 		[searchParams],
 	)
 
-	const form = useForm<FormValues>({
-		resolver: zodResolver(authFormSchema(type)),
+	const form = useForm<AuthFormValues>({
+		resolver: getAuthResolver(type),
 		mode: 'onSubmit',
 		defaultValues: {
-			firstName: '',
-			lastName: '',
-			address1: '',
-			city: '',
-			state: '',
-			postalCode: '',
-			dateOfBirth: '',
-			ssn: '',
 			email: '',
 			password: '',
 			confirmPassword: '',
 		},
 	})
 
-	const onSubmit = async (data: FormValues) => {
+	const onSubmit = async (data: AuthFormValues) => {
 		setIsLoading(true)
 		setServerError('')
 		try {
-			await SUBMIT_HANDLERS[type](data, { router, pathname, createQueryString, resetParams, setUser })
+			await SUBMIT_HANDLERS[type](data, {
+				router,
+				pathname,
+				createQueryString,
+				resetParams,
+			})
 		} catch (error: any) {
 			setServerError(error.message)
 			console.error('Auth Error: ', error)
@@ -104,77 +97,67 @@ const AuthForm = ({
 				</header>
 			)}
 
-			{user ? (
-				<div className="flex flex-col gap-4">
-					<PlaidLink user={user} variant="primary" />
-				</div>
-			) : (
-				<>
-					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-							{config.fields.profileFields && <SignUpFields control={form.control} />}
+			<Form {...form}>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+					{config.fields.email && (
+						<CustomInput
+							control={form.control}
+							name="email"
+							label="Email"
+							placeholder="email@email.com"
+							required
+						/>
+					)}
 
-							{config.fields.email && (
-								<CustomInput
-									control={form.control}
-									name="email"
-									label="Email"
-									placeholder="email@email.com"
-									required
-								/>
+					{config.fields.password && (
+						<CustomInput
+							control={form.control}
+							name="password"
+							label="Password"
+							placeholder="Password"
+							required
+						/>
+					)}
+
+					{config.fields.confirmPassword && (
+						<CustomInput
+							control={form.control}
+							name="confirmPassword"
+							label="Confirm Password"
+							placeholder="Confirm your password"
+							required
+						/>
+					)}
+
+					{config.fields.forgotPasswordLink && (
+						<div className="flex justify-end mt-1!">
+							<Link className="text-right text-12" href="/forgot-password">
+								Forgot password?
+							</Link>
+						</div>
+					)}
+
+					<div className="flex flex-col gap-4">
+						{serverError && <p className="form-message">{serverError}</p>}
+						<Button type="submit" disabled={isLoading} className="form-btn">
+							{isLoading ? (
+								<>
+									<Loader2 size={20} className="animate-spin" /> &nbsp; Loading...
+								</>
+							) : (
+								config.submitLabel
 							)}
+						</Button>
+					</div>
+				</form>
+			</Form>
 
-							{config.fields.password && (
-								<CustomInput
-									control={form.control}
-									name="password"
-									label="Password"
-									placeholder="Password"
-									required
-								/>
-							)}
-
-							{config.fields.confirmPassword && (
-								<CustomInput
-									control={form.control}
-									name="confirmPassword"
-									label="Confirm Password"
-									placeholder="Confirm your password"
-									required
-								/>
-							)}
-
-							{config.fields.forgotPasswordLink && (
-								<div className="flex justify-end !mt-1">
-									<Link className="text-right text-12" href="/forgot-password">
-										Forgot password?
-									</Link>
-								</div>
-							)}
-
-							<div className="flex flex-col gap-4">
-								{serverError && <p className="form-message">{serverError}</p>}
-								<Button type="submit" disabled={isLoading} className="form-btn">
-									{isLoading ? (
-										<>
-											<Loader2 size={20} className="animate-spin" /> &nbsp; Loading...
-										</>
-									) : (
-										config.submitLabel
-									)}
-								</Button>
-							</div>
-						</form>
-					</Form>
-
-					<footer className="flex justify-center gap-1">
-						<p className="text-14 font-normal text-gray-600">{config.footer.prompt}</p>
-						<Link href={config.footer.linkHref} className="form-link">
-							{config.footer.linkLabel}
-						</Link>
-					</footer>
-				</>
-			)}
+			<footer className="flex justify-center gap-1">
+				<p className="text-14 font-normal text-gray-600">{config.footer.prompt}</p>
+				<Link href={config.footer.linkHref} className="form-link">
+					{config.footer.linkLabel}
+				</Link>
+			</footer>
 		</section>
 	)
 }
