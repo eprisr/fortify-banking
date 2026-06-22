@@ -14,12 +14,12 @@ import {
 } from '@/lib/utils'
 import { type SignUpValues } from '@/lib/auth-form-config'
 import { signUp } from '@/lib/actions/user.actions'
-import CustomInput from './CustomInput'
-import PlaidLink from './PlaidLink'
+import CustomInput from '@/components/CustomInput'
+import PlaidLink from '@/components/PlaidLink'
 import { type Path } from 'react-hook-form'
-import { Item, ItemContent, ItemMedia, ItemTitle } from './ui/item'
-import { Field, FieldLabel } from './ui/field'
-import { Progress } from './ui/progress'
+import { Item, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { Progress } from '@/components/ui/progress'
 
 const STEP_ONE_FIELDS = Object.keys(
 	signupStepOneSchema.shape,
