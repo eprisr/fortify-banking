@@ -23,7 +23,7 @@ const STEP_ONE_FIELDS = Object.keys(
 ) as Path<SignUpValues>[]
 
 const SignUpForm = () => {
-	const [step, setStep] = useState<1 | 2>(2)
+	const [step, setStep] = useState<1 | 2 | 3>(1)
 	const [user, setUser] = useState<User | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [serverError, setServerError] = useState('')
@@ -110,7 +110,7 @@ const SignUpForm = () => {
 										type="button"
 										onClick={handleNext}
 										className="form-btn">
-										Next
+										Continue
 									</Button>
 								) : (
 									<div className="flex gap-4">
