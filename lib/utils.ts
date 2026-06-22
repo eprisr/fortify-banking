@@ -222,11 +222,28 @@ export const transferFormSchema = () =>
 
 const emailField = z.email('A Valid Email is Required')
 
-const passwordField = z
-	.string()
-	.min(1, { error: 'Password is Required' })
-	.min(8, { error: 'Password Must be a Minimum of 8 Characters' })
-	.max(256, { error: 'Password Must be Less Than 256 Characters' })
+// Single source of truth for both the password's Zod validation and the
+// live checklist rendered in the UI (see SignUpForm).
+export const passwordRequirements: {
+	label: string
+	test: (password: string) => boolean
+}[] = [
+	{ label: 'At least 8 characters', test: (password) => password.length >= 8 },
+	{
+		label: 'Contains an uppercase letter',
+		test: (password) => /[A-Z]/.test(password),
+	},
+	{ label: 'Contains a number', test: (password) => /[0-9]/.test(password) },
+	{
+		label: 'Contains a special character',
+		test: (password) => /[^A-Za-z0-9]/.test(password),
+	},
+]
+
+const passwordField = passwordRequirements.reduce(
+	(schema, { label, test }) => schema.refine(test, { message: label }),
+	z.string().max(64, { error: 'Less than 64 characters' }),
+)
 
 export const signinSchema = z.object({
 	email: emailField,
