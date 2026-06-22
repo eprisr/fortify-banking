@@ -73,22 +73,13 @@ const SignUpForm = () => {
 
 	return (
 		<section className="auth-form">
-			<div className="flex justify-center my-8">
-				<Image
-					src="/icons/signup.svg"
-					height={165}
-					width={213}
-					alt="Sign Up Mobile Illustration"
-				/>
-			</div>
-
 			<header className="flex flex-col gap-5 md:gap-8">
 				<div className="flex flex-col gap-1 md:gap-3">
 					<h1 className="text-24 lg:text-36 font-semibold text-primary-700 text-center">
 						Welcome to Fortify!
 					</h1>
 					<p className="text-12 font-normal text-gray-600 text-center">
-						Hello there, create a new account.
+						Hello there, create your account.
 					</p>
 				</div>
 			</header>
