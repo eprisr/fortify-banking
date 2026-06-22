@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { CircleIcon, CircleCheckBigIcon, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
 import {
 	passwordRequirements,
 	signupSchema,
@@ -19,6 +18,8 @@ import CustomInput from './CustomInput'
 import PlaidLink from './PlaidLink'
 import { type Path } from 'react-hook-form'
 import { Item, ItemContent, ItemMedia, ItemTitle } from './ui/item'
+import { Field, FieldLabel } from './ui/field'
+import { Progress } from './ui/progress'
 
 const STEP_ONE_FIELDS = Object.keys(
 	signupStepOneSchema.shape,
@@ -73,6 +74,14 @@ const SignUpForm = () => {
 
 	return (
 		<section className="auth-form">
+			<Field className="w-full">
+				<FieldLabel htmlFor="progress-upload">
+					<span>Step {step} of 2 -</span>
+					<span>Your details</span>
+				</FieldLabel>
+				<Progress value={(step / 2) * 100} id="progress-upload" />
+			</Field>
+
 			<header className="flex flex-col gap-5 md:gap-8">
 				<div className="flex flex-col gap-1 md:gap-3">
 					<h1 className="text-24 lg:text-36 font-semibold text-primary-700 text-center">
