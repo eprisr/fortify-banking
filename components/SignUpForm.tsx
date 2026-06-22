@@ -2,20 +2,27 @@
 
 import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
-import { Loader2 } from 'lucide-react'
+import { CircleIcon, CircleCheckBigIcon, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { signupSchema, signupStepOneSchema } from '@/lib/utils'
+import {
+	passwordRequirements,
+	signupSchema,
+	signupStepOneSchema,
+} from '@/lib/utils'
 import { type SignUpValues } from '@/lib/auth-form-config'
 import { signUp } from '@/lib/actions/user.actions'
 import CustomInput from './CustomInput'
 import PlaidLink from './PlaidLink'
 import { type Path } from 'react-hook-form'
+import { Item, ItemContent, ItemMedia, ItemTitle } from './ui/item'
 
-const STEP_ONE_FIELDS = Object.keys(signupStepOneSchema.shape) as Path<SignUpValues>[]
+const STEP_ONE_FIELDS = Object.keys(
+	signupStepOneSchema.shape,
+) as Path<SignUpValues>[]
 
 const SignUpForm = () => {
 	const [step, setStep] = useState<1 | 2>(1)
@@ -25,7 +32,7 @@ const SignUpForm = () => {
 
 	const form = useForm<SignUpValues>({
 		resolver: zodResolver(signupSchema),
-		mode: 'onSubmit',
+		mode: 'onChange',
 		defaultValues: {
 			firstName: '',
 			lastName: '',
@@ -40,8 +47,12 @@ const SignUpForm = () => {
 		},
 	})
 
+	const { control, handleSubmit, trigger } = form
+
+	const password = useWatch({ control, name: 'password' })
+
 	const handleNext = async () => {
-		const valid = await form.trigger(STEP_ONE_FIELDS)
+		const valid = await trigger(STEP_ONE_FIELDS)
 		if (valid) setStep(2)
 	}
 
@@ -89,19 +100,19 @@ const SignUpForm = () => {
 			) : (
 				<>
 					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+						<form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 							{step === 1 && (
 								<>
 									<div className="flex gap-4">
 										<CustomInput
-											control={form.control}
+											control={control}
 											name="firstName"
 											label="First Name"
 											placeholder="Jane"
 											required
 										/>
 										<CustomInput
-											control={form.control}
+											control={control}
 											name="lastName"
 											label="Last Name"
 											placeholder="Doe"
@@ -109,33 +120,58 @@ const SignUpForm = () => {
 										/>
 									</div>
 									<CustomInput
-										control={form.control}
+										control={control}
 										name="email"
 										label="Email"
 										placeholder="email@email.com"
 										required
 									/>
 									<CustomInput
-										control={form.control}
+										control={control}
 										name="password"
 										label="Password"
 										placeholder="Password"
 										required
 									/>
+									{passwordRequirements.map(({ label, test }) => {
+										const met = test(password ?? '')
+										return (
+											<Item className="p-0" size="sm" key={label} asChild>
+												<div>
+													<ItemMedia
+														className={
+															met ? 'text-green-600' : 'text-gray-300'
+														}>
+														{met ? (
+															<CircleCheckBigIcon className="size-4" />
+														) : (
+															<CircleIcon className="size-4" />
+														)}
+													</ItemMedia>
+													<ItemContent>
+														<ItemTitle
+															className={`text-10! ${met ? 'text-black' : 'text-gray-300'}`}>
+															{label}
+														</ItemTitle>
+													</ItemContent>
+												</div>
+											</Item>
+										)
+									})}
 								</>
 							)}
 
 							{step === 2 && (
 								<>
 									<CustomInput
-										control={form.control}
+										control={control}
 										name="address1"
 										label="Address"
 										placeholder="Enter your specific address"
 										required
 									/>
 									<CustomInput
-										control={form.control}
+										control={control}
 										name="city"
 										label="City"
 										placeholder="Enter your city"
@@ -143,14 +179,14 @@ const SignUpForm = () => {
 									/>
 									<div className="flex gap-4">
 										<CustomInput
-											control={form.control}
+											control={control}
 											name="state"
 											label="State"
 											placeholder="Example: NY"
 											required
 										/>
 										<CustomInput
-											control={form.control}
+											control={control}
 											name="postalCode"
 											label="Postal Code"
 											placeholder="Example: 11101"
@@ -159,14 +195,14 @@ const SignUpForm = () => {
 									</div>
 									<div className="flex gap-4">
 										<CustomInput
-											control={form.control}
+											control={control}
 											name="dateOfBirth"
 											label="Date of Birth"
 											placeholder="YYYY-MM-DD"
 											required
 										/>
 										<CustomInput
-											control={form.control}
+											control={control}
 											name="ssn"
 											label="SSN"
 											placeholder="Example: 1234"
@@ -201,7 +237,8 @@ const SignUpForm = () => {
 											className="form-btn">
 											{isLoading ? (
 												<>
-													<Loader2 size={20} className="animate-spin" /> &nbsp; Loading...
+													<Loader2 size={20} className="animate-spin" /> &nbsp;
+													Loading...
 												</>
 											) : (
 												'Sign Up'

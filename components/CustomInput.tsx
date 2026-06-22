@@ -50,7 +50,10 @@ function CustomInput<T extends FieldValues>({
 								{...field}
 							/>
 						</FormControl>
-						<FormMessage className="form-message mt-2" />
+						{name === 'password' ||
+							(name === 'confirmPassword' && (
+								<FormMessage className="form-message mt-2" />
+							))}
 					</div>
 				</FormItem>
 			)}
