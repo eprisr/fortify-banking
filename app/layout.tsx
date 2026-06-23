@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
-import { Fira_Sans, IBM_Plex_Serif, Poppins } from 'next/font/google'
+import { Fira_Sans, IBM_Plex_Serif, Poppins, Inter } from 'next/font/google'
 import './globals.css'
+import { cn } from "@/lib/utils";
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 const poppins = Poppins({
 	weight: ['400', '500', '600'],
@@ -33,7 +36,7 @@ export default function RootLayout({
 	children: React.ReactNode
 }>) {
 	return (
-		<html lang="en" suppressHydrationWarning>
+		<html lang="en" suppressHydrationWarning className={cn("font-sans", inter.variable)}>
 			<body
 				className={`${poppins.variable} ${firaSans.variable} ${ibmPlexSerif.variable}`}>
 				{children}
