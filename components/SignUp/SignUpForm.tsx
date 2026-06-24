@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { BaseSyntheticEvent, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, useWatch } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,7 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Progress } from '@/components/ui/progress'
 import StepOne from './StepOne'
 import StepTwo from './StepTwo'
+import { redirect } from 'next/navigation'
 
 const STEP_ONE_FIELDS = Object.keys(signupSchema.shape) as Path<SignUpValues>[]
 
@@ -46,7 +47,17 @@ const SignUpForm = () => {
 		if (valid) setStep((prevStep) => prevStep + 1)
 	}
 
-	const onSubmit = async (data: SignUpValues) => {
+	const onSubmit = async (data: SignUpValues, event?: BaseSyntheticEvent) => {
+		function isNamedSubmitter(
+			el: EventTarget | null,
+		): el is HTMLButtonElement | HTMLInputElement {
+			return el instanceof HTMLButtonElement || el instanceof HTMLInputElement
+		}
+
+		const submitter = (event?.nativeEvent as SubmitEvent | undefined)?.submitter
+		const name =
+			submitter && isNamedSubmitter(submitter) ? submitter.name : undefined
+
 		setIsLoading(true)
 		setServerError('')
 		try {
@@ -58,6 +69,13 @@ const SignUpForm = () => {
 			console.error('Auth Error: ', error)
 		} finally {
 			setIsLoading(false)
+			if (name === 'connect') {
+				redirect('/signin')
+			}
+
+			if (name === 'sample') {
+				redirect('/confirmation')
+			}
 		}
 	}
 
@@ -83,59 +101,52 @@ const SignUpForm = () => {
 				</div>
 			</header>
 
-			{user ? (
-				<div className="flex flex-col gap-4">
-					<PlaidLink user={user} variant="primary" />
-				</div>
-			) : (
-				<>
-					<Form {...form}>
-						<form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-							{step === 1 && <StepOne control={control} password={password} />}
+			<>
+				<Form {...form}>
+					<form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+						{step === 1 && <StepOne control={control} password={password} />}
 
-							{step == 2 && <StepTwo />}
+						{step == 2 && <StepTwo />}
 
-							<div className="flex flex-col gap-4">
-								{serverError && <p className="form-message">{serverError}</p>}
+						<div className="flex flex-col gap-4">
+							{serverError && <p className="form-message">{serverError}</p>}
 
-								{step === 1 && (
-									<Button type="button" onClick={handleNext}>
-										Continue
+							{step === 1 && (
+								<Button type="button" onClick={handleNext}>
+									Continue
+								</Button>
+							)}
+							{step === 2 && (
+								<div className="flex flex-col gap-4">
+									<Button
+										type="submit"
+										name="connect"
+										disabled={isLoading}
+										variant="default">
+										Connect my bank now
 									</Button>
-								)}
-								{step === 2 && (
-									<div className="flex flex-col gap-4">
-										<Button
-											type="submit"
-											disabled={isLoading}
-											variant="default">
-											{isLoading ? (
-												<>
-													<Loader2 size={20} className="animate-spin" /> &nbsp;
-												</>
-											) : (
-												'Connect my bank now'
-											)}
-										</Button>
-										<Button type="submit" variant="secondary">
-											I'll do this later
-										</Button>
-									</div>
-								)}
-							</div>
-						</form>
-					</Form>
+									<Button
+										type="submit"
+										name="sample"
+										disabled={isLoading}
+										variant="secondary">
+										I'll do this later
+									</Button>
+								</div>
+							)}
+						</div>
+					</form>
+				</Form>
 
-					<footer className="flex justify-center gap-1">
-						<p className="text-14 font-normal text-gray-600">
-							Already have an account?
-						</p>
-						<Link href="/signin" className="form-link">
-							Sign In
-						</Link>
-					</footer>
-				</>
-			)}
+				<footer className="flex justify-center gap-1">
+					<p className="text-14 font-normal text-gray-600">
+						Already have an account?
+					</p>
+					<Link href="/signin" className="form-link">
+						Sign In
+					</Link>
+				</footer>
+			</>
 		</section>
 	)
 }
