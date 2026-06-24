@@ -134,15 +134,6 @@ export const signUp = async ({
 
 		newUserAccountId = newUserAccount.$id
 
-		const dwollaCustomerUrl = await createDwollaCustomer({
-			...userData,
-			type: 'personal',
-		})
-
-		if (!dwollaCustomerUrl) throw new Error('Payment provider setup failed')
-
-		const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl)
-
 		const newUser = await table.createRow({
 			databaseId: DATABASE_ID!,
 			tableId: USER_COLLECTION_ID!,
@@ -150,8 +141,8 @@ export const signUp = async ({
 			data: {
 				...userData,
 				userId: newUserAccount.$id,
-				dwollaCustomerId,
-				dwollaCustomerUrl,
+				// dwollaCustomerId,
+				// dwollaCustomerUrl,
 			},
 		})
 
@@ -178,6 +169,17 @@ export const signUp = async ({
 		return handleError(error, 'An error occurred during sign up')
 	}
 }
+
+// export const createDwollaUser = async() => {
+//   const dwollaCustomerUrl = await createDwollaCustomer({
+// 		...userData,
+// 		type: 'personal',
+// 	})
+
+// 	if (!dwollaCustomerUrl) throw new Error('Payment provider setup failed')
+
+// 	const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl)
+// }
 
 export async function getLoggedInUser() {
 	try {
