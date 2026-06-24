@@ -24,7 +24,7 @@ const STEP_ONE_FIELDS = Object.keys(
 ) as Path<SignUpValues>[]
 
 const SignUpForm = () => {
-	const [step, setStep] = useState<1 | 2 | 3>(3)
+	const [step, setStep] = useState<number>(1)
 	const [user, setUser] = useState<User | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [serverError, setServerError] = useState('')
@@ -52,7 +52,7 @@ const SignUpForm = () => {
 
 	const handleNext = async () => {
 		const valid = await trigger(STEP_ONE_FIELDS)
-		if (valid) setStep(2)
+		if (valid) setStep((prevStep) => prevStep + 1)
 	}
 
 	const onSubmit = async (data: SignUpValues) => {
@@ -74,11 +74,11 @@ const SignUpForm = () => {
 		<section className="auth-form">
 			<Field className="w-full">
 				<FieldLabel htmlFor="progress-upload">
-					<span>Step {step} of 2 -</span>
+					<span>Step {step} of 3 -</span>
 					{step === 1 || (step === 2 && <span>Your details</span>)}
 					{step === 3 && <span> Optional but recommended</span>}
 				</FieldLabel>
-				<Progress value={(step / 2) * 100} id="progress-upload" />
+				<Progress value={(step / 3) * 100} id="progress-upload" />
 			</Field>
 
 			<header className="flex flex-col gap-5 md:gap-8">
@@ -126,20 +126,28 @@ const SignUpForm = () => {
 											{isLoading ? (
 												<>
 													<Loader2 size={20} className="animate-spin" /> &nbsp;
-													Loading...
 												</>
 											) : (
-												'Sign Up'
+												'Continue'
 											)}
 										</Button>
 									</div>
 								)}
 								{step === 3 && (
 									<div className="flex flex-col gap-4">
-										<Button type="button" variant="default">
-											Connect my bank now
+										<Button
+											type="submit"
+											disabled={isLoading}
+											variant="default">
+											{isLoading ? (
+												<>
+													<Loader2 size={20} className="animate-spin" /> &nbsp;
+												</>
+											) : (
+												'Connect my bank now'
+											)}
 										</Button>
-										<Button type="button" variant="secondary">
+										<Button type="submit" variant="secondary">
 											I'll do this later
 										</Button>
 									</div>
