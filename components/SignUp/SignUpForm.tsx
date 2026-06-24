@@ -17,13 +17,14 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Progress } from '@/components/ui/progress'
 import StepOne from './StepOne'
 import StepTwo from './StepTwo'
+import StepThree from './StepThree'
 
 const STEP_ONE_FIELDS = Object.keys(
 	signupStepOneSchema.shape,
 ) as Path<SignUpValues>[]
 
 const SignUpForm = () => {
-	const [step, setStep] = useState<1 | 2 | 3>(1)
+	const [step, setStep] = useState<1 | 2 | 3>(3)
 	const [user, setUser] = useState<User | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [serverError, setServerError] = useState('')
@@ -74,7 +75,8 @@ const SignUpForm = () => {
 			<Field className="w-full">
 				<FieldLabel htmlFor="progress-upload">
 					<span>Step {step} of 2 -</span>
-					<span>Your details</span>
+					{step === 1 || (step === 2 && <span>Your details</span>)}
+					{step === 3 && <span> Optional but recommended</span>}
 				</FieldLabel>
 				<Progress value={(step / 2) * 100} id="progress-upload" />
 			</Field>
@@ -102,29 +104,25 @@ const SignUpForm = () => {
 
 							{step === 2 && <StepTwo control={control} />}
 
+							{step == 3 && <StepThree />}
+
 							<div className="flex flex-col gap-4">
 								{serverError && <p className="form-message">{serverError}</p>}
 
-								{step === 1 ? (
-									<Button
-										type="button"
-										onClick={handleNext}
-										className="form-btn">
+								{step === 1 && (
+									<Button type="button" onClick={handleNext}>
 										Continue
 									</Button>
-								) : (
+								)}
+								{step === 2 && (
 									<div className="flex gap-4">
 										<Button
 											type="button"
 											variant="outline"
-											onClick={() => setStep(1)}
-											className="form-btn">
+											onClick={() => setStep(1)}>
 											Back
 										</Button>
-										<Button
-											type="submit"
-											disabled={isLoading}
-											className="form-btn">
+										<Button type="submit" disabled={isLoading}>
 											{isLoading ? (
 												<>
 													<Loader2 size={20} className="animate-spin" /> &nbsp;
@@ -133,6 +131,16 @@ const SignUpForm = () => {
 											) : (
 												'Sign Up'
 											)}
+										</Button>
+									</div>
+								)}
+								{step === 3 && (
+									<div className="flex flex-col gap-4">
+										<Button type="button" variant="default">
+											Connect my bank now
+										</Button>
+										<Button type="button" variant="secondary">
+											I'll do this later
 										</Button>
 									</div>
 								)}
