@@ -269,14 +269,14 @@ export const resetPwSchema = z
 		}
 	})
 
-export const signupStepOneSchema = z.object({
+export const signupSchema = z.object({
 	firstName: z.string().min(2, { error: 'First Name is Required' }),
 	lastName: z.string().min(2, { error: 'Last Name is Required' }),
 	email: emailField,
 	password: passwordField,
 })
 
-export const signupStepTwoSchema = z.object({
+export const dwollaSchema = z.object({
 	address1: z.string().min(5, { error: 'Address is Required' }).max(50),
 	city: z.string().min(2, { error: 'City is Required' }).max(50),
 	state: z
@@ -289,9 +289,4 @@ export const signupStepTwoSchema = z.object({
 		.max(6, { error: 'A Valid Postal Code is Required' }),
 	dateOfBirth: z.string().min(3, { error: 'A Birth Date is Required' }),
 	ssn: z.string().min(4, { error: 'A SSN is Required' }),
-})
-
-export const signupSchema = z.object({
-	...signupStepOneSchema.shape,
-	...signupStepTwoSchema.shape,
 })

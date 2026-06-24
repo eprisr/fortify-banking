@@ -1,63 +1,102 @@
 'use client'
 
-import CustomInput from '@/components/CustomInput'
-import { type SignUpValues } from '@/lib/auth-form-config'
-import { type Control } from 'react-hook-form'
+import {
+	Item,
+	ItemContent,
+	ItemDescription,
+	ItemGroup,
+	ItemMedia,
+	ItemTitle,
+} from '@/components/ui/item'
+import {
+	Ban,
+	ChartNoAxesColumn,
+	Eye,
+	Landmark,
+	Lock,
+	PiggyBank,
+	TriangleAlert,
+} from 'lucide-react'
 
-interface StepTwoProps {
-	control: Control<SignUpValues>
-}
+const features = [
+	{
+		title: 'Spending Insights',
+		desc: 'See exactly where your money goes, automatically categorized.',
+		icon: 'chart',
+	},
+	{
+		title: 'Net worth tracking',
+		desc: 'All your balances in one place, updated in real time.',
+		icon: 'money',
+	},
+	{
+		title: 'Smart alerts',
+		desc: 'Know the moment unusual activity hits your account.',
+		icon: 'alert',
+	},
+]
 
-const StepTwo = ({ control }: StepTwoProps) => {
+const StepTwo = () => {
 	return (
-		<>
-			<CustomInput
-				control={control}
-				name="address1"
-				label="Address"
-				placeholder="Enter your specific address"
-				required
-			/>
-			<CustomInput
-				control={control}
-				name="city"
-				label="City"
-				placeholder="Enter your city"
-				required
-			/>
-			<div className="flex gap-4">
-				<CustomInput
-					control={control}
-					name="state"
-					label="State"
-					placeholder="Example: NY"
-					required
-				/>
-				<CustomInput
-					control={control}
-					name="postalCode"
-					label="Postal Code"
-					placeholder="Example: 11101"
-					required
-				/>
-			</div>
-			<div className="flex gap-4">
-				<CustomInput
-					control={control}
-					name="dateOfBirth"
-					label="Date of Birth"
-					placeholder="YYYY-MM-DD"
-					required
-				/>
-				<CustomInput
-					control={control}
-					name="ssn"
-					label="SSN"
-					placeholder="Example: 1234"
-					required
-				/>
-			</div>
-		</>
+		<div className="flex w-full max-w-md flex-col gap-6">
+			<ItemGroup className="gap-4">
+				{features.map((feat) => (
+					<Item key={feat.title} variant="outline" asChild role="listitem">
+						<div>
+							<ItemMedia variant="icon" className="self-center!">
+								{feat.icon === 'chart' && <ChartNoAxesColumn size={60} />}
+								{feat.icon === 'money' && <PiggyBank size={60} />}
+								{feat.icon === 'alert' && <TriangleAlert size={60} />}
+							</ItemMedia>
+							<ItemContent>
+								<ItemTitle className="line-clamp-1">{feat.title}</ItemTitle>
+								<ItemDescription>{feat.desc}</ItemDescription>
+							</ItemContent>
+						</div>
+					</Item>
+				))}
+			</ItemGroup>
+			<Item
+				className="justify-between"
+				variant="outline"
+				asChild
+				role="listitem">
+				<div>
+					<div className="flex flex-col">
+						<ItemMedia variant="icon">
+							<Lock />
+						</ItemMedia>
+						<ItemContent>
+							<ItemTitle className="text-10!">256-bit SSL</ItemTitle>
+						</ItemContent>
+					</div>
+					<div className="flex flex-col">
+						<ItemMedia variant="icon">
+							<Eye />
+						</ItemMedia>
+						<ItemContent>
+							<ItemTitle className="text-10!">Read-only</ItemTitle>
+						</ItemContent>
+					</div>
+					<div className="flex flex-col">
+						<ItemMedia variant="icon">
+							<Ban />
+						</ItemMedia>
+						<ItemContent>
+							<ItemTitle className="text-10!">Never sold</ItemTitle>
+						</ItemContent>
+					</div>
+					<div className="flex flex-col">
+						<ItemMedia variant="icon">
+							<Landmark />
+						</ItemMedia>
+						<ItemContent>
+							<ItemTitle className="text-10!">10,000+ banks</ItemTitle>
+						</ItemContent>
+					</div>
+				</div>
+			</Item>
+		</div>
 	)
 }
 

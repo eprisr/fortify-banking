@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { signupSchema, signupStepOneSchema } from '@/lib/utils'
+import { signupSchema } from '@/lib/utils'
 import { type SignUpValues } from '@/lib/auth-form-config'
 import { signUp } from '@/lib/actions/user.actions'
 import CustomInput from '@/components/CustomInput'
@@ -17,11 +17,8 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Progress } from '@/components/ui/progress'
 import StepOne from './StepOne'
 import StepTwo from './StepTwo'
-import StepThree from './StepThree'
 
-const STEP_ONE_FIELDS = Object.keys(
-	signupStepOneSchema.shape,
-) as Path<SignUpValues>[]
+const STEP_ONE_FIELDS = Object.keys(signupSchema.shape) as Path<SignUpValues>[]
 
 const SignUpForm = () => {
 	const [step, setStep] = useState<number>(1)
@@ -37,12 +34,6 @@ const SignUpForm = () => {
 			lastName: '',
 			email: '',
 			password: '',
-			address1: '',
-			city: '',
-			state: '',
-			postalCode: '',
-			dateOfBirth: '',
-			ssn: '',
 		},
 	})
 
@@ -74,11 +65,11 @@ const SignUpForm = () => {
 		<section className="auth-form">
 			<Field className="w-full">
 				<FieldLabel htmlFor="progress-upload">
-					<span>Step {step} of 3 -</span>
-					{step === 1 || (step === 2 && <span>Your details</span>)}
-					{step === 3 && <span> Optional but recommended</span>}
+					<span>Step {step} of 2 -</span>
+					{step === 1 && <span>Your details</span>}
+					{step === 2 && <span> Optional but recommended</span>}
 				</FieldLabel>
-				<Progress value={(step / 3) * 100} id="progress-upload" />
+				<Progress value={(step / 2) * 100} id="progress-upload" />
 			</Field>
 
 			<header className="flex flex-col gap-5 md:gap-8">
@@ -102,9 +93,7 @@ const SignUpForm = () => {
 						<form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 							{step === 1 && <StepOne control={control} password={password} />}
 
-							{step === 2 && <StepTwo control={control} />}
-
-							{step == 3 && <StepThree />}
+							{step == 2 && <StepTwo />}
 
 							<div className="flex flex-col gap-4">
 								{serverError && <p className="form-message">{serverError}</p>}
@@ -115,25 +104,6 @@ const SignUpForm = () => {
 									</Button>
 								)}
 								{step === 2 && (
-									<div className="flex gap-4">
-										<Button
-											type="button"
-											variant="outline"
-											onClick={() => setStep(1)}>
-											Back
-										</Button>
-										<Button type="submit" disabled={isLoading}>
-											{isLoading ? (
-												<>
-													<Loader2 size={20} className="animate-spin" /> &nbsp;
-												</>
-											) : (
-												'Continue'
-											)}
-										</Button>
-									</div>
-								)}
-								{step === 3 && (
 									<div className="flex flex-col gap-4">
 										<Button
 											type="submit"
