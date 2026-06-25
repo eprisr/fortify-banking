@@ -1,7 +1,7 @@
 # ADR-005: Refactoring the Auth Flow
 
 **Date:** 2026-06-24 _(documented at the start of implementation — see note in Context)_  
-**Status:** Proposed  
+**Status:** Accepted — Phase 1 (signup refactor) complete; Phase 2 (guest mode) in progress  
 **Author:** eprisr
 
 ---
@@ -67,7 +67,51 @@ The middle option was tempting as the lowest-effort fix, but it would leave the 
 
 ## Consequences (Actual)
 
-_To be filled in after implementation._
+Implementation happened across two branches: `login-flow-ui-updates` and `signup-multistep`. Here's how the three planned changes actually played out.
+
+### 1. Splitting `AuthForm`
+
+This landed differently than originally scoped. The plan called for four separate components (signup, signin, forgot-password, reset-password) each fully independent. What actually happened was a partial split: **signup** was pulled out entirely into its own `SignUpForm` component, while signin, forgot-password, and reset-password still share `AuthForm`. That's a reasonable middle ground, signup was by far the most complex and fastest-growing of the four states, so extracting it first delivered most of the maintainability benefit without requiring a full rewrite of the simpler states in the same pass.
+
+A few things came out of this that weren't explicitly planned:
+
+- An **auth form config file** was added to hold shared types, default values, and other reusable variables, a layer the original ADR didn't call out but that became necessary once logic was split across files.
+- **Auth middleware** was introduced to fetch user and account data in one place, rather than re-fetching it separately on every page that needed it. This wasn't in the original scope either; it emerged from noticing the same fetch logic duplicated across pages once the refactor was underway.
+- Some **login flow copy** was cleaned up as a smaller, unplanned side effect of working through that part of the code.
+
+### 2. Multi-step signup
+
+This is where most of the effort went, and it shifted in scope a few times along the way.
+
+The signup fields were split into two steps rather than the three originally pictured, with a Zod schema broken apart to validate each step independently and rejoined for final submission. Along the way, a few UX additions got added that weren't in the original plan: a **visual password validation checklist**, a **progress bar**, and removal of the image header that had been taking up space on the signup screen, all aimed at making the multi-step form feel lighter than the single long form it replaced.
+
+A genuinely unplanned decision came up partway through: **when to create the Dwolla account.** The original assumption was that Dwolla setup would happen later, decoupled from signup. Partway through building the steps, that got reconsidered: Dwolla account creation was moved to happen at the same time as Plaid account creation, which changed what had been planned as "step three" into "step two." This is exactly the kind of mid-build decision the original ADR couldn't have anticipated, since it only became obvious once the steps were actually being wired together.
+
+An unrelated detour: a **ShadCN theming issue** surfaced on buttons partway through, components no longer looked right out of the box, likely from an earlier change to project setup or variables. Fixing that took a separate pass before the step work could continue.
+
+The components were eventually organized into a dedicated folder for the signup flow, which wasn't called out in the original plan but followed naturally from how many new files the step-splitting produced.
+
+### 3. Guest mode / fallback handling
+
+This is the least complete part of the three. What exists now: after signup, a user is offered a choice: link a bank account now, or do it later.
+
+- Choosing **"now"** currently routes to the existing dashboard without actually prompting the Plaid connection; that wiring isn't finished yet.
+- Choosing **"later"** routes to a confirmation screen acknowledging the account was created, with messaging that dummy data is coming, but since the dummy dashboard doesn't exist yet, this path also currently falls through to the existing dashboard.
+  In other words, the branching logic for the choice exists, but neither path yet does what it's ultimately supposed to do. The guest-mode dashboard with realistic dummy data (the part of the original plan meant to solve the "session disconnected" dead end) hasn't been built.
+
+### Summary: Plan vs. Reality
+
+| Planned                                           | What Actually Happened                                                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Full 4-way `AuthForm` split                       | Signup extracted; signin/forgot/reset still combined                                                   |
+| Multi-step signup, scope unspecified              | 2 steps, plus password checklist, progress bar, and header removal                                     |
+| Guest mode with dummy data as a built-in fallback | Branching UI exists; both paths currently fall through to the real dashboard; dummy data not yet built |
+| _(not planned)_                                   | Auth middleware for shared user/account fetching                                                       |
+| _(not planned)_                                   | Shared auth form config file                                                                           |
+| _(not planned)_                                   | Dwolla account creation moved to coincide with Plaid linking, reordering the steps                     |
+| _(not planned)_                                   | ShadCN theming fix required mid-refactor                                                               |
+
+The biggest gap between plan and reality is sequencing: the work that turned out to matter most for code health (middleware, the config file) wasn't anticipated going in, while the piece the original ADR leaned on most heavily as the payoff (guest mode) is the piece still unfinished.
 
 ---
 
