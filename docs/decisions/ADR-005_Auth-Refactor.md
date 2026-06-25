@@ -1,8 +1,8 @@
 # ADR-005: Refactoring the Auth Flow
 
 **Date:** 2026-06-24 _(documented at the start of implementation — see note in Context)_  
-**Status:** Accepted — Phase 1 (signup refactor) complete; Phase 2 (guest mode) in progress  
-**Author:** eprisr
+**Status:** Accepted — Phase 1 (signup refactor + component split) complete; Phase 2 (guest mode) pending  
+**Author:** Epris R.
 
 ---
 
@@ -71,7 +71,13 @@ Implementation happened across two branches: `login-flow-ui-updates` and `signup
 
 ### 1. Splitting `AuthForm`
 
-This landed differently than originally scoped. The plan called for four separate components (signup, signin, forgot-password, reset-password) each fully independent. What actually happened was a partial split: **signup** was pulled out entirely into its own `SignUpForm` component, while signin, forgot-password, and reset-password still share `AuthForm`. That's a reasonable middle ground, signup was by far the most complex and fastest-growing of the four states, so extracting it first delivered most of the maintainability benefit without requiring a full rewrite of the simpler states in the same pass.
+This landed differently than originally scoped, and ended somewhere more deliberate than the original plan called for.
+
+he original ADR assumed the right split was by responsibility: four auth states, four components. In practice, signup was extracted first into its own `SignUpForm` component, because it was the most complex and fastest-growing of the four. Signin, forgot-password, and reset-password stayed in `AuthForm`, with their logic moved into the same shared auth form config, but not split into separate files.
+
+A closer look at the actual code clarified why that's the right place to stop, rather than an unfinished version of the original plan. Signin, forgot-password, and reset-password are structurally identical: the same three possible fields (email, password, confirm password), the same form skeleton, differing only in which fields show, what the labels say, and which action gets called on submit. That's precisely the kind of variation a config-driven approach is built to express, splitting those three into separate files would mean copying the same JSX skeleton three times for no behavioral difference. Signup, by contrast, earned its own directory because it's structurally different: a multi-step wizard with its own field set and its own success branch involving Plaid.
+
+That reframes the original plan's premise. "Split by responsibility" turned out to be the wrong test. The better test is whether the structure actually diverges, not whether something is a different enum value in a switch statement. By that test, the split is complete, not partial.
 
 A few things came out of this that weren't explicitly planned:
 
@@ -97,21 +103,23 @@ This is the least complete part of the three. What exists now: after signup, a u
 
 - Choosing **"now"** currently routes to the existing dashboard without actually prompting the Plaid connection; that wiring isn't finished yet.
 - Choosing **"later"** routes to a confirmation screen acknowledging the account was created, with messaging that dummy data is coming, but since the dummy dashboard doesn't exist yet, this path also currently falls through to the existing dashboard.
-  In other words, the branching logic for the choice exists, but neither path yet does what it's ultimately supposed to do. The guest-mode dashboard with realistic dummy data (the part of the original plan meant to solve the "session disconnected" dead end) hasn't been built.
+
+In other words, the branching logic for the choice exists, but neither path yet does what it's ultimately supposed to do. The guest-mode dashboard with realistic dummy data (the part of the original plan meant to solve the "session disconnected" dead end) hasn't been built.
 
 ### Summary: Plan vs. Reality
 
-| Planned                                           | What Actually Happened                                                                                 |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Full 4-way `AuthForm` split                       | Signup extracted; signin/forgot/reset still combined                                                   |
-| Multi-step signup, scope unspecified              | 2 steps, plus password checklist, progress bar, and header removal                                     |
-| Guest mode with dummy data as a built-in fallback | Branching UI exists; both paths currently fall through to the real dashboard; dummy data not yet built |
-| _(not planned)_                                   | Auth middleware for shared user/account fetching                                                       |
-| _(not planned)_                                   | Shared auth form config file                                                                           |
-| _(not planned)_                                   | Dwolla account creation moved to coincide with Plaid linking, reordering the steps                     |
-| _(not planned)_                                   | ShadCN theming fix required mid-refactor                                                               |
+| Planned                                           | What Actually Happened                                                                                                                                                                           |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Full 4-way `AuthForm` split                       | Signup extracted into its own component; signin/forgot/reset consolidated under shared config rather than split further; splitting them would have duplicated identical structure for no benefit |
+| Multi-step signup, scope unspecified              | 2 steps, plus password checklist, progress bar, and header removal                                                                                                                               |
+| Guest mode with dummy data as a built-in fallback | Branching UI exists; both paths currently fall through to the real dashboard; dummy data not yet built                                                                                           |
+| _(not planned)_                                   | Auth middleware for shared user/account fetching                                                                                                                                                 |
+| _(not planned)_                                   | Shared auth form config file                                                                                                                                                                     |
+| _(not planned)_                                   | Dwolla account creation moved to coincide with Plaid linking, reordering the steps                                                                                                               |
+| _(not planned)_                                   | ShadCN theming fix required mid-refactor                                                                                                                                                         |
+| _(not planned)_                                   | Realization that "split by responsibility" was the wrong test; the right test is structural divergence, not state difference                                                                     |
 
-The biggest gap between plan and reality is sequencing: the work that turned out to matter most for code health (middleware, the config file) wasn't anticipated going in, while the piece the original ADR leaned on most heavily as the payoff (guest mode) is the piece still unfinished.
+The biggest gap between plan and reality isn't a shortfall, it's that the plan's own premise got revised along the way. "Split every auth state into its own component" turned out to be less correct than "split where the structure actually diverges." Signup met that bar. Signin, forgot-password, and reset-password didn't, and consolidating them under one config-driven component is the more correct outcome, not a deferred task. The other open piece, guest mode, remains genuinely unfinished and is the right next target.
 
 ---
 
