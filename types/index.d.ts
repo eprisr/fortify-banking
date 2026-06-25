@@ -184,6 +184,7 @@ declare interface PaginationProps {
 declare interface PlaidLinkProps {
 	user: User
 	variant?: 'primary' | 'ghost' | 'reconnect' | 'relink'
+	text?: string
 	dwollaCustomerId?: string
 	update?: boolean
 }

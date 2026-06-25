@@ -18,7 +18,7 @@ import {
 	exchangePublicToken,
 } from '@/lib/actions/user.actions'
 
-const PlaidLink = ({ user, variant, update }: PlaidLinkProps) => {
+const PlaidLink = ({ user, variant, text, update }: PlaidLinkProps) => {
 	const router = useRouter()
 	const [token, setToken] = useState('')
 
@@ -53,11 +53,8 @@ const PlaidLink = ({ user, variant, update }: PlaidLinkProps) => {
 	return (
 		<>
 			{variant === 'primary' ? (
-				<Button
-					onClick={() => open()}
-					disabled={!ready}
-					className="plaidlink-primary">
-					Connect Bank
+				<Button type="button" onClick={() => open()} disabled={!ready}>
+					{text ? text : 'Connect bank'}
 				</Button>
 			) : variant === 'ghost' ? (
 				<Button
