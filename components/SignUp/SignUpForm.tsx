@@ -103,14 +103,16 @@ const SignUpForm = () => {
 
 			<>
 				<Form {...form}>
-					<form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-						{step === 1 && <StepOne control={control} password={password} />}
-
-						{step == 2 && <StepTwo />}
+					<form
+						onSubmit={handleSubmit(onSubmit)}
+						className="flex flex-col grow space-y-5">
+						<div className="flex flex-col grow gap-4">
+							{step === 1 && <StepOne control={control} password={password} />}
+							{step == 2 && <StepTwo />}
+							{serverError && <p className="form-message">{serverError}</p>}
+						</div>
 
 						<div className="flex flex-col gap-4">
-							{serverError && <p className="form-message">{serverError}</p>}
-
 							{step === 1 && (
 								<Button type="button" onClick={handleNext}>
 									Continue

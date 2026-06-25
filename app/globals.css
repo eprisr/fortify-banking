@@ -1,6 +1,6 @@
 @import 'tailwindcss';
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -103,7 +103,7 @@
 		margin: 0;
 		padding: 0;
 		box-sizing: border-box;
-    @apply border-border outline-ring/50;
+		@apply border-border outline-ring/50;
 	}
 
 	/* Ensure the body and html maintain banking app layout defaults */
@@ -112,11 +112,11 @@
 		margin: 0;
 		padding: 0;
 	}
-  body {
-    @apply bg-background text-foreground;
+	body {
+		@apply bg-background text-foreground;
 	}
-  html {
-    @apply font-sans;
+	html {
+		@apply font-sans;
 	}
 }
 
@@ -208,7 +208,7 @@
 
 	/* Auth & Forms */
 	.auth-form {
-		@apply flex min-h-screen w-full max-w-[420px] flex-col gap-5 py-10 md:gap-8;
+		@apply flex min-h-[calc(100vh-92px)] w-full max-w-[420px] flex-col gap-5 py-10 md:gap-8;
 	}
 	.form-item {
 		@apply flex flex-col gap-1.5 min-w-[calc(50%-.5rem)];
