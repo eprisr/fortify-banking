@@ -37,13 +37,13 @@ export const navLinks = [
 	},
 ]
 
-export const homeLinks = [
-	{
-		Icon: BiSolidWallet,
-		route: '/my-banks',
-		label: 'Account and Card',
-		color: '#3629B7',
-	},
+export const quickLinks = [
+	// {
+	// 	Icon: BiSolidWallet,
+	// 	route: '/my-banks',
+	// 	label: 'Account and Card',
+	// 	color: '#3629B7',
+	// },
 	{
 		Icon: BiTransferAlt,
 		route: '/payment-transfer',
@@ -59,39 +59,39 @@ export const homeLinks = [
 	{
 		Icon: BiMobile,
 		route: '#',
-		label: 'Mobile prepaid',
+		label: 'Prepaid',
 		color: '#FFAF2A',
 	},
 	{
 		Icon: BiSolidReceipt,
 		route: '#',
-		label: 'Pay the bill',
+		label: 'Pay bill',
 		color: '#52D5BA',
 	},
-	{
-		Icon: FaPiggyBank,
-		route: '#',
-		label: 'Save online',
-		color: '#5655B9',
-	},
-	{
-		Icon: BiSolidCreditCard,
-		route: '#',
-		label: 'Credit card',
-		color: '#FB6B18',
-	},
-	{
-		Icon: FaReceipt,
-		route: '/transaction-history',
-		label: 'Transaction history',
-		color: '#3629B7',
-	},
-	{
-		Icon: BiSolidUserBadge,
-		route: '#',
-		label: 'Beneficiary',
-		color: '#FF4267',
-	},
+	// {
+	// 	Icon: FaPiggyBank,
+	// 	route: '#',
+	// 	label: 'Save online',
+	// 	color: '#5655B9',
+	// },
+	// {
+	// 	Icon: BiSolidCreditCard,
+	// 	route: '#',
+	// 	label: 'Credit card',
+	// 	color: '#FB6B18',
+	// },
+	// {
+	// 	Icon: FaReceipt,
+	// 	route: '/transaction-history',
+	// 	label: 'Transaction history',
+	// 	color: '#3629B7',
+	// },
+	// {
+	// 	Icon: BiSolidUserBadge,
+	// 	route: '#',
+	// 	label: 'Beneficiary',
+	// 	color: '#FF4267',
+	// },
 ]
 
 export const mobileLinks = [

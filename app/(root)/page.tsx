@@ -1,7 +1,7 @@
 import AccountBox from '@/components/AccountBox'
 import Navbar from '@/components/Navbar'
 import PlaidLink from '@/components/PlaidLink'
-import { homeLinks } from '@/constants'
+import { quickLinks } from '@/constants'
 import { getAccount, getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
 import Link from 'next/link'
@@ -37,31 +37,24 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 						/>
 					)}
 					<div>
-						<div className="flex justify-between mb-5">
-							<h3>Quick Actions</h3>
-							<div className="flex flex-center gap-2 text-10 text-gray-400">
-								<MdLockOutline />
-								<p className="text-12">Connect to unlock all</p>
-							</div>
-						</div>
-						<div className="grid grid-cols-3 gap-4 justify-items-center">
-							{homeLinks.map((link) => {
+						<div className="grid grid-cols-4 gap-2 justify-items-center">
+							{quickLinks.map((link) => {
 								const { Icon, route, label, color } = link
 								const disabled = route === '#'
 								return (
 									<div
 										key={label}
-										className="h-24 w-24 rounded-2xl shadow-card">
+										className="h-fit w-18 rounded-2xl shadow-card">
 										<Link
 											href={route}
-											className={`grid grid-rows-2 gap-3 items-center justify-items-center text-center p-3 ${
+											className={`grid grid-rows-2 gap-3 items-center justify-items-center text-center p-2 ${
 												disabled ? 'cursor-default' : 'cursor-pointer'
 											}`}>
 											<Icon
-												className="text-[28px]"
+												className="text-[16px]"
 												style={{ color: `${disabled ? '#898989' : color}` }}
 											/>
-											<p className="text-12 text-gray-400">{label}</p>
+											<p className="text-10 text-gray-400">{label}</p>
 										</Link>
 									</div>
 								)
