@@ -39,8 +39,6 @@ const PlaidLink = ({ user, variant, text, update }: PlaidLinkProps) => {
 				user,
 			})
 
-			await createDwollaUser({ type: 'unverified', ...user })
-
 			router.push('/')
 		},
 		[user],

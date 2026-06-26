@@ -134,6 +134,15 @@ export const signUp = async ({
 
 		newUserAccountId = newUserAccount.$id
 
+		const dwollaCustomerUrl = await createDwollaCustomer({
+			...userData,
+			type: 'unverified',
+		})
+
+		if (!dwollaCustomerUrl) throw new Error('Payment provider setup failed')
+
+		const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl)
+
 		const newUser = await table.createRow({
 			databaseId: DATABASE_ID!,
 			tableId: USER_COLLECTION_ID!,
@@ -141,6 +150,8 @@ export const signUp = async ({
 			data: {
 				...userData,
 				userId: newUserAccount.$id,
+				dwollaCustomerId,
+				dwollaCustomerUrl,
 			},
 		})
 
@@ -166,41 +177,6 @@ export const signUp = async ({
 
 		return handleError(error, 'An error occurred during sign up')
 	}
-}
-
-export const createDwollaUser = async ({
-	type,
-	...user
-}: NewDwollaCustomerParams) => {
-	const dwollaCustomerUrl = await createDwollaCustomer({
-		...user,
-		type,
-	})
-
-	if (!dwollaCustomerUrl) throw new Error('Payment provider setup failed')
-
-	const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl)
-
-	const { table } = await createAdminClient()
-	const rows = await table.listRows({
-		databaseId: DATABASE_ID!,
-		tableId: USER_COLLECTION_ID!,
-		queries: [Query.equal('email', user.email)],
-	})
-
-	if (rows.total === 0) return
-
-	const rowId = rows.rows[0].$id
-
-	table.updateRow({
-		databaseId: DATABASE_ID!,
-		tableId: USER_COLLECTION_ID!,
-		rowId: rowId,
-		data: {
-			dwollaCustomerId,
-			dwollaCustomerUrl,
-		},
-	})
 }
 
 export async function getLoggedInUser() {
