@@ -1,12 +1,10 @@
 import AccountBox from '@/components/AccountBox'
 import Navbar from '@/components/Navbar'
 import PlaidLink from '@/components/PlaidLink'
-import { quickLinks } from '@/constants'
-import { getAccount, getAccounts } from '@/lib/actions/bank.actions'
+import QuickLinks from '@/components/QuickLinks'
+import { getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
-import Link from 'next/link'
-import React from 'react'
-import { MdInfoOutline, MdLockOutline } from 'react-icons/md'
+import { MdInfoOutline } from 'react-icons/md'
 
 const Home = async ({ searchParams }: SearchParamProps) => {
 	const { id } = await searchParams
@@ -35,31 +33,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 							totalBalance={accounts?.totalBalance}
 						/>
 					)}
-					<div>
-						<div className="grid grid-cols-4 gap-2 justify-items-center">
-							{quickLinks.map((link) => {
-								const { Icon, route, label, color } = link
-								const disabled = route === '#'
-								return (
-									<div
-										key={label}
-										className="h-fit w-18 rounded-2xl shadow-card">
-										<Link
-											href={route}
-											className={`grid grid-rows-2 gap-3 items-center justify-items-center text-center p-2 ${
-												disabled ? 'cursor-default' : 'cursor-pointer'
-											}`}>
-											<Icon
-												className="text-[16px]"
-												style={{ color: `${disabled ? '#898989' : color}` }}
-											/>
-											<p className="text-10 text-gray-400">{label}</p>
-										</Link>
-									</div>
-								)
-							})}
-						</div>
-					</div>
+					<QuickLinks />
 					{emptyAccounts && (
 						<div>
 							<div className="flex flex-center border-2 border-primary-100 bg-white p-5 rounded-lg w-full mb-3connect-box">
