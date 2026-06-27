@@ -216,6 +216,7 @@ export const createLinkToken = async (
 			},
 			client_name: `${user.firstName} ${user.lastName}`,
 			products: ['auth'] as Products[],
+			additional_consented_products: ['transactions', 'identity'] as Products[],
 			language: 'en',
 			country_codes: ['US'] as CountryCode[],
 			...(update && { access_token: accessToken }),
