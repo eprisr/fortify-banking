@@ -7,7 +7,7 @@ const Conf = async () => {
 	return (
 		<>
 			<Navbar type="sub" pageTitle="Welcome" />
-			<section className="flex-center size-full max-sm:px-6 bg-white">
+			<section className="flex-center w-full h-[calc(100vh-72px)] max-sm:px-6 bg-white">
 				<Confirmation />
 			</section>
 		</>

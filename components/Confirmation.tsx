@@ -3,10 +3,13 @@
 import { Lightbulb } from 'lucide-react'
 import { Item, ItemContent, ItemDescription, ItemMedia } from './ui/item'
 import { Button } from './ui/button'
+import { useRouter } from 'next/navigation'
 
 const Confirmation = () => {
+	const router = useRouter()
+
 	return (
-		<div>
+		<div className="flex flex-col gap-2 justify-center">
 			<header className="flex flex-col gap-5 md:gap-8">
 				<div className="flex flex-col gap-1 md:gap-3">
 					<h1 className="text-24 lg:text-36 font-semibold text-primary-700 text-center">
@@ -30,7 +33,9 @@ const Confirmation = () => {
 					</ItemDescription>
 				</ItemContent>
 			</Item>
-			<Button type="button">Explore the app &#8594;</Button>
+			<Button type="button" onClick={() => router.push('/')}>
+				Explore the app &#8594;
+			</Button>
 		</div>
 	)
 }
