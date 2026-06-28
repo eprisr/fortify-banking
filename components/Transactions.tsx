@@ -1,24 +1,23 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Link from 'next/link'
-import React from 'react'
 import { BankTabItem } from './BankTabItem'
 import BankInfo from './BankInfo'
 import TransactionsTable from './TransactionsTable'
 import { Pagination } from './Pagination'
 
-const RecentTransactions = ({
+const Transactions = ({
 	accounts,
 	transactions = [],
 	appwriteItemId,
 	page = 1,
-}: RecentTransactionsProps) => {
+}: TransactionsProps) => {
 	const rowsPerPage = 10
 	const totalPages = Math.ceil(transactions.length / rowsPerPage)
 	const indexOfLastTransaction = page * rowsPerPage
 	const indexOfFirstTransaction = indexOfLastTransaction - rowsPerPage
 	const currentTransactions = transactions.slice(
 		indexOfFirstTransaction,
-		indexOfLastTransaction
+		indexOfLastTransaction,
 	)
 
 	return (
@@ -68,4 +67,4 @@ const RecentTransactions = ({
 	)
 }
 
-export default RecentTransactions
+export default Transactions

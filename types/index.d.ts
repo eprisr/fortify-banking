@@ -237,7 +237,7 @@ declare interface NavbarProps {
 	background?: boolean
 }
 
-declare interface RecentTransactionsProps {
+declare interface TransactionsProps {
 	accounts: Account[]
 	transactions: Transaction[]
 	appwriteItemId: string
