@@ -3,6 +3,7 @@ import MonthSpend from '@/components/MonthSpend'
 import Navbar from '@/components/Navbar'
 import PlaidLink from '@/components/PlaidLink'
 import QuickLinks from '@/components/QuickLinks'
+import { RecentTransactions } from '@/components/RecentTransactions'
 import { getAccount, getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
 import { MdInfoOutline } from 'react-icons/md'
@@ -38,6 +39,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 					)}
 					<QuickLinks />
 					<MonthSpend transactions={account?.transactions} />
+					<RecentTransactions transactions={account?.transactions} />
 					{emptyAccounts && (
 						<div>
 							<div className="flex flex-center border-2 border-primary-100 bg-white p-5 rounded-lg w-full mb-3connect-box">
