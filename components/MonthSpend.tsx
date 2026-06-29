@@ -51,7 +51,7 @@ const MonthSpend = ({ transactions }: TransactionTableProps) => {
 	} satisfies ChartConfig
 
 	return (
-		<Card>
+		<Card className="overflow-visible">
 			<CardHeader>
 				<CardTitle className="font-light uppercase text-10!">
 					{currMonth}'s Spending
