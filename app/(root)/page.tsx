@@ -14,7 +14,8 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 	const accounts = await getAccounts({ userId: loggedIn?.$id })
 
 	const accountsData = accounts?.data
-	const emptyAccounts = accounts === 'UPDATE_MODE' || accounts.totalBanks === 0
+	const emptyAccount = accounts === 'UPDATE_MODE' || accounts.totalBanks === 0
+	const demoAccount = accountsData[0].id.includes('demo')
 	const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId
 
 	const account = await getAccount({ appwriteItemId })
@@ -24,23 +25,22 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 			<Navbar user={loggedIn} type="main" background />
 			<section className="home bg-white rounded-t-3xl min-h-[calc(100vh-152px)]">
 				<div className="home-content">
-					{emptyAccounts ? (
-						<div className={`${emptyAccounts && 'account-update'}`}>
+					{(emptyAccount || demoAccount) && (
+						<div className={`${emptyAccount && 'account-update'} mt-10`}>
 							<PlaidLink user={loggedIn} variant="reconnect" update />
 						</div>
-					) : (
-						<AccountBox
-							user={loggedIn}
-							accounts={accountsData}
-							banks={accountsData?.slice(0, 2)}
-							totalBanks={accounts?.totalBanks}
-							totalBalance={accounts?.totalBalance}
-						/>
 					)}
+					<AccountBox
+						user={loggedIn}
+						accounts={accountsData}
+						banks={accountsData?.slice(0, 2)}
+						totalBanks={accounts?.totalBanks}
+						totalBalance={accounts?.totalBalance}
+					/>
 					<QuickLinks />
 					<MonthSpend transactions={account?.transactions} />
 					<RecentTransactions transactions={account?.transactions} />
-					{emptyAccounts && (
+					{emptyAccount && (
 						<div>
 							<div className="flex flex-center border-2 border-primary-100 bg-white p-5 rounded-lg w-full mb-3connect-box">
 								<MdInfoOutline className="text-16 mr-2" />
@@ -56,6 +56,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 							</div>
 						</div>
 					)}
+					{demoAccount && <PlaidLink user={loggedIn} variant="primary" />}
 				</div>
 			</section>
 		</>
