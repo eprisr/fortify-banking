@@ -108,7 +108,7 @@ export const mobileLinks = [
 	{
 		Icon: BiEnvelope,
 		route: '#',
-		label: 'Message',
+		label: 'Inbox',
 	},
 	{
 		Icon: BiCog,
