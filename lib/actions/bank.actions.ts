@@ -11,6 +11,7 @@ import {
 
 import { plaidClient } from '../plaid'
 import { parseStringify } from '../utils'
+import { cookies } from 'next/headers'
 
 import { getTransactionsByBankId } from './transaction.actions'
 import {
@@ -19,12 +20,30 @@ import {
 	createLinkToken,
 	getLoggedInUser,
 } from './user.actions'
+import { DEMO_ACCOUNTS, getDemoTransactions } from '../demo-data'
 
 // Get multiple bank accounts
 export const getAccounts = async ({ userId }: getAccountsProps) => {
 	try {
 		// get banks from db
 		const banks = await getBanks({ userId })
+
+		// No real banks linked yet — fall back to sample data if the user
+		// opted in via "I'll do this later" at signup.
+		if (banks?.data.length === 0) {
+			const cookieStore = await cookies()
+			if (cookieStore.get('sample-data')?.value) {
+				const totalCurrentBalance = DEMO_ACCOUNTS.reduce(
+					(total, account) => total + account.currentBalance,
+					0,
+				)
+				return parseStringify({
+					data: DEMO_ACCOUNTS,
+					totalBanks: DEMO_ACCOUNTS.length,
+					totalCurrentBalance,
+				})
+			}
+		}
 
 		const accountsPromises = banks?.data.map(async (bank: Bank) => {
 			try {
@@ -95,6 +114,16 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 
 // Get one bank account
 export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
+	const demoAccount = DEMO_ACCOUNTS.find(
+		(account) => account.appwriteItemId === appwriteItemId,
+	)
+	if (demoAccount) {
+		return parseStringify({
+			data: demoAccount,
+			transactions: getDemoTransactions(demoAccount.id),
+		})
+	}
+
 	try {
 		// get bank from db
 		const bank = await getBank({ documentId: appwriteItemId })

@@ -192,15 +192,32 @@ export async function getLoggedInUser() {
 	}
 }
 
+// Lets a newly signed-up user defer bank linking ("I'll do this later") while
+// still seeing a populated dashboard. Cleared automatically once they connect
+// a real bank (see exchangePublicToken).
+export const enableSampleDataMode = async () => {
+	const cookieStore = await cookies()
+	cookieStore.set('sample-data', '1', {
+		path: '/',
+		httpOnly: true,
+		sameSite: 'strict',
+		secure: true,
+	})
+
+	return { success: true }
+}
+
 export const logoutAccount = async () => {
+	const cookieStore = await cookies()
+	cookieStore.delete('sample-data')
+
 	try {
 		const { account } = await createSessionClient()
-
-		const cookieStore = await cookies()
 		cookieStore.delete('appwrite-session')
 		await account.deleteSession({ sessionId: 'current' })
+		return true
 	} catch (error) {
-		return null
+		return false
 	}
 }
 
@@ -309,6 +326,9 @@ export const exchangePublicToken = async ({
 			fundingSourceUrl,
 			shareableId: encryptId(accountData.account_id),
 		})
+
+		const cookieStore = await cookies()
+		cookieStore.delete('sample-data')
 
 		revalidatePath('/')
 
