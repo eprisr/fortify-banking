@@ -19,12 +19,26 @@ import {
 	createLinkToken,
 	getLoggedInUser,
 } from './user.actions'
+import { DEMO_ACCOUNTS, getDemoTransactions } from '../demo-data'
 
 // Get multiple bank accounts
 export const getAccounts = async ({ userId }: getAccountsProps) => {
 	try {
 		// get banks from db
 		const banks = await getBanks({ userId })
+
+		// No real bank linked yet — show sample data until they connect one.
+		if (banks?.data.length === 0) {
+			const totalCurrentBalance = DEMO_ACCOUNTS.reduce(
+				(total, account) => total + account.currentBalance,
+				0,
+			)
+			return parseStringify({
+				data: DEMO_ACCOUNTS,
+				totalBanks: DEMO_ACCOUNTS.length,
+				totalCurrentBalance,
+			})
+		}
 
 		const accountsPromises = banks?.data.map(async (bank: Bank) => {
 			try {
@@ -95,6 +109,16 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 
 // Get one bank account
 export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
+	const demoAccount = DEMO_ACCOUNTS.find(
+		(account) => account.appwriteItemId === appwriteItemId,
+	)
+	if (demoAccount) {
+		return parseStringify({
+			data: demoAccount,
+			transactions: getDemoTransactions(demoAccount.id),
+		})
+	}
+
 	try {
 		// get bank from db
 		const bank = await getBank({ documentId: appwriteItemId })
@@ -181,31 +205,36 @@ export const getTransactions = async ({
 	accessToken,
 }: getTransactionsProps) => {
 	let hasMore = true
-	let transactions: any = []
+	let cursor: string | undefined
+	const transactions: any[] = []
 
 	try {
 		// Iterate through each page of new transaction updates for item
 		while (hasMore) {
 			const response = await plaidClient.transactionsSync({
 				access_token: accessToken,
+				cursor,
 			})
 
 			const data = response.data
 
-			transactions = response.data.added.map((transaction) => ({
-				id: transaction.transaction_id,
-				name: transaction.name,
-				paymentChannel: transaction.payment_channel,
-				type: transaction.amount > 0 ? 'debit' : 'credit',
-				accountId: transaction.account_id,
-				amount: transaction.amount,
-				pending: transaction.pending,
-				category: transaction.category ? transaction.category[0] : '',
-				date: transaction.date,
-				image: transaction.logo_url,
-			}))
+			transactions.push(
+				...data.added.map((transaction) => ({
+					id: transaction.transaction_id,
+					name: transaction.name,
+					paymentChannel: transaction.payment_channel,
+					type: transaction.amount > 0 ? 'debit' : 'credit',
+					accountId: transaction.account_id,
+					amount: transaction.amount,
+					pending: transaction.pending,
+					category: transaction.category ? transaction.category[0] : '',
+					date: transaction.date,
+					image: transaction.logo_url,
+				})),
+			)
 
 			hasMore = data.has_more
+			cursor = data.next_cursor
 		}
 
 		return parseStringify(transactions)

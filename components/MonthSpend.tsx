@@ -16,7 +16,7 @@ import {
 import { type ChartConfig, ChartContainer } from './ui/chart'
 import { Bar, BarChart } from 'recharts'
 import { useState } from 'react'
-import { BiUpArrow } from 'react-icons/bi'
+import { BiDownArrow, BiUpArrow } from 'react-icons/bi'
 
 const MonthSpend = ({ transactions }: TransactionTableProps) => {
 	const currMonth = getCurrentMonthName()
@@ -50,8 +50,14 @@ const MonthSpend = ({ transactions }: TransactionTableProps) => {
 		},
 	} satisfies ChartConfig
 
+	const currMonthSpend: number = Number(chartData[13].debit.toFixed(2))
+	const prevMonthSpend: number = Number(chartData[12].debit.toFixed(2))
+	const lastMonthCompare: number = Number(
+		(((currMonthSpend - prevMonthSpend) / prevMonthSpend) * 100).toFixed(1),
+	)
+
 	return (
-		<Card>
+		<Card className="overflow-visible">
 			<CardHeader>
 				<CardTitle className="font-light uppercase text-10!">
 					{currMonth}'s Spending
@@ -61,8 +67,14 @@ const MonthSpend = ({ transactions }: TransactionTableProps) => {
 				</CardDescription>
 				<CardAction>
 					<p className="text-10">vs last month</p>
-					<p className="text-green-500 font-bold">
-						<BiUpArrow className="inline" /> 0%
+					<p
+						className={`${lastMonthCompare > 0 ? 'text-green-500' : 'text-red-600'} font-bold`}>
+						{lastMonthCompare > 0 ? (
+							<BiUpArrow className="inline" />
+						) : (
+							<BiDownArrow className="inline" />
+						)}{' '}
+						{lastMonthCompare}%
 					</p>
 				</CardAction>
 			</CardHeader>
