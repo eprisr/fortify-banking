@@ -1,5 +1,5 @@
 import Navbar from '@/components/Navbar'
-import RecentTransactions from '@/components/RecentTransactions'
+import Transactions from '@/components/Transactions'
 import { getAccount, getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
 import React from 'react'
@@ -21,7 +21,7 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
 		<>
 			<Navbar type="sub" pageTitle="Transaction history" background />
 			<section className="flex flex-col px-5 sm:px-6 py-5 lg:py-6 bg-white rounded-t-3xl min-h-[calc(100vh_-_152px)]">
-				<RecentTransactions
+				<Transactions
 					accounts={accountsData}
 					transactions={account?.transactions}
 					appwriteItemId={appwriteItemId}

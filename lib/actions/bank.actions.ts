@@ -196,7 +196,7 @@ export const getTransactions = async ({
 				id: transaction.transaction_id,
 				name: transaction.name,
 				paymentChannel: transaction.payment_channel,
-				type: transaction.payment_channel,
+				type: transaction.amount > 0 ? 'debit' : 'credit',
 				accountId: transaction.account_id,
 				amount: transaction.amount,
 				pending: transaction.pending,

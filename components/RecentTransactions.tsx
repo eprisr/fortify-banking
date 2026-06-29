@@ -1,71 +1,57 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import Link from 'next/link'
-import React from 'react'
-import { BankTabItem } from './BankTabItem'
-import BankInfo from './BankInfo'
-import TransactionsTable from './TransactionsTable'
-import { Pagination } from './Pagination'
+import Image from 'next/image'
 
-const RecentTransactions = ({
-	accounts,
-	transactions = [],
-	appwriteItemId,
-	page = 1,
-}: RecentTransactionsProps) => {
-	const rowsPerPage = 10
-	const totalPages = Math.ceil(transactions.length / rowsPerPage)
-	const indexOfLastTransaction = page * rowsPerPage
-	const indexOfFirstTransaction = indexOfLastTransaction - rowsPerPage
-	const currentTransactions = transactions.slice(
-		indexOfFirstTransaction,
-		indexOfLastTransaction
-	)
+import {
+	Item,
+	ItemContent,
+	ItemDescription,
+	ItemGroup,
+	ItemMedia,
+	ItemTitle,
+} from '@/components/ui/item'
+import { Card, CardContent } from './ui/card'
+import { ArrowRight } from 'lucide-react'
+
+export const RecentTransactions = ({ transactions }: TransactionTableProps) => {
+	const getRecentTransactions = [...transactions]
+		.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+		.slice(0, 5)
 
 	return (
-		<>
-			<header className="flex items-center justify-between">
-				<h2 className="recent-transactions-label">Recent Transactions</h2>
-				<Link
-					href={`/transaction-history/?id=${appwriteItemId}`}
-					className="view-all-btn">
-					View All
-				</Link>
-			</header>
-
-			<Tabs defaultValue={appwriteItemId} className="w-full">
-				<TabsList className="recent-transactions-tablist">
-					{accounts.map((account: Account) => (
-						<TabsTrigger key={account.id} value={account.appwriteItemId}>
-							<BankTabItem
-								key={account.id}
-								account={account}
-								appwriteItemId={appwriteItemId}
-							/>
-						</TabsTrigger>
-					))}
-				</TabsList>
-				{accounts.map((account: Account) => (
-					<TabsContent
-						key={account.id}
-						value={account.appwriteItemId}
-						className="space-y-4">
-						<BankInfo
-							account={account}
-							appwriteItemId={appwriteItemId}
-							type="full"
-						/>
-						<TransactionsTable transactions={currentTransactions} />
-
-						{totalPages > 1 && (
-							<div className="my-4 w-full">
-								<Pagination totalPages={totalPages} page={page} />
-							</div>
-						)}
-					</TabsContent>
-				))}
-			</Tabs>
-		</>
+		<div className="flex w-full max-w-md flex-col gap-1">
+			<div className="flex justify-between">
+				<h4 className="text-14">Recent</h4>
+				<p className="text-12">
+					See All <ArrowRight size={12} className="inline" />
+				</p>
+			</div>
+			<Card className="py-0">
+				<CardContent className="px-0">
+					<ItemGroup className="gap-4">
+						{getRecentTransactions.map((t) => (
+							<Item key={t.id} size="sm" asChild role="listitem">
+								<a href="#">
+									<ItemMedia variant="image">
+										<Image
+											src={t.image}
+											alt={t.name}
+											width={32}
+											height={32}
+											className="object-cover grayscale"
+										/>
+									</ItemMedia>
+									<ItemContent>
+										<ItemTitle className="line-clamp-1">{t.name} - </ItemTitle>
+										<ItemDescription>{t.date}</ItemDescription>
+									</ItemContent>
+									<ItemContent className="flex-none text-center">
+										<ItemDescription>{t.amount}</ItemDescription>
+									</ItemContent>
+								</a>
+							</Item>
+						))}
+					</ItemGroup>
+				</CardContent>
+			</Card>
+		</div>
 	)
 }
-
-export default RecentTransactions

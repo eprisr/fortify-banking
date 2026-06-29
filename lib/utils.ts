@@ -81,6 +81,24 @@ export const formatDateTime = (dateString: Date) => {
 	}
 }
 
+export function getCurrentMonthName(): string {
+	return new Date().toLocaleString('default', { month: 'long' })
+}
+
+export function getTrailingMonthsYYYYMM(monthsBack = 13) {
+	const months: string[] = []
+	const today = new Date()
+
+	for (let i = monthsBack; i >= 0; i--) {
+		const date = new Date(today.getFullYear(), today.getMonth() - i, 1)
+		const year = date.getFullYear()
+		const month = String(date.getMonth() + 1).padStart(2, '0')
+		months.push(`${year}-${month}-01`)
+	}
+
+	return months
+}
+
 export function formatAmount(amount: number): string {
 	const formatter = new Intl.NumberFormat('en-US', {
 		style: 'currency',
@@ -209,6 +227,50 @@ export const getTransactionStatus = (date: Date) => {
 
 	return date > twoDaysAgo ? 'Processing' : 'Success'
 }
+
+interface SumByKeyOptions {
+	strict?: boolean
+}
+
+export function sumTransTotalsByMonth<T extends Record<string, unknown>>(
+	arr: T[],
+	key: keyof T,
+	valueKey: keyof T,
+	{ strict = false }: SumByKeyOptions = {},
+): Record<string, number> {
+	if (!Array.isArray(arr)) {
+		throw new TypeError('First argument must be an array')
+	}
+
+	return arr.reduce<Record<string, number>>((acc, obj) => {
+		const isValid =
+			obj && typeof obj === 'object' && key in obj && valueKey in obj
+		if (!isValid) {
+			if (strict)
+				throw new TypeError(
+					`Entry missing "${String(key)}" or "${String(valueKey)}": ${JSON.stringify(obj)}`,
+				)
+			return acc
+		}
+
+		const value = Number(obj[valueKey])
+		if (Number.isNaN(value)) {
+			if (strict)
+				throw new TypeError(
+					`Non-numeric value for "${String(valueKey)}": ${obj[valueKey]}`,
+				)
+			return acc
+		}
+
+		const groupKey = String(obj[key])
+		acc[groupKey] = value > 0 ? (acc[groupKey] || 0) + value : acc[groupKey]
+		return acc
+	}, Object.create(null))
+}
+
+/********************************
+ ************ SCHEMA ************
+ ********************************/
 
 export const transferFormSchema = () =>
 	z.object({

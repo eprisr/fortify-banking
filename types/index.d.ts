@@ -82,7 +82,6 @@ declare type Transaction = {
 	category: string
 	date: string
 	image: string
-	type: string
 	$createdAt: string
 	channel: string
 	senderBankId: string
@@ -136,12 +135,12 @@ declare type NewDwollaCustomerParams = {
 	lastName: string
 	email: string
 	type: string
-	address1: string
-	city: string
-	state: string
-	postalCode: string
-	dateOfBirth: string
-	ssn: string
+	// address1: string
+	// city: string
+	// state: string
+	// postalCode: string
+	// dateOfBirth: string
+	// ssn: string
 }
 
 declare interface CreditCardProps {
@@ -184,6 +183,7 @@ declare interface PaginationProps {
 declare interface PlaidLinkProps {
 	user: User
 	variant?: 'primary' | 'ghost' | 'reconnect' | 'relink'
+	text?: string
 	dwollaCustomerId?: string
 	update?: boolean
 }
@@ -237,7 +237,7 @@ declare interface NavbarProps {
 	background?: boolean
 }
 
-declare interface RecentTransactionsProps {
+declare interface TransactionsProps {
 	accounts: Account[]
 	transactions: Transaction[]
 	appwriteItemId: string

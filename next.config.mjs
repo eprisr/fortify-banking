@@ -17,6 +17,10 @@ const nextConfig = {
 				protocol: 'https',
 				hostname: 'cdn.plaid.com',
 			},
+			{
+				protocol: 'https',
+				hostname: 'plaid-merchant-logos.plaid.com',
+			},
 		],
 	},
 }
