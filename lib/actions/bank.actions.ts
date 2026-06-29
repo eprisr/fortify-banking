@@ -11,7 +11,6 @@ import {
 
 import { plaidClient } from '../plaid'
 import { parseStringify } from '../utils'
-import { cookies } from 'next/headers'
 
 import { getTransactionsByBankId } from './transaction.actions'
 import {
@@ -28,21 +27,17 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 		// get banks from db
 		const banks = await getBanks({ userId })
 
-		// No real banks linked yet — fall back to sample data if the user
-		// opted in via "I'll do this later" at signup.
+		// No real bank linked yet — show sample data until they connect one.
 		if (banks?.data.length === 0) {
-			const cookieStore = await cookies()
-			if (cookieStore.get('sample-data')?.value) {
-				const totalCurrentBalance = DEMO_ACCOUNTS.reduce(
-					(total, account) => total + account.currentBalance,
-					0,
-				)
-				return parseStringify({
-					data: DEMO_ACCOUNTS,
-					totalBanks: DEMO_ACCOUNTS.length,
-					totalCurrentBalance,
-				})
-			}
+			const totalCurrentBalance = DEMO_ACCOUNTS.reduce(
+				(total, account) => total + account.currentBalance,
+				0,
+			)
+			return parseStringify({
+				data: DEMO_ACCOUNTS,
+				totalBanks: DEMO_ACCOUNTS.length,
+				totalCurrentBalance,
+			})
 		}
 
 		const accountsPromises = banks?.data.map(async (bank: Bank) => {

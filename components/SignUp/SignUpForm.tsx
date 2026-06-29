@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { signupSchema } from '@/lib/utils'
 import { type SignUpValues } from '@/lib/auth-form-config'
-import { enableSampleDataMode, signUp } from '@/lib/actions/user.actions'
+import { signUp } from '@/lib/actions/user.actions'
 import CustomInput from '@/components/CustomInput'
 import PlaidLink from '@/components/PlaidLink'
 import { type Path } from 'react-hook-form'
@@ -107,10 +107,7 @@ const SignUpForm = () => {
 									/>
 									<Button
 										type="button"
-										onClick={async () => {
-											await enableSampleDataMode()
-											redirect('/confirmation')
-										}}
+										onClick={() => redirect('/confirmation')}
 										disabled={isLoading}
 										variant="secondary">
 										I'll do this later
