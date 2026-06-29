@@ -14,7 +14,6 @@ import {
 } from 'react-plaid-link'
 import { useRouter } from 'next/navigation'
 import {
-	createDwollaUser,
 	createLinkToken,
 	exchangePublicToken,
 } from '@/lib/actions/user.actions'
@@ -39,6 +38,7 @@ const PlaidLink = ({ user, variant, text, update }: PlaidLinkProps) => {
 				user,
 			})
 
+			router.refresh()
 			router.push('/')
 		},
 		[user],

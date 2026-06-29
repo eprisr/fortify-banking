@@ -263,6 +263,31 @@ export const createBankAccount = async ({
 	}
 }
 
+// Plaid's initial transaction pull for a newly linked item completes
+// asynchronously on their end, so the first transactionsSync call right
+// after linking can legitimately come back empty. Poll briefly so the
+// dashboard doesn't render with no transactions immediately after linking.
+const waitForInitialTransactions = async (accessToken: string) => {
+	const MAX_ATTEMPTS = 5
+	const RETRY_DELAY_MS = 1000
+
+	for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+		try {
+			const response = await plaidClient.transactionsSync({
+				access_token: accessToken,
+			})
+			if (response.data.added.length > 0) return
+		} catch (error) {
+			console.error('Error polling for initial transactions:', error)
+			return
+		}
+
+		if (attempt < MAX_ATTEMPTS - 1) {
+			await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
+		}
+	}
+}
+
 export const exchangePublicToken = async ({
 	publicToken,
 	user,
@@ -309,6 +334,8 @@ export const exchangePublicToken = async ({
 			fundingSourceUrl,
 			shareableId: encryptId(accountData.account_id),
 		})
+
+		await waitForInitialTransactions(accessToken)
 
 		revalidatePath('/')
 
