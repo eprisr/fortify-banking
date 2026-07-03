@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import React, { Fragment } from 'react'
 import {
@@ -13,17 +15,17 @@ import { BiBell, BiChevronLeft } from 'react-icons/bi'
 import { navLinks } from '@/constants'
 import Footer from './Footer'
 import HeaderBox from './HeaderBox'
-import { getLoggedInUser } from '@/lib/actions/user.actions'
 import PlaidLink from './PlaidLink'
 import { cn } from '@/lib/utils'
+import { useMobileContainer } from './mobile-container'
 
-const Navbar = async ({
+const Navbar = ({
 	user,
 	type,
 	pageTitle = '',
 	background = false,
 }: NavbarProps) => {
-	const loggedIn = await getLoggedInUser()
+	const container = useMobileContainer()
 	let path
 
 	switch (pageTitle) {
@@ -56,7 +58,10 @@ const Navbar = async ({
 								</div>
 							</div>
 						</SheetTrigger>
-						<SheetContent side="left" className="flex flex-col bg-white">
+						<SheetContent
+							side="left"
+							container={container}
+							className="flex flex-col bg-white">
 							<SheetHeader>
 								<SheetTitle className="sr-only">
 									Welcome, {user?.firstName}
@@ -101,9 +106,7 @@ const Navbar = async ({
 						<HeaderBox
 							type="greeting"
 							title="Good Morning,"
-							user={
-								`${loggedIn?.firstName + ' ' + loggedIn?.lastName}` || 'Guest'
-							}
+							user={`${user?.firstName + ' ' + user?.lastName}` || 'Guest'}
 							subtext=""
 						/>
 					</header>
