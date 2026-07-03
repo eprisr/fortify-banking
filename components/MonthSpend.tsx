@@ -19,7 +19,7 @@ import { useState } from 'react'
 import { BiDownArrow, BiUpArrow } from 'react-icons/bi'
 
 const MonthSpend = ({ transactions }: TransactionTableProps) => {
-	const currMonth = getCurrentMonthName()
+	const currMonthName = getCurrentMonthName()
 	const lastYear = getTrailingMonthsYYYYMM()
 
 	const monthlyTotal = () => {
@@ -50,8 +50,13 @@ const MonthSpend = ({ transactions }: TransactionTableProps) => {
 		},
 	} satisfies ChartConfig
 
-	const currMonthSpend: number = Number(chartData[13].debit.toFixed(2))
-	const prevMonthSpend: number = Number(chartData[12].debit.toFixed(2))
+	const currMonthNum: number = chartData.length - 1
+	const currMonthSpend: number = chartData[currMonthNum].debit
+		? Number(chartData[currMonthNum].debit.toFixed(2))
+		: 0
+	const prevMonthSpend: number = Number(
+		chartData[currMonthNum - 1].debit.toFixed(2),
+	)
 	const lastMonthCompare: number = Number(
 		(((currMonthSpend - prevMonthSpend) / prevMonthSpend) * 100).toFixed(1),
 	)
@@ -60,10 +65,10 @@ const MonthSpend = ({ transactions }: TransactionTableProps) => {
 		<Card className="overflow-visible">
 			<CardHeader>
 				<CardTitle className="font-light uppercase text-10!">
-					{currMonth}'s Spending
+					{currMonthName}'s Spending
 				</CardTitle>
 				<CardDescription className="font-bold text-24!">
-					${chartData[13].debit.toFixed(2)}
+					${currMonthSpend}
 				</CardDescription>
 				<CardAction>
 					<p className="text-10">vs last month</p>
