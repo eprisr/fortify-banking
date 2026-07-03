@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Fira_Sans, IBM_Plex_Serif, Poppins, Inter } from 'next/font/google'
 import './globals.css'
+import { MobileContainer } from '@/components/mobile-container'
 import { cn } from '@/lib/utils'
 
 export const viewport: Viewport = {
@@ -49,9 +50,7 @@ export default function RootLayout({
 			className={cn('font-sans', inter.variable)}>
 			<body
 				className={`${poppins.variable} ${firaSans.variable} ${ibmPlexSerif.variable}`}>
-				<div className="mx-auto min-h-screen w-full max-w-107.5 bg-white shadow-xl">
-					{children}
-				</div>
+				<MobileContainer>{children}</MobileContainer>
 			</body>
 		</html>
 	)
