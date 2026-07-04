@@ -11,7 +11,7 @@ interface StepTwoProps {
 const StepTwo = ({ control }: StepTwoProps) => {
 	return (
 		<>
-			<CustomInput
+			{/* <CustomInput
 				control={control}
 				name="address1"
 				label="Address"
@@ -56,7 +56,7 @@ const StepTwo = ({ control }: StepTwoProps) => {
 					placeholder="Example: 1234"
 					required
 				/>
-			</div>
+			</div> */}
 		</>
 	)
 }
