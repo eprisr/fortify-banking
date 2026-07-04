@@ -8,7 +8,7 @@ const ForgotPassword = async () => {
 	return (
 		<>
 			<Navbar type="sub" pageTitle="Forgot password" />
-			<section className="flex-center size-full max-sm:px-6 bg-white">
+			<section className="flex-center size-full px-6 bg-white">
 				<AuthForm type="forgot-pw" />
 			</section>
 		</>

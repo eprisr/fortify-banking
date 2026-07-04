@@ -23,7 +23,7 @@ const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 	return (
 		<>
 			<Navbar type="sub" pageTitle="Reset password" />
-			<section className="flex-center size-full max-sm:px-6 bg-white">
+			<section className="flex-center size-full px-6 bg-white">
 				{expired ? (
 					<div className="flex flex-col items-center py-10">
 						<Image

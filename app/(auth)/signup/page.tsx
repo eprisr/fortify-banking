@@ -7,7 +7,7 @@ const SignUp = async () => {
 	return (
 		<>
 			<Navbar type="sub" pageTitle="Sign up" background />
-			<section className="flex-center size-full max-sm:px-6 bg-white rounded-t-3xl">
+			<section className="flex-center size-full px-6 bg-white rounded-t-3xl">
 				<SignUpForm />
 			</section>
 		</>

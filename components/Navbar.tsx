@@ -115,10 +115,10 @@ const Navbar = ({
 				</nav>
 			) : (
 				<nav
-					className={cn('p-4 gap-4 font-semibold', {
+					className={cn('px-6 py-4 gap-4 font-semibold', {
 						'text-white': background,
 					})}>
-					<Link href={path} className="flex w-full items-center gap-4">
+					<Link href={path} className="flex w-full items-center gap-2">
 						{pageTitle !== 'Sign in' && <BiChevronLeft className="size-6" />}
 						<p>{pageTitle}</p>
 					</Link>
