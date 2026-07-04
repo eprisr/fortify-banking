@@ -2,7 +2,7 @@ import Navbar from '@/components/Navbar'
 import PaymentTransferForm from '@/components/PaymentTransferForm'
 import { getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
-import React from 'react'
+import { Suspense } from 'react'
 
 const Transfer = async () => {
 	const loggedIn = await getLoggedInUser()
@@ -14,7 +14,9 @@ const Transfer = async () => {
 		<>
 			<Navbar type="sub" pageTitle="Transfer" />
 			<section className="payment-transfer size-full">
-				<PaymentTransferForm accounts={accountsData} />
+				<Suspense>
+					<PaymentTransferForm accounts={accountsData} />
+				</Suspense>
 			</section>
 		</>
 	)
