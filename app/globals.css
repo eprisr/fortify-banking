@@ -262,15 +262,15 @@
 	}
 
 	.profile {
-		@apply flex max-xl:justify-center;
+		@apply flex items-center gap-3;
 	}
 
 	.profile-img {
-		@apply flex-center size-10 rounded-full bg-gray-100 border-2 border-gray-300 p-2;
+		@apply flex-center size-12 rounded-full bg-gray-100 border-2 border-gray-300 p-2;
 	}
 
 	.profile-details {
-		@apply flex flex-col pt-24;
+		@apply flex flex-col grow;
 	}
 
 	.profile-name {

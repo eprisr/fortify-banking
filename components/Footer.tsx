@@ -4,6 +4,8 @@ import { logoutAccount } from '@/lib/actions/user.actions'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 import { BiLogOut } from 'react-icons/bi'
+import { Button } from './ui/button'
+import { LogOut } from 'lucide-react'
 
 const Footer = ({ user, type = 'desktop' }: FooterProps) => {
 	const router = useRouter()
@@ -15,24 +17,10 @@ const Footer = ({ user, type = 'desktop' }: FooterProps) => {
 	}
 
 	return (
-		<footer className="footer">
-			<div className={type === 'mobile' ? 'footer_name-mobile' : 'footer_name'}>
-				<p className="text-xl font-bold text-gray-700">{user?.firstName[0]}</p>
-			</div>
-
-			<div
-				className={type === 'mobile' ? 'footer_email-mobile' : 'footer_email'}>
-				<h1 className="text-13 truncate font-semibold text-gray-700">
-					{`${user?.firstName} ${user.lastName}`}
-				</h1>
-				<p className="text-14 truncate font-normal text-gray-600">
-					{user?.email}
-				</p>
-			</div>
-
-			<div className="footer_image" onClick={handleLogout}>
-				<BiLogOut style={{ transform: 'scaleX(-1)' }} />
-			</div>
+		<footer className="footer grow">
+			<Button className="w-full self-end" onClick={handleLogout}>
+				<LogOut /> Sign Out
+			</Button>
 		</footer>
 	)
 }
