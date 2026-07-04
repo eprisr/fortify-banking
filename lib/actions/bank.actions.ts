@@ -23,12 +23,24 @@ import { DEMO_ACCOUNTS, getDemoTransactions } from '../demo-data'
 
 // Get multiple bank accounts
 export const getAccounts = async ({ userId }: getAccountsProps) => {
+	if (!userId) {
+		const totalCurrentBalance = DEMO_ACCOUNTS.reduce(
+			(total, account) => total + account.currentBalance,
+			0,
+		)
+		return parseStringify({
+			data: DEMO_ACCOUNTS,
+			totalBanks: DEMO_ACCOUNTS.length,
+			totalCurrentBalance,
+		})
+	}
+
 	try {
 		// get banks from db
 		const banks = await getBanks({ userId })
 
 		// No real bank linked yet — show sample data until they connect one.
-		if (banks?.data.length === 0) {
+		if (!banks?.data?.length) {
 			const totalCurrentBalance = DEMO_ACCOUNTS.reduce(
 				(total, account) => total + account.currentBalance,
 				0,
