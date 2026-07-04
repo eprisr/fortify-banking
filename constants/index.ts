@@ -1,39 +1,72 @@
 import {
+	Bell,
+	CircleQuestionMark,
+	CreditCard,
+	MessageSquare,
+	Moon,
+	Shield,
+	UserRound,
+} from 'lucide-react'
+import {
 	BiCog,
 	BiEnvelope,
 	BiMobile,
 	BiMoneyWithdraw,
 	BiSearchAlt,
-	BiSolidCreditCard,
 	BiSolidHomeAlt2,
-	BiSolidMap,
 	BiSolidReceipt,
-	BiSolidUserBadge,
-	BiSolidWallet,
 	BiTransferAlt,
 } from 'react-icons/bi'
-import { FaPiggyBank, FaReceipt } from 'react-icons/fa6'
 
 export const navLinks = [
 	{
-		Icon: BiSolidHomeAlt2,
+		Icon: CreditCard,
 		route: '/',
-		label: 'Home',
+		category: 'account',
+		label: 'Linked Accounts',
+		subText: '',
 	},
 	{
-		Icon: BiSolidMap,
-		route: '/my-banks',
-		label: 'Accounts and Cards',
+		Icon: Shield,
+		route: '/',
+		category: 'account',
+		label: 'Security & Privacy',
+		subText: 'Face ID ⋅ Pin ⋅ Data',
 	},
 	{
-		Icon: BiSolidReceipt,
-		route: '/transaction-history',
-		label: 'Transaction History',
+		Icon: UserRound,
+		route: '/',
+		category: 'account',
+		label: 'Edit Profile',
+		subText: 'Name ⋅ Email ⋅ Phone',
 	},
 	{
-		Icon: BiTransferAlt,
-		route: '/payment-transfer',
-		label: 'Transfer Funds',
+		Icon: Bell,
+		route: '/',
+		category: 'preferences',
+		label: 'Notifcations',
+		subText: '',
+	},
+	{
+		Icon: Moon,
+		route: '/',
+		category: 'preferences',
+		label: 'Dark Mode',
+		subText: '',
+	},
+	{
+		Icon: CircleQuestionMark,
+		route: '/',
+		category: 'support',
+		label: 'Help Center',
+		subText: '',
+	},
+	{
+		Icon: MessageSquare,
+		route: '/',
+		category: 'support',
+		label: 'Send Feedback',
+		subText: '',
 	},
 ]
 

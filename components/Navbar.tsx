@@ -18,6 +18,8 @@ import HeaderBox from './HeaderBox'
 import PlaidLink from './PlaidLink'
 import { cn } from '@/lib/utils'
 import { useMobileContainer } from './mobile-container'
+import { ChevronRight } from 'lucide-react'
+import { Button } from './ui/button'
 
 const Navbar = ({
 	user,
@@ -43,6 +45,8 @@ const Navbar = ({
 			break
 	}
 
+	const links = Object.groupBy(navLinks, ({ category }) => category)
+
 	return (
 		<section
 			className={cn('pt-4 pb-0', { 'bg-primary-700 pb-5 -mb-5': background })}>
@@ -61,8 +65,8 @@ const Navbar = ({
 						<SheetContent
 							side="left"
 							container={container}
-							className="flex flex-col bg-white">
-							<SheetHeader>
+							className="flex flex-col bg-white p-6 w-4/5!">
+							<SheetHeader className="px-0 mb-4">
 								<SheetTitle className="sr-only">
 									Welcome, {user?.firstName}
 								</SheetTitle>
@@ -71,33 +75,55 @@ const Navbar = ({
 								</SheetDescription>
 								<div className="profile">
 									<div className="profile-img">
-										<span className="text-1xl font-bold text-blue-500">
+										<span className="text-xl font-bold text-primary">
 											{user?.firstName[0]}
 										</span>
 									</div>
+									<div className="profile-details">
+										<h1 className="text-16 truncate font-semibold text-primary">
+											{`${user?.firstName} ${user.lastName}`}
+										</h1>
+										<p className="text-10 text-gray-400">{user.email}</p>
+									</div>
+									<Button variant="outline" className="px-4 py-2">
+										Edit
+									</Button>
 								</div>
 							</SheetHeader>
-							{navLinks.map((item, i) => {
-								const { Icon, route, label } = item
+							{Object.entries(links).map(([key, value], i) => {
 								return (
 									<Fragment key={i}>
-										<SheetClose asChild key={item.route}>
-											<Link
-												href={route}
-												key={label}
-												className="flex items-center gap-2 my-2">
-												<div className="p-2 bg-neutral-800 rounded-full">
-													<Icon className="w-4 h-4 text-white" />
-												</div>
-												<p className="font-semibold">{label}</p>
-											</Link>
-										</SheetClose>
-										<div className="border-b-2 border-black" />
+										<h3 className="text-10 text-gray-400">
+											{key.toUpperCase()}
+										</h3>
+										{value?.map((item) => {
+											const { Icon, route, label, subText } = item
+											return (
+												<SheetClose asChild key={label}>
+													<Link
+														href={route}
+														key={label}
+														className="flex items-center justify-between my-2">
+														<div className="flex items-center gap-2">
+															<Icon size={12} />
+															<div>
+																<p>{label}</p>
+																<p className="text-10 text-gray-400">
+																	{subText}
+																</p>
+															</div>
+														</div>
+														<ChevronRight size={16} color="#e0e0e0" />
+													</Link>
+												</SheetClose>
+											)
+										})}
+										<div className="border-b border-gray-200 mb-4" />
 									</Fragment>
 								)
 							})}
 
-							<PlaidLink user={user} />
+							{/* <PlaidLink user={user} /> */}
 							<Footer user={user} type="mobile" />
 						</SheetContent>
 					</Sheet>
