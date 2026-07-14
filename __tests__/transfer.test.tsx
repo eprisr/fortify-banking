@@ -143,10 +143,16 @@ const mockSenderBank = {
 	fundingSourceUrl: 'https://api-sandbox.dwolla.com/funding-sources/sender-1',
 }
 
+// getBankByAccountId resolves { success, data } — unlike getBank, which
+// resolves the row directly.
 const mockReceiverBank = {
-	$id: 'bank-receiver-1',
-	userId: { $id: 'user-456' },
-	fundingSourceUrl: 'https://api-sandbox.dwolla.com/funding-sources/receiver-1',
+	success: true,
+	data: {
+		$id: 'bank-receiver-1',
+		userId: { $id: 'user-456' },
+		fundingSourceUrl:
+			'https://api-sandbox.dwolla.com/funding-sources/receiver-1',
+	},
 }
 
 // A valid base64 sharableId: btoa('receiver-acc-1') — 20 chars, passes min(8)
@@ -236,22 +242,26 @@ describe('Payment Transfer Flow', () => {
 			expect(getAccounts).toHaveBeenCalledWith({ userId: mockUser.$id })
 		})
 
-		it('renders nothing when getAccounts returns null', async () => {
+		it('still renders the form when getAccounts returns null', async () => {
 			;(getAccounts as jest.Mock).mockResolvedValue(null)
-			const result = await renderPage()
-			expect(result).toBeNull()
+			await renderPage()
+			expect(
+				screen.getByRole('button', { name: /transfer funds/i }),
+			).toBeInTheDocument()
 		})
 
-		it('renders nothing when getAccounts returns undefined', async () => {
+		it('still renders the form when getAccounts returns undefined', async () => {
 			;(getAccounts as jest.Mock).mockResolvedValue(undefined)
-			const result = await renderPage()
-			expect(result).toBeNull()
+			await renderPage()
+			expect(
+				screen.getByRole('button', { name: /transfer funds/i }),
+			).toBeInTheDocument()
 		})
 
-		it('throws when loggedIn is null (missing null-check before accessing .$id)', async () => {
-			// Known bug: the page accesses loggedIn.$id without a null guard.
+		it('does not throw when loggedIn is null, and calls getAccounts with undefined userId', async () => {
 			;(getLoggedInUser as jest.Mock).mockResolvedValue(null)
-			await expect(renderPage()).rejects.toThrow()
+			await expect(renderPage()).resolves.not.toThrow()
+			expect(getAccounts).toHaveBeenCalledWith({ userId: undefined })
 		})
 	})
 
@@ -447,7 +457,7 @@ describe('Payment Transfer Flow', () => {
 			await waitFor(() =>
 				expect(createTransfer).toHaveBeenCalledWith({
 					sourceFundingSourceUrl: mockSenderBank.fundingSourceUrl,
-					destinationFundingSourceUrl: mockReceiverBank.fundingSourceUrl,
+					destinationFundingSourceUrl: mockReceiverBank.data.fundingSourceUrl,
 					amount: expect.any(String),
 				}),
 			)
@@ -461,7 +471,7 @@ describe('Payment Transfer Flow', () => {
 						name: 'Jane Doe',
 						email: 'receiver@example.com',
 						senderBankId: mockSenderBank.$id,
-						receiverBankId: mockReceiverBank.$id,
+						receiverBankId: mockReceiverBank.data.$id,
 					}),
 				),
 			)
