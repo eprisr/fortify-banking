@@ -1,7 +1,17 @@
+/**
+ * Navbar Tests
+ *
+ * Navbar is a 'use client' component (it reads useMobileContainer() via a
+ * hook), not an async server component, so it must be rendered the normal
+ * RTL way — `render(<Navbar ... />)` — rather than invoked directly as a
+ * function and awaited. Calling it as a plain function bypasses React's
+ * dispatcher and throws "Invalid hook call".
+ */
+
 import '@testing-library/jest-dom'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import Navbar from '@/components/Navbar'
-import { getLoggedInUser } from '@/lib/actions/user.actions'
 
 jest.mock('@/components/PlaidLink', () => () => (
 	<div data-testid="plaid-link">Plaid Link</div>
@@ -10,8 +20,8 @@ jest.mock('@/components/Footer', () => () => (
 	<div data-testid="footer">Footer</div>
 ))
 
-describe('Navbar Server Component', () => {
-	const mockUser = {
+describe('Navbar', () => {
+	const mockUser: User = {
 		$id: '123',
 		email: 'test@example.com',
 		userId: 'sakfij9302u5rnkfel',
@@ -28,53 +38,124 @@ describe('Navbar Server Component', () => {
 		ssn: '1234',
 	}
 
-	beforeEach(() => {
-		jest.clearAllMocks()
-	})
+	// =========================================================================
+	describe('Main Navbar (logged in)', () => {
+		// =========================================================================
 
-	it('renders the Main Navbar (Logged In)', async () => {
-		// 1. Mock the internal server action
-		;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
-
-		const jsx = await Navbar({
-			type: 'main',
-			user: mockUser,
-			pageTitle: 'Home',
+		it('renders the "Good Morning," greeting and the user\'s full name', () => {
+			render(<Navbar type="main" user={mockUser} background />)
+			expect(screen.getByText(/Good Morning,/i)).toBeInTheDocument()
+			expect(screen.getByText('Test User!')).toBeInTheDocument()
 		})
 
-		render(jsx)
-
-		expect(screen.getByText(/Good Morning,/i)).toBeInTheDocument()
-		expect(screen.getByText('Test!')).toBeInTheDocument()
-
-		expect(screen.getByText('T')).toBeInTheDocument()
-	})
-
-	it('renders the Sub Navbar (Sign In Page)', async () => {
-		;(getLoggedInUser as jest.Mock).mockResolvedValue(null)
-
-		const jsx = await Navbar({
-			type: 'sub',
-			user: mockUser,
-			pageTitle: 'Sign in',
+		it('renders the trigger with the user\'s first initial', () => {
+			render(<Navbar type="main" user={mockUser} background />)
+			expect(screen.getByText('T')).toBeInTheDocument()
 		})
 
-		render(jsx)
-
-		expect(screen.getByText('Sign in')).toBeInTheDocument()
-
-		expect(screen.queryByText(/Good Morning,/i)).not.toBeInTheDocument()
-	})
-
-	it('renders the Sub Navbar with Back Button (Forgot Password)', async () => {
-		const jsx = await Navbar({
-			type: 'sub',
-			user: mockUser,
-			pageTitle: 'Forgot password',
+		it('does not render PlaidLink (currently commented out in the menu)', () => {
+			render(<Navbar type="main" user={mockUser} background />)
+			expect(screen.queryByTestId('plaid-link')).not.toBeInTheDocument()
 		})
 
-		render(jsx)
+		it('opens the menu sheet and shows profile details, nav links, and Footer', async () => {
+			render(<Navbar type="main" user={mockUser} background />)
 
-		expect(screen.getByText('Forgot password')).toBeInTheDocument()
+			await userEvent.click(screen.getByText('T'))
+
+			const dialog = await screen.findByRole('dialog')
+			expect(
+				within(dialog).getByText(`Welcome, ${mockUser.firstName}`),
+			).toBeInTheDocument()
+			expect(within(dialog).getByText(mockUser.email)).toBeInTheDocument()
+			expect(within(dialog).getByTestId('footer')).toBeInTheDocument()
+		})
+
+		it('groups nav links by category in the opened menu', async () => {
+			render(<Navbar type="main" user={mockUser} background />)
+			await userEvent.click(screen.getByText('T'))
+
+			const dialog = await screen.findByRole('dialog')
+			expect(within(dialog).getByText('ACCOUNT')).toBeInTheDocument()
+			expect(within(dialog).getByText('PREFERENCES')).toBeInTheDocument()
+			expect(within(dialog).getByText('SUPPORT')).toBeInTheDocument()
+			expect(within(dialog).getByText('Linked Accounts')).toBeInTheDocument()
+			expect(within(dialog).getByText('Dark Mode')).toBeInTheDocument()
+			expect(within(dialog).getByText('Send Feedback')).toBeInTheDocument()
+		})
+
+		it('falls back to the sub-navbar layout when type is "main" but there is no user', () => {
+			render(<Navbar type="main" pageTitle="Home" />)
+			expect(screen.queryByText(/Good Morning,/i)).not.toBeInTheDocument()
+			expect(screen.getByText('Home')).toBeInTheDocument()
+		})
+	})
+
+	// =========================================================================
+	describe('Sub Navbar', () => {
+		// =========================================================================
+
+		it('renders the page title and no greeting for the Sign in page', () => {
+			render(<Navbar type="sub" pageTitle="Sign in" background />)
+			expect(screen.getByText('Sign in')).toBeInTheDocument()
+			expect(screen.queryByText(/Good Morning,/i)).not.toBeInTheDocument()
+		})
+
+		it('omits the back chevron only on the Sign in page', () => {
+			const { container } = render(
+				<Navbar type="sub" pageTitle="Sign in" background />,
+			)
+			expect(container.querySelector('svg')).not.toBeInTheDocument()
+		})
+
+		it('renders a back chevron for other sub-navbar pages', () => {
+			const { container } = render(
+				<Navbar type="sub" pageTitle="Forgot password" />,
+			)
+			expect(container.querySelector('svg')).toBeInTheDocument()
+		})
+
+		it('links "Forgot password" back to /signin', () => {
+			render(<Navbar type="sub" pageTitle="Forgot password" />)
+			expect(screen.getByText('Forgot password').closest('a')).toHaveAttribute(
+				'href',
+				'/signin',
+			)
+		})
+
+		it('links "Sign up" back to /signin', () => {
+			render(<Navbar type="sub" pageTitle="Sign up" />)
+			expect(screen.getByText('Sign up').closest('a')).toHaveAttribute(
+				'href',
+				'/signin',
+			)
+		})
+
+		it('links "Reset Password" back to /forgot-password', () => {
+			render(<Navbar type="sub" pageTitle="Reset Password" />)
+			expect(
+				screen.getByText('Reset Password').closest('a'),
+			).toHaveAttribute('href', '/forgot-password')
+		})
+
+		it('defaults to "/" for any other page title', () => {
+			render(<Navbar type="sub" pageTitle="Transfer" />)
+			expect(screen.getByText('Transfer').closest('a')).toHaveAttribute(
+				'href',
+				'/',
+			)
+		})
+
+		it('applies the background text-white style only when background is set', () => {
+			const { container: withBg } = render(
+				<Navbar type="sub" pageTitle="Transfer" background />,
+			)
+			expect(withBg.querySelector('nav')).toHaveClass('text-white')
+
+			const { container: withoutBg } = render(
+				<Navbar type="sub" pageTitle="Transfer" />,
+			)
+			expect(withoutBg.querySelector('nav')).not.toHaveClass('text-white')
+		})
 	})
 })
