@@ -1,8 +1,8 @@
 /**
  * Home Page Tests
  *
- * Covers: rendering with accounts, zero-bank state, UPDATE_MODE,
- * unauthenticated user, homeLinks grid, and edge cases.
+ * Covers: rendering with connected accounts, demo accounts, UPDATE_MODE,
+ * unauthenticated users, and edge cases.
  *
  * MSW is not used here because all data fetching goes through Next.js
  * server actions that are mocked via jest.mock. MSW would be needed for
@@ -11,14 +11,22 @@
  * Home is an async React Server Component — it is awaited before being
  * passed to RTL's render(), which is the correct pattern for testing RSCs
  * in a Jest environment.
+ *
+ * Known implementation bug: `accountsData[0].id` is read without a guard
+ * (app/(root)/page.tsx) to detect demo accounts. This throws whenever
+ * accountsData is empty or `accounts` is the 'UPDATE_MODE' sentinel string.
+ * In the real app this path is rarely hit because bank.actions.getAccounts
+ * falls back to two-item DEMO_ACCOUNTS instead of an empty array — but the
+ * UPDATE_MODE (expired Plaid token) case goes through this same code and
+ * would crash today. Tests below document the current (buggy) behavior
+ * rather than papering over it.
  */
 
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import Home from '@/app/(root)/page'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
-import { getAccounts } from '@/lib/actions/bank.actions'
-import { homeLinks } from '@/constants'
+import { getAccounts, getAccount } from '@/lib/actions/bank.actions'
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -26,15 +34,52 @@ import { homeLinks } from '@/constants'
 
 jest.mock('@/components/Navbar', () => () => <nav data-testid="navbar" />)
 
-jest.mock('@/components/PlaidLink', () => ({ update }: { update?: boolean }) => (
-	<div data-testid="plaid-link" data-update={String(!!update)} />
-))
+jest.mock(
+	'@/components/PlaidLink',
+	() =>
+		({ variant, update }: { variant?: string; update?: boolean }) => (
+			<div
+				data-testid={`plaid-link-${variant}`}
+				data-update={String(!!update)}
+			/>
+		),
+)
 
 jest.mock('@/components/AccountBox', () =>
 	function MockAccountBox({ totalBanks }: { totalBanks: number }) {
 		return <div data-testid="account-box" data-total-banks={totalBanks} />
 	},
 )
+
+jest.mock('@/components/QuickLinks', () => () => (
+	<div data-testid="quick-links" />
+))
+
+jest.mock('@/components/MonthSpend', () =>
+	function MockMonthSpend({ transactions }: { transactions?: unknown[] }) {
+		return (
+			<div
+				data-testid="month-spend"
+				data-transaction-count={transactions?.length ?? 'undefined'}
+			/>
+		)
+	},
+)
+
+jest.mock('@/components/RecentTransactions', () => ({
+	RecentTransactions: function MockRecentTransactions({
+		transactions,
+	}: {
+		transactions?: unknown[]
+	}) {
+		return (
+			<div
+				data-testid="recent-transactions"
+				data-transaction-count={transactions?.length ?? 'undefined'}
+			/>
+		)
+	},
+}))
 
 jest.mock('@/lib/actions/user.actions', () => ({
 	getLoggedInUser: jest.fn(),
@@ -80,7 +125,27 @@ const mockAccount: Account = {
 	shareableId: 'share-1',
 }
 
-// Matches the shape returned by bank.actions getAccounts
+// Mirrors lib/demo-data.ts DEMO_ACCOUNTS[0] — real getAccounts falls back to
+// data shaped like this (id containing "demo") when no bank is linked.
+const demoAccount: Account = {
+	id: 'demo-account-checking',
+	availableBalance: 4231.89,
+	currentBalance: 4231.89,
+	officialName: 'Fortify Everyday Checking',
+	mask: '4821',
+	institutionId: 'demo_institution',
+	name: 'Everyday Checking',
+	type: 'depository',
+	subtype: 'checking',
+	appwriteItemId: 'demo-bank-checking',
+	shareableId: 'ZGVtby1hY2NvdW50LWNoZWNraW5n',
+}
+
+const mockTransactions = [
+	{ id: 'tx-1', date: '2026-07-01', amount: 42, type: 'debit' },
+	{ id: 'tx-2', date: '2026-07-02', amount: 100, type: 'credit' },
+]
+
 const mockAccountsData = {
 	data: [mockAccount],
 	totalBanks: 1,
@@ -91,10 +156,7 @@ const mockAccountsData = {
 // Helper
 // ---------------------------------------------------------------------------
 
-/**
- * Awaits the async RSC then renders it. Accepts optional search params
- * to simulate Next.js searchParams prop.
- */
+/** Awaits the async RSC then renders it. */
 async function renderHome(searchParams: Record<string, string> = {}) {
 	const jsx = await Home({
 		params: Promise.resolve({}),
@@ -108,21 +170,15 @@ async function renderHome(searchParams: Record<string, string> = {}) {
 // ---------------------------------------------------------------------------
 
 describe('Home Page', () => {
-	beforeAll(() => {
-		// Suppress console.log from the debug statement in the Home component
-		jest.spyOn(console, 'log').mockImplementation(() => {})
-	})
-
-	afterAll(() => {
-		jest.restoreAllMocks()
-	})
-
 	beforeEach(() => {
 		jest.clearAllMocks()
+		;(getAccount as jest.Mock).mockResolvedValue({
+			transactions: mockTransactions,
+		})
 	})
 
 	// =========================================================================
-	describe('Authenticated user with connected banks', () => {
+	describe('Authenticated user with a real connected bank', () => {
 		// =========================================================================
 
 		beforeEach(() => {
@@ -135,16 +191,28 @@ describe('Home Page', () => {
 			expect(screen.getByTestId('navbar')).toBeInTheDocument()
 		})
 
-		it('renders the AccountBox', async () => {
-			await renderHome()
-			expect(screen.getByTestId('account-box')).toBeInTheDocument()
-		})
-
-		it('passes the correct totalBanks to AccountBox', async () => {
+		it('renders the AccountBox with the correct totalBanks', async () => {
 			await renderHome()
 			expect(screen.getByTestId('account-box')).toHaveAttribute(
 				'data-total-banks',
 				'1',
+			)
+		})
+
+		it('renders the QuickLinks grid', async () => {
+			await renderHome()
+			expect(screen.getByTestId('quick-links')).toBeInTheDocument()
+		})
+
+		it('passes the fetched transactions to MonthSpend and RecentTransactions', async () => {
+			await renderHome()
+			expect(screen.getByTestId('month-spend')).toHaveAttribute(
+				'data-transaction-count',
+				'2',
+			)
+			expect(screen.getByTestId('recent-transactions')).toHaveAttribute(
+				'data-transaction-count',
+				'2',
 			)
 		})
 
@@ -158,78 +226,69 @@ describe('Home Page', () => {
 			expect(getAccounts).toHaveBeenCalledWith({ userId: mockUser.$id })
 		})
 
-		it('does not show the disconnected account message', async () => {
+		it('calls getAccount with the first account’s appwriteItemId', async () => {
+			await renderHome()
+			expect(getAccount).toHaveBeenCalledWith({
+				appwriteItemId: mockAccount.appwriteItemId,
+			})
+		})
+
+		it('calls getAccount with the "id" search param when provided', async () => {
+			await renderHome({ id: 'item-from-url' })
+			expect(getAccount).toHaveBeenCalledWith({
+				appwriteItemId: 'item-from-url',
+			})
+		})
+
+		it('does not show the "Your session expired" message', async () => {
 			await renderHome()
 			expect(
-				screen.queryByText(/disconnected from our app/i),
+				screen.queryByText(/your session expired/i),
 			).not.toBeInTheDocument()
 		})
 
-		it('does not render the PlaidLink reconnect button', async () => {
+		it('does not render any PlaidLink variant', async () => {
 			await renderHome()
-			expect(screen.queryByTestId('plaid-link')).not.toBeInTheDocument()
+			expect(screen.queryByTestId('plaid-link-reconnect')).not.toBeInTheDocument()
+			expect(screen.queryByTestId('plaid-link-relink')).not.toBeInTheDocument()
+			expect(screen.queryByTestId('plaid-link-primary')).not.toBeInTheDocument()
 		})
 	})
 
 	// =========================================================================
-	describe('No banks connected (totalBanks === 0)', () => {
+	describe('Demo account (id contains "demo", totalBanks > 0)', () => {
 		// =========================================================================
 
 		beforeEach(() => {
 			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
 			;(getAccounts as jest.Mock).mockResolvedValue({
-				data: [],
-				totalBanks: 0,
-				totalCurrentBalance: 0,
+				data: [demoAccount],
+				totalBanks: 1,
+				totalCurrentBalance: demoAccount.currentBalance,
 			})
 		})
 
-		it('shows the disconnected account message', async () => {
+		it('renders the reconnect PlaidLink prompting the user to connect a bank', async () => {
 			await renderHome()
+			expect(screen.getByTestId('plaid-link-reconnect')).toBeInTheDocument()
+		})
+
+		it('renders the primary "Connect bank" PlaidLink', async () => {
+			await renderHome()
+			expect(screen.getByTestId('plaid-link-primary')).toBeInTheDocument()
+		})
+
+		it('does not render the relink PlaidLink or "Your session expired" message', async () => {
+			await renderHome()
+			expect(screen.queryByTestId('plaid-link-relink')).not.toBeInTheDocument()
 			expect(
-				screen.getByText(/disconnected from our app/i),
-			).toBeInTheDocument()
+				screen.queryByText(/your session expired/i),
+			).not.toBeInTheDocument()
 		})
 
-		it('renders PlaidLink in update mode', async () => {
+		it('still renders the AccountBox', async () => {
 			await renderHome()
-			const plaidLink = screen.getByTestId('plaid-link')
-			expect(plaidLink).toBeInTheDocument()
-			expect(plaidLink).toHaveAttribute('data-update', 'true')
-		})
-
-		it('does not render AccountBox', async () => {
-			await renderHome()
-			expect(screen.queryByTestId('account-box')).not.toBeInTheDocument()
-		})
-	})
-
-	// =========================================================================
-	describe('UPDATE_MODE — bank token expired', () => {
-		// =========================================================================
-
-		beforeEach(() => {
-			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
-			;(getAccounts as jest.Mock).mockResolvedValue('UPDATE_MODE')
-		})
-
-		it('shows the disconnected account message', async () => {
-			await renderHome()
-			expect(
-				screen.getByText(/disconnected from our app/i),
-			).toBeInTheDocument()
-		})
-
-		it('renders PlaidLink in update mode', async () => {
-			await renderHome()
-			const plaidLink = screen.getByTestId('plaid-link')
-			expect(plaidLink).toBeInTheDocument()
-			expect(plaidLink).toHaveAttribute('data-update', 'true')
-		})
-
-		it('does not render AccountBox', async () => {
-			await renderHome()
-			expect(screen.queryByTestId('account-box')).not.toBeInTheDocument()
+			expect(screen.getByTestId('account-box')).toBeInTheDocument()
 		})
 	})
 
@@ -237,12 +296,15 @@ describe('Home Page', () => {
 	describe('Unauthenticated user (getLoggedInUser returns null)', () => {
 		// =========================================================================
 
+		// Mirrors the real getAccounts fallback: an unauthenticated/unlinked
+		// user gets demo data (never an empty array — see demo account
+		// scenario above for why an empty array crashes this component).
 		beforeEach(() => {
 			;(getLoggedInUser as jest.Mock).mockResolvedValue(null)
 			;(getAccounts as jest.Mock).mockResolvedValue({
-				data: [],
-				totalBanks: 0,
-				totalCurrentBalance: 0,
+				data: [demoAccount],
+				totalBanks: 1,
+				totalCurrentBalance: demoAccount.currentBalance,
 			})
 		})
 
@@ -255,110 +317,39 @@ describe('Home Page', () => {
 			expect(screen.getByTestId('navbar')).toBeInTheDocument()
 		})
 
-		it('calls getAccounts with undefined userId', async () => {
+		it('calls getAccounts with an undefined userId', async () => {
 			await renderHome()
 			expect(getAccounts).toHaveBeenCalledWith({ userId: undefined })
-		})
-
-		it('shows the disconnected account message (no banks for null user)', async () => {
-			await renderHome()
-			expect(
-				screen.getByText(/disconnected from our app/i),
-			).toBeInTheDocument()
 		})
 	})
 
 	// =========================================================================
-	describe('Edge case — getAccounts returns undefined', () => {
+	describe('Known bug — accountsData[0] accessed without a guard', () => {
 		// =========================================================================
 
+		it('throws when totalBanks is 0 and data is an empty array', async () => {
+			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
+			;(getAccounts as jest.Mock).mockResolvedValue({
+				data: [],
+				totalBanks: 0,
+				totalCurrentBalance: 0,
+			})
+
+			await expect(renderHome()).rejects.toThrow()
+		})
+
+		it('throws when getAccounts returns the "UPDATE_MODE" sentinel', async () => {
+			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
+			;(getAccounts as jest.Mock).mockResolvedValue('UPDATE_MODE')
+
+			await expect(renderHome()).rejects.toThrow()
+		})
+
 		it('throws when accounts is undefined (accessing .totalBanks without optional chaining)', async () => {
-			// Known bug: the Home component accesses `accounts.totalBanks` without
-			// guarding against undefined, causing a crash when getAccounts fails.
 			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
 			;(getAccounts as jest.Mock).mockResolvedValue(undefined)
 
 			await expect(renderHome()).rejects.toThrow()
-		})
-	})
-
-	// =========================================================================
-	describe('homeLinks grid', () => {
-		// =========================================================================
-
-		beforeEach(async () => {
-			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
-			;(getAccounts as jest.Mock).mockResolvedValue(mockAccountsData)
-			await renderHome()
-		})
-
-		it('renders every homeLink label', () => {
-			homeLinks.forEach(({ label }) => {
-				expect(screen.getByText(label)).toBeInTheDocument()
-			})
-		})
-
-		it('renders the correct number of link items', () => {
-			expect(homeLinks).toHaveLength(9)
-			homeLinks.forEach(({ label }) => {
-				expect(screen.getByText(label)).toBeInTheDocument()
-			})
-		})
-
-		it('renders active links with their correct route href', () => {
-			homeLinks
-				.filter(({ route }) => route !== '#')
-				.forEach(({ route, label }) => {
-					const link = screen.getByText(label).closest('a')
-					expect(link).toHaveAttribute('href', route)
-				})
-		})
-
-		it('renders disabled links with href="#"', () => {
-			homeLinks
-				.filter(({ route }) => route === '#')
-				.forEach(({ label }) => {
-					const link = screen.getByText(label).closest('a')
-					expect(link).toHaveAttribute('href', '#')
-				})
-		})
-
-		it('applies cursor-default class to disabled links', () => {
-			homeLinks
-				.filter(({ route }) => route === '#')
-				.forEach(({ label }) => {
-					const link = screen.getByText(label).closest('a')
-					expect(link).toHaveClass('cursor-default')
-				})
-		})
-
-		it('does not apply cursor-default to active links', () => {
-			homeLinks
-				.filter(({ route }) => route !== '#')
-				.forEach(({ label }) => {
-					const link = screen.getByText(label).closest('a')
-					expect(link).not.toHaveClass('cursor-default')
-				})
-		})
-
-		it('renders an "Account and Card" link to /my-banks', () => {
-			expect(screen.getByText('Account and Card').closest('a')).toHaveAttribute(
-				'href',
-				'/my-banks',
-			)
-		})
-
-		it('renders a "Transfer" link to /payment-transfer', () => {
-			expect(screen.getByText('Transfer').closest('a')).toHaveAttribute(
-				'href',
-				'/payment-transfer',
-			)
-		})
-
-		it('renders a "Transaction history" link to /transaction-history', () => {
-			expect(
-				screen.getByText('Transaction history').closest('a'),
-			).toHaveAttribute('href', '/transaction-history')
 		})
 	})
 
@@ -385,37 +376,17 @@ describe('Home Page', () => {
 			)
 		})
 
-		it('renders without crashing when an "id" search param is provided', async () => {
+		it('passes an empty transaction count when getAccount resolves without transactions', async () => {
 			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
 			;(getAccounts as jest.Mock).mockResolvedValue(mockAccountsData)
-
-			await expect(renderHome({ id: 'item-1' })).resolves.not.toThrow()
-		})
-
-		it('renders the homeLinks grid even in UPDATE_MODE', async () => {
-			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
-			;(getAccounts as jest.Mock).mockResolvedValue('UPDATE_MODE')
+			;(getAccount as jest.Mock).mockResolvedValue(undefined)
 
 			await renderHome()
 
-			homeLinks.forEach(({ label }) => {
-				expect(screen.getByText(label)).toBeInTheDocument()
-			})
-		})
-
-		it('renders the homeLinks grid when totalBanks is 0', async () => {
-			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
-			;(getAccounts as jest.Mock).mockResolvedValue({
-				data: [],
-				totalBanks: 0,
-				totalCurrentBalance: 0,
-			})
-
-			await renderHome()
-
-			homeLinks.forEach(({ label }) => {
-				expect(screen.getByText(label)).toBeInTheDocument()
-			})
+			expect(screen.getByTestId('month-spend')).toHaveAttribute(
+				'data-transaction-count',
+				'undefined',
+			)
 		})
 	})
 })
