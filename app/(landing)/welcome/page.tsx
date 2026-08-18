@@ -1,6 +1,22 @@
-import { Button } from '@/components/ui/button'
+'use client'
 
-const Landing = async () => {
+import CustomInput from '@/components/CustomInput'
+import { Button } from '@/components/ui/button'
+import { Form } from '@/components/ui/form'
+import { WaitlistValues } from '@/lib/auth-form-config'
+import { waitlistSchema } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+
+const Landing = () => {
+	const form = useForm<WaitlistValues>({
+		resolver: zodResolver(waitlistSchema),
+		mode: 'onSubmit',
+		defaultValues: {
+			email: '',
+		},
+	})
+
 	return (
 		<div>
 			<div className="flex justify-between px-10 py-4">
@@ -199,8 +215,29 @@ const Landing = async () => {
 					</div>
 				</div>
 			</div>
-			<div>
-				<p>CTA</p>
+			<div className="flex content-center justify-center text-center px-30 py-20">
+				<div className="w-1/3">
+					<p className="mb-4">logo</p>
+					<h3>Ready to see where your money really goes?</h3>
+					<p>
+						Join the early access list. We're onboarding users in small batches
+						— no spam, just a heads-up when your spot is ready.
+					</p>
+					<div className="flex gap-4 mt-8 mb-4">
+						<Form {...form}>
+							<form>
+								<CustomInput
+									control={form.control}
+									name="email"
+									label="Email"
+									placeholder="your@email.com"
+								/>
+								<Button>Join waitlist</Button>
+							</form>
+						</Form>
+					</div>
+					<p>No credit card · No commitments · Unsubscribe anytime</p>
+				</div>
 			</div>
 			<div>
 				<p>Footer</p>
