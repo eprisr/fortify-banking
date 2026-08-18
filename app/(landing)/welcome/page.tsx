@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { WaitlistValues } from '@/lib/auth-form-config'
 import { waitlistSchema } from '@/lib/utils'
+import logo from '@/public/icons/logo.svg'
 import { zodResolver } from '@hookform/resolvers/zod'
+import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 
 const Landing = () => {
@@ -18,20 +20,25 @@ const Landing = () => {
 	})
 
 	return (
-		<div>
-			<div className="flex justify-between px-10 py-4">
-				<p>Logo</p>
-				<ul className="flex gap-7">
+		<div className="text-gray-600 text-14 font-dm-sans">
+			<div className="flex items-center justify-between px-10 py-4">
+				<div className="flex items-center gap-2">
+					<Image src={logo} alt="Fortify Banking Logo" width={32} height={32} />
+					<p className="text-16 font-bold">Fortify</p>
+				</div>
+				<ul className="flex items-center gap-7">
 					<li>Features</li>
 					<li>How it works</li>
 					<li>Security</li>
 				</ul>
 				<div>
-					<Button variant="ghost">Sign in</Button>
+					<Button variant="ghost" className="mr-4">
+						Sign in
+					</Button>
 					<Button variant="default">Get early access</Button>
 				</div>
 			</div>
-			<div className="flex justify-between px-40 py-5">
+			<div className="flex justify-between px-40 py-5 bg-primary-100">
 				<div className="max-w-1/3">
 					<h1>Your money, finally clear.</h1>
 					<p>
@@ -56,7 +63,7 @@ const Landing = () => {
 				</div>
 			</div>
 			<div className="h-12 py-2 w-full bg-gray-100 border border-gray-300">
-				<ul className="flex gap-16 content-center">
+				<ul className="flex gap-16 items-center">
 					<li>256-bit encryption</li>
 					<li>Read-only access</li>
 					<li>Zero data selling</li>
@@ -67,7 +74,7 @@ const Landing = () => {
 					<li>Cash flow tracking</li>
 				</ul>
 			</div>
-			<div className="flex flex-col content-center justify-center gap-10 px-40 py-20">
+			<div className="flex flex-col items-center justify-center gap-10 px-40 py-20">
 				<div className="text-center">
 					<p>Features</p>
 					<h3>Everything your finances need</h3>
@@ -123,14 +130,14 @@ const Landing = () => {
 					</div>
 				</div>
 			</div>
-			<div className="flex flex-col content-center justify-center gap-10 px-40 py-20">
+			<div className="flex flex-col items-center justify-center gap-10 px-40 py-20">
 				<div className="text-center">
 					<p>How It Works</p>
 					<h3>Up and running in three steps</h3>
 				</div>
 				<div className="flex text-center">
 					<div className="w-1/3">
-						<div className="flex content-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-0 m-auto">
+						<div className="flex items-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-0 m-auto">
 							<span className="">1</span>
 						</div>
 						<p>Create your account</p>
@@ -140,7 +147,7 @@ const Landing = () => {
 						</p>
 					</div>
 					<div className="w-1/3">
-						<div className="flex content-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-0 m-auto">
+						<div className="flex items-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-0 m-auto">
 							<span className="">2</span>
 						</div>
 						<p>Connect your bank</p>
@@ -150,7 +157,7 @@ const Landing = () => {
 						</p>
 					</div>
 					<div className="w-1/3">
-						<div className="flex content-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-0 m-auto">
+						<div className="flex items-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-0 m-auto">
 							<span className="">3</span>
 						</div>
 						<p>See your full picture</p>
@@ -161,7 +168,7 @@ const Landing = () => {
 					</div>
 				</div>
 			</div>
-			<div className="flex content-center justify-between px-30 py-20">
+			<div className="flex items-center justify-between px-30 py-20">
 				<div className="w-1/2">
 					<p>Security</p>
 					<h3>Built with your safety first.</h3>
@@ -215,7 +222,7 @@ const Landing = () => {
 					</div>
 				</div>
 			</div>
-			<div className="flex content-center justify-center text-center px-30 py-20">
+			<div className="flex items-center justify-center text-center px-30 py-20">
 				<div className="w-1/3">
 					<p className="mb-4">logo</p>
 					<h3>Ready to see where your money really goes?</h3>
