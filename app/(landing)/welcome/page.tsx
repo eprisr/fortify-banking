@@ -39,8 +39,17 @@ const Landing = async () => {
 					<p>Image</p>
 				</div>
 			</div>
-			<div>
-				<p>Marquee</p>
+			<div className="h-12 py-2 w-full bg-gray-100 border border-gray-300">
+				<ul className="flex gap-16 content-center">
+					<li>256-bit encryption</li>
+					<li>Read-only access</li>
+					<li>Zero data selling</li>
+					<li>Bank-grade security</li>
+					<li>Real-time sync</li>
+					<li>Plaid-powered</li>
+					<li>Spending Insights</li>
+					<li>Cash flow tracking</li>
+				</ul>
 			</div>
 			<div>
 				<p>Features</p>
