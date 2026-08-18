@@ -145,8 +145,59 @@ const Landing = async () => {
 					</div>
 				</div>
 			</div>
-			<div>
-				<p>Security</p>
+			<div className="flex content-center justify-between px-30 py-20">
+				<div className="w-1/2">
+					<p>Security</p>
+					<h3>Built with your safety first.</h3>
+					<p className="w-[32ch]">
+						Handing over access to your finances requires real trust. Every
+						technical decision — from Plaid's read-only OAuth to Dwolla's ACH
+						infrastructure — was made with that in mind.
+					</p>
+					<div className="flex gap-4">
+						<div>Badge</div>
+						<div>Badge</div>
+					</div>
+				</div>
+				<div className="flex flex-wrap">
+					<div className="border border-gray-100 rounded-xl p-4">
+						<p>256-bit SSL encryption</p>
+						<p className="w-[24ch]">
+							All data is encrypted in transit and at rest.
+						</p>
+					</div>
+					<div className="border border-gray-100 rounded-xl p-4">
+						<p>Read-only bank access</p>
+						<p className="w-[24ch]">
+							We can view transactions. We can never move money.
+						</p>
+					</div>
+					<div className="border border-gray-100 rounded-xl p-4">
+						<p>Zero data selling</p>
+						<p className="w-[24ch]">
+							Your financial data is never sold to third parties.
+						</p>
+					</div>
+					<div className="border border-gray-100 rounded-xl p-4">
+						<p>Plaid-powered</p>
+						<p className="w-[24ch]">
+							Trusted bank connection infrastructure used by thousands of
+							fintech apps.
+						</p>
+					</div>
+					<div className="border border-gray-100 rounded-xl p-4">
+						<p>Secure infrastructure</p>
+						<p className="w-[24ch]">
+							Built on infrastructure that meets enterprise security standards.
+						</p>
+					</div>
+					<div className="border border-gray-100 rounded-xl p-4">
+						<p>Credentials never stored</p>
+						<p className="w-[24ch]">
+							Your bank login is processed by Plaid, never touches our servers.
+						</p>
+					</div>
+				</div>
 			</div>
 			<div>
 				<p>CTA</p>
