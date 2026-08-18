@@ -239,8 +239,35 @@ const Landing = () => {
 					<p>No credit card · No commitments · Unsubscribe anytime</p>
 				</div>
 			</div>
-			<div>
-				<p>Footer</p>
+			<div className="flex justify-between">
+				<div>
+					<p>logo</p>
+					<p>
+						Your money, finally clear. Built with Next.js, Plaid, and Dwolla.
+					</p>
+				</div>
+				<div>
+					<div>
+						<p>Product</p>
+						<ul>
+							<li>Features</li>
+							<li>Security</li>
+							<li>How it works</li>
+							<li>Changelog</li>
+						</ul>
+					</div>
+					<div>
+						<p>Company</p>
+						<ul>
+							<li>About</li>
+							<li>Blog</li>
+							<li>Privacy</li>
+							<li>Terms</li>
+						</ul>
+					</div>
+				</div>
+				<p>&copy; 2026 Fortify Built by Epris Richardson</p>
+				<p>Powered by Plaid Dwolla Appwrite</p>
 			</div>
 		</div>
 	)
