@@ -11,6 +11,8 @@ import { MdInfoOutline } from 'react-icons/md'
 const Home = async ({ searchParams }: SearchParamProps) => {
 	const { id } = await searchParams
 	const loggedIn = await getLoggedInUser()
+	if (!loggedIn) return null
+
 	const accounts = await getAccounts({ userId: loggedIn?.$id })
 
 	const accountsData = accounts?.data
