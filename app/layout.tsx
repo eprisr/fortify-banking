@@ -1,5 +1,12 @@
 import type { Metadata, Viewport } from 'next'
-import { Fira_Sans, IBM_Plex_Serif, Poppins, Inter } from 'next/font/google'
+import {
+	DM_Sans,
+	Fira_Sans,
+	IBM_Plex_Serif,
+	Inter,
+	Poppins,
+	Sora,
+} from 'next/font/google'
 import './globals.css'
 import { cn } from '@/lib/utils'
 
@@ -10,13 +17,7 @@ export const viewport: Viewport = {
 	userScalable: false,
 }
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
-
-const poppins = Poppins({
-	weight: ['400', '500', '600'],
-	subsets: ['latin'],
-	variable: '--font-poppins',
-})
+const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
 const firaSans = Fira_Sans({
 	weight: '400',
 	subsets: ['latin'],
@@ -27,6 +28,13 @@ const ibmPlexSerif = IBM_Plex_Serif({
 	subsets: ['latin'],
 	variable: '--font-ibm-plex-serif',
 })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const poppins = Poppins({
+	weight: ['400', '500', '600'],
+	subsets: ['latin'],
+	variable: '--font-poppins',
+})
+const sora = Sora({ subsets: ['latin'], variable: '--font-sora' })
 
 export const metadata: Metadata = {
 	title: 'Fortify',
@@ -48,7 +56,7 @@ export default function RootLayout({
 			suppressHydrationWarning
 			className={cn('font-sans', inter.variable)}>
 			<body
-				className={`${poppins.variable} ${firaSans.variable} ${ibmPlexSerif.variable}`}>
+				className={`${poppins.variable} ${firaSans.variable} ${ibmPlexSerif.variable} ${inter.variable} ${dmSans.variable} ${sora.variable}`}>
 				<div>{children}</div>
 			</body>
 		</html>
