@@ -107,8 +107,43 @@ const Landing = async () => {
 					</div>
 				</div>
 			</div>
-			<div>
-				<p>How It Works</p>
+			<div className="flex flex-col content-center justify-center gap-10 px-40 py-20">
+				<div className="text-center">
+					<p>How It Works</p>
+					<h3>Up and running in three steps</h3>
+				</div>
+				<div className="flex text-center">
+					<div className="w-1/3">
+						<div className="flex content-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-0 m-auto">
+							<span className="">1</span>
+						</div>
+						<p>Create your account</p>
+						<p className="w-[32ch] m-0 m-auto">
+							Sign up with your name and email in under a minute. No credit
+							card, no commitments.
+						</p>
+					</div>
+					<div className="w-1/3">
+						<div className="flex content-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-0 m-auto">
+							<span className="">2</span>
+						</div>
+						<p>Connect your bank</p>
+						<p className="w-[32ch] m-0 m-auto">
+							Link your bank securely via Plaid. Read-only access — we can see
+							your data, never touch your money.
+						</p>
+					</div>
+					<div className="w-1/3">
+						<div className="flex content-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-0 m-auto">
+							<span className="">3</span>
+						</div>
+						<p>See your full picture</p>
+						<p className="w-[32ch] m-0 m-auto">
+							Your dashboard comes to life instantly — balances, spending
+							trends, and transactions in one clean view.
+						</p>
+					</div>
+				</div>
 			</div>
 			<div>
 				<p>Security</p>
