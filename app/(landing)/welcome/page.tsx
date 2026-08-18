@@ -15,8 +15,29 @@ const Landing = async () => {
 					<Button variant="default">Get early access</Button>
 				</div>
 			</div>
-			<div>
-				<p>Hero</p>
+			<div className="flex justify-between px-40 py-5">
+				<div className="max-w-1/3">
+					<h1>Your money, finally clear.</h1>
+					<p>
+						Fortify connects to your bank and turns raw transactions into a
+						clear picture of where your money goes — and where it should go
+						next.
+					</p>
+					<div className="flex gap-4">
+						<Button variant="default">Get early access</Button>
+						<Button variant="outline">See how it works</Button>
+					</div>
+					<div className="flex gap-3">
+						<div></div>
+						<div>
+							<p>240+ people on the waitlist</p>
+							<p>Join them — it's free</p>
+						</div>
+					</div>
+				</div>
+				<div className="w-3xs h-96 border-2 border-gray-800">
+					<p>Image</p>
+				</div>
 			</div>
 			<div>
 				<p>Marquee</p>
