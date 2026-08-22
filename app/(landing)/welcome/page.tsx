@@ -103,13 +103,11 @@ const Landing = () => {
 						Built for people who want clarity, not complexity.
 					</p>
 				</div>
-				<div className="flex flex-wrap gap-4">
+				<div className="grid grid-cols-3 gap-4">
 					{features.map((feat, i) => (
-						<div
-							key={i}
-							className="w-[calc(33%-32px)] h-fit border border-gray-200 rounded-xl p-6">
+						<div key={i} className="border border-gray-200 rounded-xl p-6">
 							<h5>{feat.title}</h5>
-							<p>{feat.content}</p>
+							<p className="mt-2">{feat.content}</p>
 						</div>
 					))}
 				</div>
