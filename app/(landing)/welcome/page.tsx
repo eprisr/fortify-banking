@@ -19,6 +19,7 @@ import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import './styles.css'
 import { Badge } from '@/components/ui/badge'
+import Marquee from '@/components/Marquee'
 
 const Landing = () => {
 	const form = useForm<WaitlistValues>({
@@ -95,15 +96,7 @@ const Landing = () => {
 					/>
 				</div>
 			</div>
-			<div className="flex items-center h-12 py-2 bg-gray-100 border border-gray-300">
-				<ul className="flex gap-16 items-center text-12">
-					{marqueeItems.map((item, i) => (
-						<li key={i} className="whitespace-nowrap">
-							{item}
-						</li>
-					))}
-				</ul>
-			</div>
+			<Marquee items={marqueeItems} />
 			<div className="flex flex-col items-center justify-center gap-10 px-40 py-20">
 				<div className="text-center">
 					<p>Features</p>
