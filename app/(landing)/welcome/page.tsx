@@ -203,35 +203,52 @@ const Landing = () => {
 					</p>
 				</div>
 			</div>
-			<div className="flex justify-between">
-				<div>
-					<p>logo</p>
-					<p>
-						Your money, finally clear. Built with Next.js, Plaid, and Dwolla.
-					</p>
-				</div>
-				<div>
+			<div className="flex flex-col justify-between px-30 py-10">
+				<div className="flex justify-between">
 					<div>
-						<p>Product</p>
-						<ul>
-							<li>Features</li>
-							<li>Security</li>
-							<li>How it works</li>
-							<li>Changelog</li>
-						</ul>
+						<div className="flex items-center gap-2">
+							<Image
+								src={logo}
+								alt="Fortify Banking Logo"
+								width={32}
+								height={32}
+							/>
+							<p className="text-16 font-bold text-black">Fortify</p>
+						</div>
+						<p className="text-14 w-[24ch] mt-4">
+							Your money, finally clear. Built with Next.js, Plaid, and Dwolla.
+						</p>
 					</div>
-					<div>
-						<p>Company</p>
-						<ul>
-							<li>About</li>
-							<li>Blog</li>
-							<li>Privacy</li>
-							<li>Terms</li>
-						</ul>
+					<div className="grid grid-cols-2 gap-18 text-14">
+						<div>
+							<p className="font-semibold uppercase tracking-widest text-12 mb-3">
+								Product
+							</p>
+							<ul className="leading-8">
+								<li>Features</li>
+								<li>Security</li>
+								<li>How it works</li>
+								<li>Changelog</li>
+							</ul>
+						</div>
+						<div>
+							<p className="font-semibold uppercase tracking-widest text-12 mb-3">
+								Company
+							</p>
+							<ul className="leading-8">
+								<li>About</li>
+								<li>Blog</li>
+								<li>Privacy</li>
+								<li>Terms</li>
+							</ul>
+						</div>
 					</div>
 				</div>
-				<p>&copy; 2026 Fortify Built by Epris Richardson</p>
-				<p>Powered by Plaid Dwolla Appwrite</p>
+				<hr className="border border-top my-6" />
+				<div className="flex justify-between text-14">
+					<p>&copy; 2026 Fortify Built by Epris Richardson</p>
+					<p>Powered by Plaid &#8901; Dwolla &#8901; Appwrite</p>
+				</div>
 			</div>
 		</div>
 	)
