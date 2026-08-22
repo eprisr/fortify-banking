@@ -1,0 +1,21 @@
+@layer base {
+	h1,
+	h2,
+	h3,
+	h4,
+	h5 {
+		font-family: var(--font-sora);
+		font-weight: var(--font-weight-bold);
+		color: black;
+	}
+
+	h1 {
+		font-size: 52px;
+		line-height: 4rem;
+	}
+
+	h3 {
+		font-size: xx-large;
+		line-height: 3rem;
+	}
+}

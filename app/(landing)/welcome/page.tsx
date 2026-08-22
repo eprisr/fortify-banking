@@ -9,6 +9,7 @@ import logo from '@/public/icons/logo.svg'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
+import './styles.css'
 
 const Landing = () => {
 	const form = useForm<WaitlistValues>({
