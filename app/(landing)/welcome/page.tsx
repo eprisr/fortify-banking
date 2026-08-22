@@ -8,6 +8,7 @@ import { waitlistSchema } from '@/lib/utils'
 import logo from '@/public/icons/logo.svg'
 import signinImage from '@/public/sign-in.png'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { features, marqueeItems, primaryShadeMap } from '@/lib/landing-data'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import './styles.css'
@@ -20,25 +21,6 @@ const Landing = () => {
 			email: '',
 		},
 	})
-
-	const primaryShadeMap: Record<number, string> = {
-		0: 'bg-primary-700',
-		1: 'bg-primary-600',
-		2: 'bg-primary-500',
-		3: 'bg-primary-400',
-		4: 'bg-primary-300',
-	}
-
-	const marqueeItems = [
-		'Bank-grade security',
-		'Real-time sync',
-		'Plaid-powered',
-		'Spending Insights',
-		'Cash flow tracking',
-		'256-bit encryption',
-		'Read-only access',
-		'Zero data selling',
-	]
 
 	return (
 		<div className="text-gray-500 text-16 font-dm-sans font-light">
@@ -117,56 +99,19 @@ const Landing = () => {
 				<div className="text-center">
 					<p>Features</p>
 					<h3>Everything your finances need</h3>
-					<p>Built for people who want clarity, not complexity.</p>
+					<p className="mt-2">
+						Built for people who want clarity, not complexity.
+					</p>
 				</div>
 				<div className="flex flex-wrap gap-4">
-					<div className="w-[calc(33%-32px)] h-fit border border-gray-100 rounded-xl p-6">
-						<h5>Spending insights</h5>
-						<p>
-							Every transaction categorized automatically. See your top spending
-							categories, month-over-month trends, and where your money actually
-							goes — no spreadsheets.
-						</p>
-					</div>
-					<div className="w-[calc(33%-32px)] h-fit border border-gray-100 rounded-xl p-6">
-						<h5>All accounts, one place</h5>
-						<p>
-							Connect checking, savings, and credit in seconds via Plaid. Your
-							full financial picture — balances, net worth, available credit —
-							updated in real time.
-						</p>
-					</div>
-					<div className="w-[calc(33%-32px)] h-fit border border-gray-100 rounded-xl p-6">
-						<h5>Smart alerts</h5>
-						<p>
-							Get notified the moment unusual activity hits your account. Large
-							transactions, low balance warnings, and spending nudges — before
-							they become problems.
-						</p>
-					</div>
-					<div className="w-[calc(33%-32px)] h-fit border border-gray-100 rounded-xl p-6">
-						<h5>Transfers & bill pay</h5>
-						<p>
-							Move money between accounts or pay bills directly from Vaultly —
-							powered by Dwolla's ACH network. Fast, secure, a few taps away.
-						</p>
-					</div>
-					<div className="w-[calc(33%-32px)] h-fit border border-gray-100 rounded-xl p-6">
-						<h5>Cash flow tracking</h5>
-						<p>
-							Month-by-month income vs. expenses. Spot surplus months at a
-							glance, catch deficits early, understand your trend line before it
-							becomes a problem.
-						</p>
-					</div>
-					<div className="w-[calc(33%-32px)] h-fit border border-gray-100 rounded-xl p-6">
-						<h5>Built to protect you</h5>
-						<p>
-							Read-only access means we can see your data, never touch your
-							money. All data encrypted at rest and in transit. Your credentials
-							never touch our servers.
-						</p>
-					</div>
+					{features.map((feat, i) => (
+						<div
+							key={i}
+							className="w-[calc(33%-32px)] h-fit border border-gray-200 rounded-xl p-6">
+							<h5>{feat.title}</h5>
+							<p>{feat.content}</p>
+						</div>
+					))}
 				</div>
 			</div>
 			<div className="flex flex-col items-center justify-center gap-10 px-40 py-20">
