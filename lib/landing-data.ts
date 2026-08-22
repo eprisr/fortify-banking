@@ -56,3 +56,26 @@ export const features: Feature[] = [
 			'Read-only access means we can see your data, never touch your money. All data encrypted at rest and in transit. Your credentials never touch our servers.',
 	},
 ]
+
+interface Works {
+	title: string
+	content: string
+}
+
+export const works: Works[] = [
+	{
+		title: 'Create your account',
+		content:
+			' Sign up with your name and email in under a minute. No credit card, no commitments.',
+	},
+	{
+		title: 'Connect your bank',
+		content:
+			' Link your bank securely via Plaid. Read-only access — we can see your data, never touch your money.',
+	},
+	{
+		title: 'See your full picture',
+		content:
+			' Your dashboard comes to life instantly — balances, spending trends, and transactions in one clean view.',
+	},
+]

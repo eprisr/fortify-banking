@@ -8,7 +8,12 @@ import { waitlistSchema } from '@/lib/utils'
 import logo from '@/public/icons/logo.svg'
 import signinImage from '@/public/sign-in.png'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { features, marqueeItems, primaryShadeMap } from '@/lib/landing-data'
+import {
+	features,
+	marqueeItems,
+	primaryShadeMap,
+	works,
+} from '@/lib/landing-data'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import './styles.css'
@@ -112,42 +117,24 @@ const Landing = () => {
 					))}
 				</div>
 			</div>
-			<div className="flex flex-col items-center justify-center gap-10 px-40 py-20">
+			<div className="flex flex-col items-center justify-center gap-10 px-40 py-30 bg-gray-100 border border-gray-200">
 				<div className="text-center">
 					<p>How It Works</p>
 					<h3>Up and running in three steps</h3>
 				</div>
-				<div className="flex text-center">
-					<div className="w-1/3">
-						<div className="flex items-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-0 m-auto">
-							<span className="">1</span>
+				<div className="grid grid-flow-col grid-cols-3 text-center gap-16 relative">
+					<hr className="absolute top-1/8 left-1/8 z-0 w-3/4 border-t-2 border-primary-400" />
+					{works.map((w, i) => (
+						<div className="relative">
+							<div className="flex items-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-auto">
+								<span className="font-sora font-semibold">{i + 1}</span>
+							</div>
+							<p className="font-sora font-bold text-18 text-black-1 my-4">
+								{w.title}
+							</p>
+							<p className="w-[28ch] text-14 leading-6 m-auto">{w.content}</p>
 						</div>
-						<p>Create your account</p>
-						<p className="w-[32ch] m-0 m-auto">
-							Sign up with your name and email in under a minute. No credit
-							card, no commitments.
-						</p>
-					</div>
-					<div className="w-1/3">
-						<div className="flex items-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-0 m-auto">
-							<span className="">2</span>
-						</div>
-						<p>Connect your bank</p>
-						<p className="w-[32ch] m-0 m-auto">
-							Link your bank securely via Plaid. Read-only access — we can see
-							your data, never touch your money.
-						</p>
-					</div>
-					<div className="w-1/3">
-						<div className="flex items-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-0 m-auto">
-							<span className="">3</span>
-						</div>
-						<p>See your full picture</p>
-						<p className="w-[32ch] m-0 m-auto">
-							Your dashboard comes to life instantly — balances, spending
-							trends, and transactions in one clean view.
-						</p>
-					</div>
+					))}
 				</div>
 			</div>
 			<div className="flex items-center justify-between px-30 py-20">
