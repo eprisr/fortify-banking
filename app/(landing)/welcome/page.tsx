@@ -21,7 +21,7 @@ const Landing = () => {
 		},
 	})
 
-	const primaryShadeMap = {
+	const primaryShadeMap: Record<number, string> = {
 		0: 'bg-primary-700',
 		1: 'bg-primary-600',
 		2: 'bg-primary-500',
