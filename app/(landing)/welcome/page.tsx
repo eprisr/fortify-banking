@@ -12,11 +12,13 @@ import {
 	features,
 	marqueeItems,
 	primaryShadeMap,
+	security,
 	works,
 } from '@/lib/landing-data'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import './styles.css'
+import { Badge } from '@/components/ui/badge'
 
 const Landing = () => {
 	const form = useForm<WaitlistValues>({
@@ -139,58 +141,36 @@ const Landing = () => {
 					))}
 				</div>
 			</div>
-			<div className="flex items-center justify-between px-30 py-20">
+			<div className="flex items-center justify-between px-50 py-20">
 				<div className="w-1/2">
 					<p>Security</p>
-					<h3>Built with your safety first.</h3>
-					<p className="w-[32ch]">
+					<h3 className="w-[12ch] text-4xl my-4">
+						Built with your safety first.
+					</h3>
+					<p className="w-[40ch]">
 						Handing over access to your finances requires real trust. Every
 						technical decision — from Plaid's read-only OAuth to Dwolla's ACH
 						infrastructure — was made with that in mind.
 					</p>
-					<div className="flex gap-4">
-						<div>Badge</div>
-						<div>Badge</div>
+					<div className="flex gap-4 mt-6">
+						{['Powered by Plaid', 'Dwolla ACH'].map((b, i) => (
+							<Badge
+								key={i}
+								className="text-14! font-bold rounded-2xl bg-primary-300 text-primary-700 p-4">
+								{b}
+							</Badge>
+						))}
 					</div>
 				</div>
-				<div className="flex flex-wrap">
-					<div className="border border-gray-100 rounded-xl p-4">
-						<p>256-bit SSL encryption</p>
-						<p className="w-[24ch]">
-							All data is encrypted in transit and at rest.
-						</p>
-					</div>
-					<div className="border border-gray-100 rounded-xl p-4">
-						<p>Read-only bank access</p>
-						<p className="w-[24ch]">
-							We can view transactions. We can never move money.
-						</p>
-					</div>
-					<div className="border border-gray-100 rounded-xl p-4">
-						<p>Zero data selling</p>
-						<p className="w-[24ch]">
-							Your financial data is never sold to third parties.
-						</p>
-					</div>
-					<div className="border border-gray-100 rounded-xl p-4">
-						<p>Plaid-powered</p>
-						<p className="w-[24ch]">
-							Trusted bank connection infrastructure used by thousands of
-							fintech apps.
-						</p>
-					</div>
-					<div className="border border-gray-100 rounded-xl p-4">
-						<p>Secure infrastructure</p>
-						<p className="w-[24ch]">
-							Built on infrastructure that meets enterprise security standards.
-						</p>
-					</div>
-					<div className="border border-gray-100 rounded-xl p-4">
-						<p>Credentials never stored</p>
-						<p className="w-[24ch]">
-							Your bank login is processed by Plaid, never touches our servers.
-						</p>
-					</div>
+				<div className="grid grid-cols-2 grid-rows-3 gap-4 max-w-xl p-6">
+					{security.map((s, i) => (
+						<div key={i} className="border border-gray-200 rounded-xl p-4">
+							<p className="text-14 text-black-1 font-semibold mb-1">
+								{s.title}
+							</p>
+							<p className="text-12 font-light leading-5">{s.content}</p>
+						</div>
+					))}
 				</div>
 			</div>
 			<div className="flex items-center justify-center text-center px-30 py-20">

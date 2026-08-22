@@ -19,12 +19,12 @@ export const marqueeList: string[] = [
 
 export const marqueeItems: string[] = [...marqueeList, ...marqueeList]
 
-interface Feature {
+interface Card {
 	title: string
 	content: string
 }
 
-export const features: Feature[] = [
+export const features: Card[] = [
 	{
 		title: 'Spending insights',
 		content:
@@ -57,12 +57,7 @@ export const features: Feature[] = [
 	},
 ]
 
-interface Works {
-	title: string
-	content: string
-}
-
-export const works: Works[] = [
+export const works: Card[] = [
 	{
 		title: 'Create your account',
 		content:
@@ -77,5 +72,35 @@ export const works: Works[] = [
 		title: 'See your full picture',
 		content:
 			' Your dashboard comes to life instantly — balances, spending trends, and transactions in one clean view.',
+	},
+]
+
+export const security: Card[] = [
+	{
+		title: '256-bit SSL encryption',
+		content: 'All data is encrypted in transit and at rest.',
+	},
+	{
+		title: 'Read-only bank access',
+		content: 'We can view transactions. We can never move money.',
+	},
+	{
+		title: 'Zero data selling',
+		content: 'Your financial data is never sold to third parties.',
+	},
+	{
+		title: 'Plaid-powered',
+		content:
+			'Trusted bank connection infrastructure used by thousands of fintech apps.',
+	},
+	{
+		title: 'Secure infrastructure',
+		content:
+			'Built on infrastructure that meets enterprise security standards.',
+	},
+	{
+		title: 'Credentials never stored',
+		content:
+			'Your bank login is processed by Plaid, never touches our servers.',
 	},
 ]
