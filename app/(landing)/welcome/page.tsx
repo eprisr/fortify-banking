@@ -93,10 +93,12 @@ const Landing = () => {
 					/>
 				</div>
 			</div>
-			<div className="flex items-center h-12 py-2 w-full bg-gray-100 border border-gray-300">
+			<div className="flex items-center h-12 py-2 bg-gray-100 border border-gray-300">
 				<ul className="flex gap-16 items-center text-12">
 					{marqueeItems.map((item, i) => (
-						<li key={i}>{item}</li>
+						<li key={i} className="whitespace-nowrap">
+							{item}
+						</li>
 					))}
 				</ul>
 			</div>
