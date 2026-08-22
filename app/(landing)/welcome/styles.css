@@ -6,7 +6,7 @@
 	h5 {
 		font-family: var(--font-sora);
 		font-weight: var(--font-weight-bold);
-		color: black;
+		color: var(--color-black-1);
 	}
 
 	h1 {
