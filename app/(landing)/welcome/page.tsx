@@ -173,28 +173,34 @@ const Landing = () => {
 					))}
 				</div>
 			</div>
-			<div className="flex items-center justify-center text-center px-30 py-20">
-				<div className="w-1/3">
-					<p className="mb-4">logo</p>
-					<h3>Ready to see where your money really goes?</h3>
-					<p>
+			<div className="flex items-center justify-center text-center bg-primary-600 text-white px-30 py-20">
+				<div className="flex flex-col items-center w-8/17">
+					<Image src={logo} alt="Fortify Banking" width={64} height={64} />
+					<h3 className="text-white text-4xl leading-12 w-[18ch] my-4">
+						Ready to see where your money really goes?
+					</h3>
+					<p className="text-15 leading-7 text-gray-200 w-[44ch]">
 						Join the early access list. We're onboarding users in small batches
 						— no spam, just a heads-up when your spot is ready.
 					</p>
-					<div className="flex gap-4 mt-8 mb-4">
+					<div className="w-full">
 						<Form {...form}>
-							<form>
+							<form className="flex justify-center gap-4 mt-8 mb-4">
 								<CustomInput
 									control={form.control}
 									name="email"
 									label="Email"
 									placeholder="your@email.com"
 								/>
-								<Button>Join waitlist</Button>
+								<Button className="bg-white text-primary-700 font-semibold px-4">
+									Join waitlist
+								</Button>
 							</form>
 						</Form>
 					</div>
-					<p>No credit card · No commitments · Unsubscribe anytime</p>
+					<p className="text-12 text-primary-400">
+						No credit card · No commitments · Unsubscribe anytime
+					</p>
 				</div>
 			</div>
 			<div className="flex justify-between">
