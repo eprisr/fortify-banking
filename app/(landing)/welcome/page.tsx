@@ -29,6 +29,17 @@ const Landing = () => {
 		4: 'bg-primary-300',
 	}
 
+	const marqueeItems = [
+		'Bank-grade security',
+		'Real-time sync',
+		'Plaid-powered',
+		'Spending Insights',
+		'Cash flow tracking',
+		'256-bit encryption',
+		'Read-only access',
+		'Zero data selling',
+	]
+
 	return (
 		<div className="text-gray-500 text-16 font-dm-sans font-light">
 			<div className="flex items-center justify-between px-10 py-4">
@@ -95,16 +106,11 @@ const Landing = () => {
 					/>
 				</div>
 			</div>
-			<div className="h-12 py-2 w-full bg-gray-100 border border-gray-300">
-				<ul className="flex gap-16 items-center">
-					<li>256-bit encryption</li>
-					<li>Read-only access</li>
-					<li>Zero data selling</li>
-					<li>Bank-grade security</li>
-					<li>Real-time sync</li>
-					<li>Plaid-powered</li>
-					<li>Spending Insights</li>
-					<li>Cash flow tracking</li>
+			<div className="flex items-center h-12 py-2 w-full bg-gray-100 border border-gray-300">
+				<ul className="flex gap-16 items-center text-12">
+					{marqueeItems.map((item, i) => (
+						<li key={i}>{item}</li>
+					))}
 				</ul>
 			</div>
 			<div className="flex flex-col items-center justify-center gap-10 px-40 py-20">
