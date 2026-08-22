@@ -6,6 +6,7 @@ import { Form } from '@/components/ui/form'
 import { WaitlistValues } from '@/lib/auth-form-config'
 import { waitlistSchema } from '@/lib/utils'
 import logo from '@/public/icons/logo.svg'
+import signinImage from '@/public/sign-in.png'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
@@ -20,8 +21,16 @@ const Landing = () => {
 		},
 	})
 
+	const primaryShadeMap = {
+		0: 'bg-primary-700',
+		1: 'bg-primary-600',
+		2: 'bg-primary-500',
+		3: 'bg-primary-400',
+		4: 'bg-primary-300',
+	}
+
 	return (
-		<div className="text-gray-600 text-14 font-dm-sans">
+		<div className="text-gray-500 text-16 font-dm-sans font-light">
 			<div className="flex items-center justify-between px-10 py-4">
 				<div className="flex items-center gap-2">
 					<Image src={logo} alt="Fortify Banking Logo" width={32} height={32} />
@@ -39,28 +48,51 @@ const Landing = () => {
 					<Button variant="default">Get early access</Button>
 				</div>
 			</div>
-			<div className="flex justify-between px-40 py-5 bg-primary-100">
+			<div className="flex items-center justify-between h-fit px-70 py-10 bg-primary-100">
 				<div className="max-w-1/3">
-					<h1>Your money, finally clear.</h1>
-					<p>
+					<h1>
+						Your money, <br />
+						<span className="text-primary-700">finally clear.</span>
+					</h1>
+					<p className="leading-7 my-4">
 						Fortify connects to your bank and turns raw transactions into a
 						clear picture of where your money goes — and where it should go
 						next.
 					</p>
 					<div className="flex gap-4">
-						<Button variant="default">Get early access</Button>
-						<Button variant="outline">See how it works</Button>
+						<Button variant="default" size="lg" className="px-7">
+							Get early access
+						</Button>
+						<Button variant="outline" size="lg" className="px-7">
+							See how it works
+						</Button>
 					</div>
-					<div className="flex gap-3">
-						<div></div>
-						<div>
-							<p>240+ people on the waitlist</p>
+					<div className="flex gap-3 mt-7">
+						<div className="flex items-center">
+							{['A', 'S', 'D', 'F', 'J'].map((u, i) => (
+								<div
+									key={i}
+									className={`flex items-center justify-center h-7 w-7 rounded-full ${primaryShadeMap[i]} border border-white -ml-1.5`}>
+									<p className="text-white text-center text-10 font-semibold font-sora">
+										{u}
+									</p>
+								</div>
+							))}
+						</div>
+						<div className="text-14">
+							<p className="font-bold text-black-2">
+								240+ people on the waitlist
+							</p>
 							<p>Join them — it's free</p>
 						</div>
 					</div>
 				</div>
-				<div className="w-3xs h-96 border-2 border-gray-800">
-					<p>Image</p>
+				<div className="w-3xs h-xl">
+					<Image
+						src={signinImage}
+						alt="Fortify Sign In Screen"
+						className="w-auto h-full rounded-lg"
+					/>
 				</div>
 			</div>
 			<div className="h-12 py-2 w-full bg-gray-100 border border-gray-300">
