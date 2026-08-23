@@ -43,7 +43,6 @@ export const getAuthResolver = (type: AuthFormType): Resolver<AuthFormValues> =>
 // ─── Form Config ──────────────────────────────────────────────────────────────
 
 type FormConfig = {
-	illustration: { src: string; alt: string } | null
 	heading: string | null
 	subheading: string | null
 	submitLabel: string
@@ -62,10 +61,6 @@ type FormConfig = {
 
 export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 	signin: {
-		illustration: {
-			src: '/icons/signin.svg',
-			alt: 'Sign In Lock Illustration',
-		},
 		heading: 'Welcome Back!',
 		subheading: 'Hello there, sign in to continue.',
 		submitLabel: 'Sign In',
@@ -82,7 +77,6 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 		},
 	},
 	'forgot-pw': {
-		illustration: null,
 		heading: null,
 		subheading: null,
 		submitLabel: 'Send',
@@ -99,7 +93,6 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 		},
 	},
 	'reset-pw': {
-		illustration: null,
 		heading: null,
 		subheading: null,
 		submitLabel: 'Reset Password',

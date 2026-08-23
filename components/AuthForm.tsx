@@ -73,17 +73,6 @@ const AuthForm = ({
 
 	return (
 		<section className="auth-form">
-			{config.illustration && (
-				<div className="flex justify-center my-8">
-					<Image
-						src={config.illustration.src}
-						height={165}
-						width={213}
-						alt={config.illustration.alt}
-					/>
-				</div>
-			)}
-
 			{config.heading && (
 				<header className="flex flex-col gap-5 md:gap-8">
 					<div className="flex flex-col gap-1 md:gap-3">
@@ -142,7 +131,8 @@ const AuthForm = ({
 						<Button type="submit" disabled={isLoading}>
 							{isLoading ? (
 								<>
-									<Loader2 size={20} className="animate-spin" /> &nbsp; Loading...
+									<Loader2 size={20} className="animate-spin" /> &nbsp;
+									Loading...
 								</>
 							) : (
 								config.submitLabel
@@ -153,7 +143,9 @@ const AuthForm = ({
 			</Form>
 
 			<footer className="flex justify-center gap-1">
-				<p className="text-14 font-normal text-gray-600">{config.footer.prompt}</p>
+				<p className="text-14 font-normal text-gray-600">
+					{config.footer.prompt}
+				</p>
 				<Link href={config.footer.linkHref} className="form-link">
 					{config.footer.linkLabel}
 				</Link>
