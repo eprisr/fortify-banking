@@ -17,7 +17,7 @@ const HeaderBox = ({
 				)}>
 				{title} <br />
 				{type === 'greeting' && user !== 'Guest' && (
-					<span className="text-18 text-primary-foreground font-bold">
+					<span className="text-lg text-primary-foreground font-bold">
 						{user}!
 					</span>
 				)}

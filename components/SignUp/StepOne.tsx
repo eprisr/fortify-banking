@@ -59,7 +59,7 @@ const StepOne = ({ control, password }: StepOneProps) => {
 							</ItemMedia>
 							<ItemContent>
 								<ItemTitle
-									className={`text-10! ${met ? 'text-black' : 'text-gray-300'}`}>
+									className={`text-xxs! ${met ? 'text-black' : 'text-gray-300'}`}>
 									{label}
 								</ItemTitle>
 							</ItemContent>

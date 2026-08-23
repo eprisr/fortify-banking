@@ -22,7 +22,7 @@ const QuickLinks = () => {
 									className="text-[16px]"
 									style={{ color: `${disabled ? '#898989' : color}` }}
 								/>
-								<p className="text-10 text-gray-400">{label}</p>
+								<p className="text-xxs text-gray-400">{label}</p>
 							</Link>
 						</div>
 					)

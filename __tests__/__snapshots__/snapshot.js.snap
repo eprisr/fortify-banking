@@ -41,12 +41,12 @@ exports[`renders the sign-in page unchanged 1`] = `
           class="flex flex-col gap-1 md:gap-3"
         >
           <h1
-            class="text-24 lg:text-36 font-semibold text-primary text-center"
+            class="text-2xl lg:text-36 font-semibold text-primary text-center"
           >
             Welcome Back!
           </h1>
           <p
-            class="text-12 font-normal text-gray-600 text-center"
+            class="text-xs font-normal text-gray-600 text-center"
           >
             Hello there, sign in to continue.
           </p>
@@ -125,7 +125,7 @@ exports[`renders the sign-in page unchanged 1`] = `
           class="flex justify-end mt-1!"
         >
           <a
-            class="text-right text-12"
+            class="text-right text-xs"
             href="/forgot-password"
           >
             Forgot password?
@@ -149,7 +149,7 @@ exports[`renders the sign-in page unchanged 1`] = `
         class="flex justify-center gap-1"
       >
         <p
-          class="text-14 font-normal text-gray-600"
+          class="text-sm font-normal text-gray-600"
         >
           New to Fortify?
         </p>

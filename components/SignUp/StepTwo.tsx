@@ -67,7 +67,7 @@ const StepTwo = () => {
 							<Lock />
 						</ItemMedia>
 						<ItemContent>
-							<ItemTitle className="text-10!">256-bit SSL</ItemTitle>
+							<ItemTitle className="text-xxs!">256-bit SSL</ItemTitle>
 						</ItemContent>
 					</div>
 					<div className="flex flex-col">
@@ -75,7 +75,7 @@ const StepTwo = () => {
 							<Eye />
 						</ItemMedia>
 						<ItemContent>
-							<ItemTitle className="text-10!">Read-only</ItemTitle>
+							<ItemTitle className="text-xxs!">Read-only</ItemTitle>
 						</ItemContent>
 					</div>
 					<div className="flex flex-col">
@@ -83,7 +83,7 @@ const StepTwo = () => {
 							<Ban />
 						</ItemMedia>
 						<ItemContent>
-							<ItemTitle className="text-10!">Never sold</ItemTitle>
+							<ItemTitle className="text-xxs!">Never sold</ItemTitle>
 						</ItemContent>
 					</div>
 					<div className="flex flex-col">
@@ -91,7 +91,7 @@ const StepTwo = () => {
 							<Landmark />
 						</ItemMedia>
 						<ItemContent>
-							<ItemTitle className="text-10!">10,000+ banks</ItemTitle>
+							<ItemTitle className="text-xxs!">10,000+ banks</ItemTitle>
 						</ItemContent>
 					</div>
 				</div>

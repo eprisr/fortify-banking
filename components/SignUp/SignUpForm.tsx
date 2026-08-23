@@ -76,10 +76,10 @@ const SignUpForm = () => {
 
 			<header className="flex flex-col gap-5 md:gap-8">
 				<div className="flex flex-col gap-1 md:gap-3">
-					<h1 className="text-24 lg:text-36 font-semibold text-primary text-center">
+					<h1 className="text-2xl lg:text-36 font-semibold text-primary text-center">
 						Welcome to Fortify!
 					</h1>
-					<p className="text-12 font-normal text-gray-600 text-center">
+					<p className="text-xs font-normal text-gray-600 text-center">
 						Hello there, create your account.
 					</p>
 				</div>
@@ -119,7 +119,7 @@ const SignUpForm = () => {
 				</Form>
 
 				<footer className="flex justify-center gap-1">
-					<p className="text-14 font-normal text-gray-600">
+					<p className="text-sm font-normal text-gray-600">
 						Already have an account?
 					</p>
 					<Link href="/signin" className="form-link">

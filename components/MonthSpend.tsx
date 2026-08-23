@@ -65,14 +65,14 @@ const MonthSpend = ({ transactions = [] }: TransactionTableProps) => {
 	return (
 		<Card className="overflow-visible shadow-card rounded-lg ring-0">
 			<CardHeader>
-				<CardTitle className="font-light uppercase text-10!">
+				<CardTitle className="font-light uppercase text-xxs!">
 					{currMonthName}'s Spending
 				</CardTitle>
-				<CardDescription className="font-bold text-24!">
+				<CardDescription className="font-bold text-2xl!">
 					${currMonthSpend}
 				</CardDescription>
 				<CardAction>
-					<p className="text-10">vs last month</p>
+					<p className="text-xxs">vs last month</p>
 					<p
 						className={`${lastMonthCompare > 0 ? 'text-green-500' : 'text-red-600'} font-bold`}>
 						{lastMonthCompare > 0 ? (

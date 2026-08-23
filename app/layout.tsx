@@ -57,10 +57,7 @@ export default function RootLayout({
 	children: React.ReactNode
 }>) {
 	return (
-		<html
-			lang="en"
-			suppressHydrationWarning
-			className={cn('font-sans', inter.variable)}>
+		<html lang="en" suppressHydrationWarning className={cn('font-sans')}>
 			<body
 				className={`${poppins.variable} ${firaSans.variable} ${ibmPlexSerif.variable} ${inter.variable} ${dmSans.variable} ${dmMono.variable} ${sora.variable}`}>
 				<div>{children}</div>

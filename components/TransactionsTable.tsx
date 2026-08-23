@@ -39,7 +39,7 @@ const TransactionsTable = ({ transactions }: TransactionTableProps) => {
 						<TableRow key={t.id}>
 							<TableCell className="max-w-[250px] pl-2 pr-10">
 								<div className="flex items-center gap-3">
-									<h1 className="text-14 truncate font-semibold text-[#344054]">
+									<h1 className="text-sm truncate font-semibold text-[#344054]">
 										{removeSpecialCharacters(t.name)}
 									</h1>
 								</div>

@@ -48,7 +48,7 @@ const BankInfo = ({ account, appwriteItemId, type }: BankInfoProps) => {
 				<div className="bank-info_content">
 					<h2
 						className={cn(
-							'text-16 line-clamp-1 flex-1 font-bold',
+							'text-base line-clamp-1 flex-1 font-bold',
 							colors.title,
 						)}>
 						{account.name}
@@ -56,7 +56,7 @@ const BankInfo = ({ account, appwriteItemId, type }: BankInfoProps) => {
 					{type === 'full' && (
 						<p
 							className={cn(
-								'text-12 rounded-full px-3 py-1 font-medium',
+								'text-xs rounded-full px-3 py-1 font-medium',
 								colors.subText,
 								colors.lightBg,
 							)}>
@@ -65,7 +65,7 @@ const BankInfo = ({ account, appwriteItemId, type }: BankInfoProps) => {
 					)}
 				</div>
 
-				<p className={cn('text-16 font-medium', colors.subText)}>
+				<p className={cn('text-base font-medium', colors.subText)}>
 					{formatAmount(account.currentBalance)}
 				</p>
 			</div>

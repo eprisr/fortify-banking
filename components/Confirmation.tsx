@@ -12,10 +12,10 @@ const Confirmation = () => {
 		<div className="flex flex-col gap-2 justify-center">
 			<header className="flex flex-col gap-5 md:gap-8">
 				<div className="flex flex-col gap-1 md:gap-3">
-					<h1 className="text-24 lg:text-36 font-semibold text-primary-700 text-center">
+					<h1 className="text-2xl lg:text-36 font-semibold text-primary-700 text-center">
 						Welcome Aboard!
 					</h1>
-					<p className="text-12 font-normal text-gray-600 text-center">
+					<p className="text-xs font-normal text-gray-600 text-center">
 						Your account is created. You're browsing with sample data — connect
 						your bank anytime to unlock everything.
 					</p>

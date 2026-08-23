@@ -67,8 +67,8 @@ export const BankDropdown = ({
 								value={account.appwriteItemId}
 								className="cursor-pointer border-t">
 								<div className="flex flex-col ">
-									<p className="text-16 font-medium">{account?.name}</p>
-									<p className="text-14 font-medium text-primary-700">
+									<p className="text-base font-medium">{account?.name}</p>
+									<p className="text-sm font-medium text-primary-700">
 										{formatAmount(account?.currentBalance)}
 									</p>
 								</div>
@@ -77,7 +77,7 @@ export const BankDropdown = ({
 					</SelectGroup>
 				</SelectContent>
 			</Select>
-			<p className="text-14 font-medium text-primary-700 mt-2 pl-4">
+			<p className="text-sm font-medium text-primary-700 mt-2 pl-4">
 				Current Balance: {formatAmount(selected?.currentBalance)}
 			</p>
 		</>

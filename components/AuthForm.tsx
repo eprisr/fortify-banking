@@ -76,10 +76,8 @@ const AuthForm = ({
 			{config.heading && (
 				<header className="flex flex-col gap-5 md:gap-8">
 					<div className="flex flex-col gap-1 md:gap-3">
-						<h1 className="text-24 lg:text-36 font-semibold text-primary text-center">
-							{config.heading}
-						</h1>
-						<p className="text-12 font-normal text-gray-600 text-center">
+						<h1 className="text-2xl lg:text- font-bold">{config.heading}</h1>
+						<p className="text-xs text-gray-600 font-serif italic">
 							{config.subheading}
 						</p>
 					</div>
@@ -120,7 +118,7 @@ const AuthForm = ({
 
 					{config.fields.forgotPasswordLink && (
 						<div className="flex justify-end mt-1!">
-							<Link className="text-right text-12" href="/forgot-password">
+							<Link className="text-right text-xs" href="/forgot-password">
 								Forgot password?
 							</Link>
 						</div>
@@ -143,7 +141,7 @@ const AuthForm = ({
 			</Form>
 
 			<footer className="flex justify-center gap-1">
-				<p className="text-14 font-normal text-gray-600">
+				<p className="text-sm font-normal text-gray-600">
 					{config.footer.prompt}
 				</p>
 				<Link href={config.footer.linkHref} className="form-link">

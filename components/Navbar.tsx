@@ -80,10 +80,10 @@ const Navbar = ({
 										</span>
 									</div>
 									<div className="profile-details">
-										<h1 className="text-16 truncate font-semibold text-primary">
+										<h1 className="text-base truncate font-semibold text-primary">
 											{`${user?.firstName} ${user.lastName}`}
 										</h1>
-										<p className="text-10 text-gray-400">{user.email}</p>
+										<p className="text-xxs text-gray-400">{user.email}</p>
 									</div>
 									<Button variant="outline" className="px-4 py-2">
 										Edit
@@ -93,7 +93,7 @@ const Navbar = ({
 							{Object.entries(links).map(([key, value], i) => {
 								return (
 									<Fragment key={i}>
-										<h3 className="text-10 text-gray-400">
+										<h3 className="text-xxs text-gray-400">
 											{key.toUpperCase()}
 										</h3>
 										{value?.map((item) => {
@@ -108,7 +108,7 @@ const Navbar = ({
 															<Icon size={12} />
 															<div>
 																<p>{label}</p>
-																<p className="text-10 text-gray-400">
+																<p className="text-xxs text-gray-400">
 																	{subText}
 																</p>
 															</div>

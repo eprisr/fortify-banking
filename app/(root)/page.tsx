@@ -50,12 +50,12 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 					{emptyAccount && (
 						<div>
 							<div className="connect-box">
-								<MdInfoOutline className="text-16 mr-2" />
+								<MdInfoOutline className="text-base mr-2" />
 								<div className="text-left mx-2 shrink-5">
-									<h3 className="font-extrabold text-12">
+									<h3 className="font-extrabold text-xs">
 										Your session expired
 									</h3>
-									<p className="font-extralight text-10 text-wrap">
+									<p className="font-extralight text-xxs text-wrap">
 										Re-link your bank to restore access. Takes under 30 seconds.
 									</p>
 								</div>

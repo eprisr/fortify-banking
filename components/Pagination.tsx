@@ -39,7 +39,7 @@ export const Pagination = ({ page, totalPages }: PaginationProps) => {
 				/>
 				Prev
 			</Button>
-			<p className="text-14 flex items-center px-2">
+			<p className="text-sm flex items-center px-2">
 				{page} / {totalPages}
 			</p>
 			<Button

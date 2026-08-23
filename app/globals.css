@@ -95,8 +95,8 @@
 	--font-sora: var(--font-sora);
 	--font-dm-mono: var(--font-dm-mono);
 	--font-poppins: var(--font-poppins);
-	--font-firaSans: var(--font-fira-sans);
-	--font-ibmPlexSerif: var(--font-ibm-plex-serif);
+	--font-fira-sans: var(--font-fira-sans);
+	--font-ibm-plex-serif: var(--font-ibm-plex-serif);
 
 	--animate-accordion-down: accordion-down 0.2s ease-out;
 	--animate-accordion-up: accordion-up 0.2s ease-out;
@@ -140,48 +140,20 @@
 	html {
 		@apply font-sans;
 	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5 {
+		font-family: var(--font-sora);
+	}
 }
 
 /* --- Utilities --- */
-@utility text-10 {
+@utility text-xxs {
 	font-size: 10px;
 	line-height: 14px;
-}
-@utility text-12 {
-	font-size: 12px;
-	line-height: 16px;
-}
-@utility text-14 {
-	font-size: 14px;
-	line-height: 20px;
-}
-@utility text-16 {
-	font-size: 16px;
-	line-height: 24px;
-}
-@utility text-18 {
-	font-size: 18px;
-	line-height: 22px;
-}
-@utility text-20 {
-	font-size: 20px;
-	line-height: 24px;
-}
-@utility text-24 {
-	font-size: 24px;
-	line-height: 30px;
-}
-@utility text-26 {
-	font-size: 26px;
-	line-height: 32px;
-}
-@utility text-30 {
-	font-size: 30px;
-	line-height: 38px;
-}
-@utility text-36 {
-	font-size: 36px;
-	line-height: 44px;
 }
 
 @utility flex-center {
@@ -242,13 +214,13 @@
 		@apply flex flex-col gap-1.5 min-w-[calc(50%-.5rem)];
 	}
 	.form-label {
-		@apply text-14 w-full max-w-[280px] font-medium text-gray-700;
+		@apply text-sm w-full max-w-[280px] font-medium text-gray-700;
 	}
 	.form-message {
-		@apply text-12 text-destructive;
+		@apply text-xs text-destructive;
 	}
 	.form-link {
-		@apply text-14 cursor-pointer font-medium text-primary;
+		@apply text-sm cursor-pointer font-medium text-primary;
 	}
 
 	/* Layout & Navigation */
@@ -285,11 +257,11 @@
 		@apply flex flex-center border border-primary bg-accent p-5 rounded-xl w-full mb-3;
 	}
 	.view-all-btn {
-		@apply text-14 rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-700;
+		@apply text-sm rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-700;
 	}
 
 	.recent-transactions-label {
-		@apply text-20 md:text-24 font-heading font-semibold text-gray-900;
+		@apply text-xl md:text-2xl font-heading font-semibold text-gray-900;
 	}
 
 	.recent-transactions-tablist {
@@ -346,11 +318,11 @@
 	}
 
 	.header-box-title {
-		@apply text-12 lg:text-18 font-light text-primary-foreground;
+		@apply text-xs lg:text-lg font-light text-primary-foreground;
 	}
 
 	.header-box-subtext {
-		@apply text-16 font-medium text-primary-foreground/70;
+		@apply text-base font-medium text-primary-foreground/70;
 	}
 
 	.banktab-item {
@@ -374,6 +346,7 @@
 
 @theme inline {
 	--font-sans: var(--font-dm-sans);
+	--font-serif: var(--font-ibm-plex-serif);
 	--font-heading: var(--font-sora);
 	--color-sidebar-ring: var(--sidebar-ring);
 	--color-sidebar-border: var(--sidebar-border);

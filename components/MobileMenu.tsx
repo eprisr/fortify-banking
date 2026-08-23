@@ -28,11 +28,11 @@ const MobileMenu = () => {
 								'cursor-default': disabled,
 							})}>
 							<Icon
-								className={cn('text-20 text-gray-500', {
+								className={cn('text-xl text-gray-500', {
 									'text-purple-800': active,
 								})}
 							/>
-							<p className={cn('text-12')}>{label}</p>
+							<p className={cn('text-xs')}>{label}</p>
 						</Link>
 					</div>
 				)

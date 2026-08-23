@@ -25,9 +25,12 @@ export const BankTabItem = ({ account, appwriteItemId }: BankTabItemProps) => {
 				' border-primary': active,
 			})}>
 			<p
-				className={cn(`text-16 line-clamp-1 flex-1 font-medium text-gray-500`, {
-					' text-primary': active,
-				})}>
+				className={cn(
+					`text-base line-clamp-1 flex-1 font-medium text-gray-500`,
+					{
+						' text-primary': active,
+					},
+				)}>
 				{account.name}
 			</p>
 		</div>

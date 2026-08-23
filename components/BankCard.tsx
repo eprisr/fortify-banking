@@ -19,8 +19,8 @@ const BankCard = ({
 				}`}>
 				<div className="bank-card_content">
 					<div>
-						<h1 className="text-20 text-white">{userName}</h1>
-						<p className="text-10 text-gray-300 font-light">
+						<h1 className="text-xl text-white">{userName}</h1>
+						<p className="text-xxs text-gray-300 font-light">
 							{account?.name || ''}
 						</p>
 					</div>
@@ -29,12 +29,12 @@ const BankCard = ({
 						<p className="text-[8px] tracking-[3px] text-white flex items-center">
 							&#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679;
 							&#9679;&#9679;&#9679;&#9679;{' '}
-							<span className="text-14 tracking-normal pl-2">
+							<span className="text-sm tracking-normal pl-2">
 								{account?.mask}
 							</span>
 						</p>
 						{stackNumber === 1 && (
-							<p className="text-20 tracking-wider font-semibold text-white">
+							<p className="text-xl tracking-wider font-semibold text-white">
 								{formatAmount(account.currentBalance)}
 							</p>
 						)}
