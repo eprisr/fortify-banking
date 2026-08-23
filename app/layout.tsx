@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import {
+	DM_Mono,
 	DM_Sans,
 	Fira_Sans,
 	IBM_Plex_Serif,
@@ -18,6 +19,11 @@ export const viewport: Viewport = {
 }
 
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
+const dmMono = DM_Mono({
+	weight: ['400', '500'],
+	subsets: ['latin'],
+	variable: '--font-dm-mono',
+})
 const firaSans = Fira_Sans({
 	weight: '400',
 	subsets: ['latin'],
@@ -56,7 +62,7 @@ export default function RootLayout({
 			suppressHydrationWarning
 			className={cn('font-sans', inter.variable)}>
 			<body
-				className={`${poppins.variable} ${firaSans.variable} ${ibmPlexSerif.variable} ${inter.variable} ${dmSans.variable} ${sora.variable}`}>
+				className={`${poppins.variable} ${firaSans.variable} ${ibmPlexSerif.variable} ${inter.variable} ${dmSans.variable} ${dmMono.variable} ${sora.variable}`}>
 				<div>{children}</div>
 			</body>
 		</html>
