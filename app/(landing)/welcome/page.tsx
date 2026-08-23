@@ -20,6 +20,7 @@ import { useForm } from 'react-hook-form'
 import './styles.css'
 import { Badge } from '@/components/ui/badge'
 import Marquee from '@/components/Marquee'
+import { useEffect, useRef, useState } from 'react'
 
 const Landing = () => {
 	const form = useForm<WaitlistValues>({
@@ -32,7 +33,7 @@ const Landing = () => {
 
 	return (
 		<div className="text-gray-500 text-16 font-dm-sans font-light">
-			<div className="flex items-center justify-between px-10 py-4">
+			<nav className="flex items-center justify-between px-10 py-4 fixed top-0 left-0 w-full bg-white z-10">
 				<div className="flex items-center gap-2">
 					<Image src={logo} alt="Fortify Banking Logo" width={32} height={32} />
 					<p className="text-16 font-bold">Fortify</p>
@@ -48,7 +49,7 @@ const Landing = () => {
 					</Button>
 					<Button variant="default">Get early access</Button>
 				</div>
-			</div>
+			</nav>
 			<div className="flex items-center justify-between h-fit px-70 pt-10 bg-radial-[at_25%_50%] from-white via-primary-100 to-primary-500">
 				<div>
 					<h1>
