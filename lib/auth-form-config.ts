@@ -7,6 +7,7 @@ import {
 	forgotPwSchema,
 	resetPwSchema,
 	signupSchema,
+	waitlistSchema,
 } from '@/lib/utils'
 import { forgotPw, resetPw, signIn } from '@/lib/actions/user.actions'
 
@@ -31,6 +32,8 @@ export type AuthFormValues = z.infer<typeof signinSchema> &
 	z.infer<typeof resetPwSchema>
 
 export type SignUpValues = z.infer<typeof signupSchema>
+
+export type WaitlistValues = z.infer<typeof waitlistSchema>
 
 // Each schema only validates its own field subset; the cast widens that to
 // the shared AuthFormValues shape, which the unused form fields satisfy.
@@ -137,7 +140,10 @@ export const SUBMIT_HANDLERS: Record<
 		if (!res.success) throw new Error(res.error)
 		router.push('/signin')
 	},
-	'reset-pw': async (data, { router, pathname, createQueryString, resetParams }) => {
+	'reset-pw': async (
+		data,
+		{ router, pathname, createQueryString, resetParams },
+	) => {
 		const res = await resetPw({
 			userId: resetParams!.userId!,
 			secret: resetParams!.secret!,
