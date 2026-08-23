@@ -49,14 +49,14 @@ const Navbar = ({
 
 	return (
 		<section
-			className={cn('pt-4 pb-0', { 'bg-primary-700 pb-5 -mb-5': background })}>
+			className={cn('pt-4 pb-0', { 'bg-primary pb-5 -mb-5': background })}>
 			{type === 'main' && user ? (
 				<nav className="flex w-full items-center gap-4 p-4">
 					<Sheet modal={false}>
 						<SheetTrigger>
 							<div className="profile">
 								<div className="profile-img">
-									<span className="text-1xl font-bold text-primary-700">
+									<span className="text-xl font-bold text-primary">
 										{user?.firstName[0]}
 									</span>
 								</div>
@@ -65,7 +65,7 @@ const Navbar = ({
 						<SheetContent
 							side="left"
 							container={container}
-							className="flex flex-col bg-white p-6 w-4/5!">
+							className="flex flex-col p-6 w-4/5!">
 							<SheetHeader className="px-0 mb-4">
 								<SheetTitle className="sr-only">
 									Welcome, {user?.firstName}

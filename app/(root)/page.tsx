@@ -30,7 +30,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 	return (
 		<>
 			<Navbar user={loggedIn} type="main" background />
-			<section className="home bg-white rounded-t-3xl min-h-[calc(100vh-152px)] mb-24">
+			<section className="home bg-background rounded-t-3xl min-h-[calc(100vh-152px)] mb-24">
 				<div className="home-content">
 					{(emptyAccount || demoAccount) && (
 						<div className={`${emptyAccount && 'account-update'} mt-10`}>
@@ -49,7 +49,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 					<RecentTransactions transactions={account?.transactions} />
 					{emptyAccount && (
 						<div>
-							<div className="flex flex-center border-2 border-primary-100 bg-white p-5 rounded-lg w-full mb-3connect-box">
+							<div className="connect-box">
 								<MdInfoOutline className="text-16 mr-2" />
 								<div className="text-left mx-2 shrink-5">
 									<h3 className="font-extrabold text-12">
