@@ -127,7 +127,7 @@ const Landing = () => {
 				<div className="grid grid-flow-col grid-cols-3 text-center gap-16 relative">
 					<hr className="absolute top-1/8 left-1/8 z-0 w-3/4 border-t-2 border-primary-400" />
 					{works.map((w, i) => (
-						<div className="relative">
+						<div key={i} className="relative">
 							<div className="flex items-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-auto">
 								<span className="font-sora font-semibold">{i + 1}</span>
 							</div>
