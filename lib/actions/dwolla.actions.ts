@@ -86,7 +86,7 @@ export const createTransfer = async ({
 			.post('transfers', requestBody)
 			.then((res) => res.headers.get('location'))
 	} catch (err: any) {
-		console.error('Creating transfer failed: ', err.body._embedded)
+		console.error('Creating transfer failed: ', err, err.body?._embedded)
 	}
 }
 
@@ -98,6 +98,12 @@ export const addFundingSource = async ({
 	try {
 		const dwollaAuthLinks = await createOnDemandAuthorization()
 
+		if (!dwollaAuthLinks) {
+			throw new Error(
+				'Failed to add funds: could not obtain an on-demand authorization',
+			)
+		}
+
 		const fundingSourceOptions = {
 			customerId: dwollaCustomerId,
 			fundingSourceName: bankName,
@@ -106,7 +112,7 @@ export const addFundingSource = async ({
 		}
 		return await createFundingSource(fundingSourceOptions)
 	} catch (err: any) {
-		console.error('Failed to add funds: ', err, err.body._embedded)
+		console.error('Failed to add funds: ', err, err.body?._embedded)
 	}
 }
 
