@@ -12,14 +12,14 @@
  * passed to RTL's render(), which is the correct pattern for testing RSCs
  * in a Jest environment.
  *
- * Known implementation bug: `accountsData[0].id` is read without a guard
- * (app/(root)/page.tsx) to detect demo accounts. This throws whenever
- * accountsData is empty or `accounts` is the 'UPDATE_MODE' sentinel string.
- * In the real app this path is rarely hit because bank.actions.getAccounts
- * falls back to two-item DEMO_ACCOUNTS instead of an empty array — but the
- * UPDATE_MODE (expired Plaid token) case goes through this same code and
- * would crash today. Tests below document the current (buggy) behavior
- * rather than papering over it.
+ * Previously, `accountsData[0].id` was read without a guard (app/(root)/page.tsx)
+ * to detect demo accounts, which threw whenever accountsData was empty or
+ * `accounts` was the 'UPDATE_MODE' sentinel string — most commonly hit when a
+ * linked bank's Plaid item enters ITEM_LOGIN_REQUIRED and getAccounts filters
+ * it out. That's now guarded (optional chaining on every accountsData/accounts
+ * access), so these states render the "Your session expired" relink prompt
+ * instead of crashing. The "Known bug" describe block below now documents
+ * that fixed behavior.
  */
 
 import { render, screen } from '@testing-library/react'
@@ -324,10 +324,10 @@ describe('Home Page', () => {
 	})
 
 	// =========================================================================
-	describe('Known bug — accountsData[0] accessed without a guard', () => {
+	describe('Fixed: accountsData access is guarded against empty/sentinel results', () => {
 		// =========================================================================
 
-		it('throws when totalBanks is 0 and data is an empty array', async () => {
+		it('renders the relink prompt instead of throwing when totalBanks is 0 and data is an empty array', async () => {
 			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
 			;(getAccounts as jest.Mock).mockResolvedValue({
 				data: [],
@@ -335,21 +335,32 @@ describe('Home Page', () => {
 				totalCurrentBalance: 0,
 			})
 
-			await expect(renderHome()).rejects.toThrow()
+			await expect(renderHome()).resolves.not.toThrow()
+			expect(
+				screen.getByText('Your session expired'),
+			).toBeInTheDocument()
+			expect(screen.getByTestId('plaid-link-relink')).toBeInTheDocument()
+			// Nothing to look up — getAccount shouldn't be called just to fail.
+			expect(getAccount).not.toHaveBeenCalled()
 		})
 
-		it('throws when getAccounts returns the "UPDATE_MODE" sentinel', async () => {
+		it('does not throw when getAccounts returns the "UPDATE_MODE" sentinel', async () => {
 			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
 			;(getAccounts as jest.Mock).mockResolvedValue('UPDATE_MODE')
 
-			await expect(renderHome()).rejects.toThrow()
+			await expect(renderHome()).resolves.not.toThrow()
+			expect(
+				screen.getByText('Your session expired'),
+			).toBeInTheDocument()
+			expect(getAccount).not.toHaveBeenCalled()
 		})
 
-		it('throws when accounts is undefined (accessing .totalBanks without optional chaining)', async () => {
+		it('does not throw when accounts is undefined', async () => {
 			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
 			;(getAccounts as jest.Mock).mockResolvedValue(undefined)
 
-			await expect(renderHome()).rejects.toThrow()
+			await expect(renderHome()).resolves.not.toThrow()
+			expect(getAccount).not.toHaveBeenCalled()
 		})
 	})
 

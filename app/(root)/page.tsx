@@ -14,11 +14,16 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 	const accounts = await getAccounts({ userId: loggedIn?.$id })
 
 	const accountsData = accounts?.data
-	const emptyAccount = accounts === 'UPDATE_MODE' || accounts.totalBanks === 0
-	const demoAccount = accountsData[0]?.id?.includes('demo') ?? false
-	const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId
+	const emptyAccount = accounts === 'UPDATE_MODE' || accounts?.totalBanks === 0
+	const demoAccount = accountsData?.[0]?.id?.includes('demo') ?? false
+	const appwriteItemId = (id as string) || accountsData?.[0]?.appwriteItemId
 
-	const account = await getAccount({ appwriteItemId })
+	// No bank to look up (e.g. every linked bank needs re-authing at Plaid) —
+	// skip the fetch instead of letting it round-trip to Appwrite/Plaid just
+	// to fail predictably. The relink prompt below already covers this state.
+	const account = appwriteItemId
+		? await getAccount({ appwriteItemId })
+		: undefined
 
 	return (
 		<>
