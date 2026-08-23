@@ -17,6 +17,7 @@ import {
 	createLinkToken,
 	exchangePublicToken,
 } from '@/lib/actions/user.actions'
+import { cn } from '@/lib/utils'
 
 const PlaidLink = ({
 	user,
@@ -24,6 +25,7 @@ const PlaidLink = ({
 	text,
 	update,
 	redirectTo = '/',
+	className,
 }: PlaidLinkProps) => {
 	const router = useRouter()
 	const [token, setToken] = useState('')
@@ -60,14 +62,18 @@ const PlaidLink = ({
 	return (
 		<>
 			{variant === 'primary' ? (
-				<Button type="button" onClick={() => open()} disabled={!ready}>
+				<Button
+					type="button"
+					onClick={() => open()}
+					disabled={!ready}
+					className={cn(className)}>
 					{text ? text : 'Connect bank'}
 				</Button>
 			) : variant === 'ghost' ? (
 				<Button
 					onClick={() => open()}
 					variant="ghost"
-					className="plaidlink-ghost">
+					className={cn('plaidlink-ghost', className)}>
 					<p className="hidden text-base font-semibold text-neutral-800 xl:block">
 						<MdOutlineAddCard className="text-2xl" />
 						<p className="text-base font-semibold text-neutral-800">
@@ -76,7 +82,10 @@ const PlaidLink = ({
 					</p>
 				</Button>
 			) : variant === 'reconnect' ? (
-				<Button onClick={() => open()} disabled={!ready} className="w-full p-0">
+				<Button
+					onClick={() => open()}
+					disabled={!ready}
+					className={cn('w-full p-0', className)}>
 					<div className="connect-box">
 						<MdOutlineAddCard className="text-2xl mr-2" />
 						<div className="text-left shrink-[5]">
@@ -91,12 +100,17 @@ const PlaidLink = ({
 			) : variant === 'relink' ? (
 				<Button
 					onClick={() => open()}
-					className="plaidlink-ghost gap-1 bg-primary text-primary-foreground px-3">
+					className={cn(
+						'plaidlink-ghost gap-1 bg-primary text-primary-foreground px-3',
+						className,
+					)}>
 					<p className="text-xs font-semibold">Re-Link</p>
 					<MdArrowRight className="text-lg" />
 				</Button>
 			) : (
-				<Button onClick={() => open()} className="plaidlink-default px-1">
+				<Button
+					onClick={() => open()}
+					className={cn('plaidlink-default px-1', className)}>
 					<MdOutlineAddCard className="text-2xl" />
 					<p className="text-base font-semibold text-neutral-800">
 						Connect Bank
