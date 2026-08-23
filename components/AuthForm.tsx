@@ -1,10 +1,10 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useFormState } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
-import { ChevronLeft, Loader2 } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -44,13 +44,23 @@ const AuthForm = ({
 
 	const form = useForm<AuthFormValues>({
 		resolver: getAuthResolver(type),
-		mode: 'onSubmit',
+		mode: 'onChange',
 		defaultValues: {
 			email: '',
 			password: '',
 			confirmPassword: '',
 		},
 	})
+
+	const { dirtyFields, errors } = useFormState({ control: form.control })
+
+	const requiredFields = (
+		['email', 'password', 'confirmPassword'] as const
+	).filter((field) => config.fields[field])
+
+	const isFilledForm = requiredFields.every((field) => dirtyFields[field])
+	const isEmailValid = !config.fields.email || !errors.email
+	const canSubmit = isFilledForm && isEmailValid
 
 	const onSubmit = async (data: AuthFormValues) => {
 		setIsLoading(true)
@@ -132,9 +142,9 @@ const AuthForm = ({
 						{serverError && <p className="form-message">{serverError}</p>}
 						<Button
 							type="submit"
-							disabled={isLoading}
+							disabled={isLoading || !canSubmit}
 							className="py-5 text-base shadow-xl">
-							{config.submitLabel}
+							{isLoading ? <>Signing in...</> : config.submitLabel}
 						</Button>
 					</div>
 				</form>
