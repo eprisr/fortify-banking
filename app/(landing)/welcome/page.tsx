@@ -20,7 +20,7 @@ import { useForm } from 'react-hook-form'
 import './styles.css'
 import { Badge } from '@/components/ui/badge'
 import Marquee from '@/components/Marquee'
-import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 
 const Landing = () => {
 	const form = useForm<WaitlistValues>({
@@ -39,9 +39,9 @@ const Landing = () => {
 					<p className="text-16 font-bold">Fortify</p>
 				</div>
 				<ul className="flex items-center gap-7">
-					<li>Features</li>
-					<li>How it works</li>
-					<li>Security</li>
+					<Link href={'#features'}>Features</Link>
+					<Link href={'#works'}>How it works</Link>
+					<Link href={'#security'}>Security</Link>
 				</ul>
 				<div>
 					<Button variant="ghost" className="mr-4">
@@ -98,7 +98,9 @@ const Landing = () => {
 				</div>
 			</div>
 			<Marquee items={marqueeItems} />
-			<div className="flex flex-col items-center justify-center gap-10 px-40 py-20">
+			<div
+				id="features"
+				className="flex flex-col items-center justify-center gap-10 px-40 py-20">
 				<div className="text-center">
 					<p>Features</p>
 					<h3>Everything your finances need</h3>
@@ -115,7 +117,9 @@ const Landing = () => {
 					))}
 				</div>
 			</div>
-			<div className="flex flex-col items-center justify-center gap-10 px-40 py-30 bg-gray-100 border border-gray-200">
+			<div
+				id="works"
+				className="flex flex-col items-center justify-center gap-10 px-40 py-30 bg-gray-100 border border-gray-200">
 				<div className="text-center">
 					<p>How It Works</p>
 					<h3>Up and running in three steps</h3>
@@ -135,7 +139,9 @@ const Landing = () => {
 					))}
 				</div>
 			</div>
-			<div className="flex items-center justify-between px-50 py-20">
+			<div
+				id="security"
+				className="flex items-center justify-between px-50 py-20">
 				<div className="w-1/2">
 					<p>Security</p>
 					<h3 className="w-[12ch] text-4xl my-4">
