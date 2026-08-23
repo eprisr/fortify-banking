@@ -361,11 +361,11 @@
 	}
 
 	.header-box-title {
-		@apply text-12 lg:text-18 font-light text-primary-400;
+		@apply text-12 lg:text-18 font-light text-primary-foreground;
 	}
 
 	.header-box-subtext {
-		@apply text-16 font-medium text-gray-600;
+		@apply text-16 font-medium text-primary-foreground/70;
 	}
 
 	.banktab-item {
