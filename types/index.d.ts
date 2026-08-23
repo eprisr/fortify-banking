@@ -186,6 +186,7 @@ declare interface PlaidLinkProps {
 	text?: string
 	dwollaCustomerId?: string
 	update?: boolean
+	redirectTo?: string
 }
 
 // declare type User = sdk.Models.Document & {

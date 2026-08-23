@@ -5,7 +5,7 @@ import { Item, ItemContent, ItemDescription, ItemMedia } from './ui/item'
 import { Button } from './ui/button'
 import { useRouter } from 'next/navigation'
 
-const Confirmation = () => {
+const Confirmation = ({ connected = false }: { connected?: boolean }) => {
 	const router = useRouter()
 
 	return (
@@ -16,23 +16,26 @@ const Confirmation = () => {
 						Welcome Aboard!
 					</h1>
 					<p className="text-xs font-normal text-gray-600 text-center">
-						Your account is created. You're browsing with sample data — connect
-						your bank anytime to unlock everything.
+						{connected
+							? "Your account is created and your bank is connected. You're all set."
+							: "Your account is created. You're browsing with sample data — connect your bank anytime to unlock everything."}
 					</p>
 				</div>
 			</header>
-			<Item variant="muted">
-				<ItemMedia variant="icon">
-					<Lightbulb />
-				</ItemMedia>
-				<ItemContent>
-					<ItemDescription>
-						<span className="text-orange-400 font-bold">Good to know: </span>
-						Some features like transfers, bill pay, and spending insights won't
-						be available until you connect a bank account.
-					</ItemDescription>
-				</ItemContent>
-			</Item>
+			{!connected && (
+				<Item variant="muted">
+					<ItemMedia variant="icon">
+						<Lightbulb />
+					</ItemMedia>
+					<ItemContent>
+						<ItemDescription>
+							<span className="text-orange-400 font-bold">Good to know: </span>
+							Some features like transfers, bill pay, and spending insights
+							won't be available until you connect a bank account.
+						</ItemDescription>
+					</ItemContent>
+				</Item>
+			)}
 			<Button type="button" onClick={() => router.push('/')}>
 				Explore the app &#8594;
 			</Button>

@@ -18,7 +18,13 @@ import {
 	exchangePublicToken,
 } from '@/lib/actions/user.actions'
 
-const PlaidLink = ({ user, variant, text, update }: PlaidLinkProps) => {
+const PlaidLink = ({
+	user,
+	variant,
+	text,
+	update,
+	redirectTo = '/',
+}: PlaidLinkProps) => {
 	const router = useRouter()
 	const [token, setToken] = useState('')
 
@@ -39,9 +45,9 @@ const PlaidLink = ({ user, variant, text, update }: PlaidLinkProps) => {
 			})
 
 			router.refresh()
-			router.push('/')
+			router.push(redirectTo)
 		},
-		[user],
+		[user, redirectTo],
 	)
 
 	const config: PlaidLinkOptions = {

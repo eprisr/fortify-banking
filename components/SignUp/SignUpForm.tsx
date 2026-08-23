@@ -104,6 +104,7 @@ const SignUpForm = () => {
 										user={user}
 										variant="primary"
 										text="Connect my bank now"
+										redirectTo="/confirmation?connected=true"
 									/>
 									<Button
 										type="button"
