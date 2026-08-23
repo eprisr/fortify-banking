@@ -252,10 +252,10 @@
 		@apply text-14 w-full max-w-[280px] font-medium text-gray-700;
 	}
 	.form-message {
-		@apply text-12 text-red-500;
+		@apply text-12 text-destructive;
 	}
 	.form-link {
-		@apply text-14 cursor-pointer font-medium text-primary-700;
+		@apply text-14 cursor-pointer font-medium text-primary;
 	}
 
 	/* Layout & Navigation */
