@@ -63,13 +63,6 @@
 	--color-error-700: #9c4835;
 	--color-error-900: #582a1f;
 
-	--color-blue-25: #f5faff;
-	--color-blue-100: #d1e9ff;
-	--color-blue-500: #2e90fa;
-	--color-blue-600: #1570ef;
-	--color-blue-700: #175cd3;
-	--color-blue-900: #194185;
-
 	--background-image-bank-gradient: linear-gradient(
 		90deg,
 		#a8a3d7 0%,
@@ -309,24 +302,24 @@
 
 	/* Banking Elements */
 	.bank-card {
-		@apply relative flex h-[200px] w-[320px] justify-between rounded-[16px] border border-white bg-[#1573FF] shadow-creditCard backdrop-blur-[6px];
+		@apply relative flex h-[200px] w-[320px] justify-between rounded-xl border border-white bg-plum shadow-creditCard backdrop-blur-[6px];
 	}
 	.bank-card_content {
-		@apply relative z-10 flex size-full max-w-[200px] flex-col justify-between rounded-l-[20px] px-5 pb-6 pt-5;
+		@apply relative z-10 flex size-full max-w-[200px] flex-col justify-between rounded-l-2xl px-5 pb-6 pt-5;
 	}
 	.bank-card_icon {
 		@apply flex size-full flex-1 flex-col items-end justify-end py-5 pr-5;
 	}
 
 	.bank-card-circle_one {
-		@apply absolute bg-[#1E1671] rounded-full w-80 h-80 -top-8 -left-28;
+		@apply absolute bg-ink rounded-full w-80 h-80 -top-8 -left-28;
 	}
 
 	.bank-card-circle_two {
-		@apply absolute bg-[#4EB4FF] rounded-full w-48 h-48 -top-20 -right-20;
+		@apply absolute bg-gold rounded-full w-48 h-48 -top-20 -right-20;
 	}
 	.bank-info {
-		@apply gap-[18px] flex p-4 transition-all border bg-blue-25 border-transparent;
+		@apply gap-[18px] flex p-4 transition-all border border-transparent;
 	}
 	.bank-info_content {
 		@apply flex flex-1 items-center justify-between gap-2 overflow-hidden;

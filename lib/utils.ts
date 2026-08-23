@@ -139,10 +139,10 @@ export function getAccountTypeColors(type: AccountTypes) {
 	switch (type) {
 		case 'depository':
 			return {
-				bg: 'bg-blue-25',
-				lightBg: 'bg-blue-100',
-				title: 'text-blue-900',
-				subText: 'text-blue-700',
+				bg: 'bg-plum-tint',
+				lightBg: 'bg-plum/15',
+				title: 'text-plum',
+				subText: 'text-plum/70',
 			}
 
 		case 'credit':
@@ -153,12 +153,15 @@ export function getAccountTypeColors(type: AccountTypes) {
 				subText: 'text-success-700',
 			}
 
+		// loan / investment / other — gold is a "sparing use" accent per the
+		// design system, so it only shows up as a soft background wash here,
+		// never as text (gold text also fails contrast on paper/cloud bg).
 		default:
 			return {
-				bg: 'bg-green-25',
-				lightBg: 'bg-green-100',
-				title: 'text-green-900',
-				subText: 'text-green-700',
+				bg: 'bg-gold/10',
+				lightBg: 'bg-gold/20',
+				title: 'text-ink',
+				subText: 'text-gray-600',
 			}
 	}
 }
