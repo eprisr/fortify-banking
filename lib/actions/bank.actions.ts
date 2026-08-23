@@ -93,16 +93,18 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 					`Failed to fetch account for bank ${bank.$id}:`,
 					JSON.stringify(error.response?.data, null, 2),
 				)
-				if (error.response.data.error_code === 'ITEM_LOGIN_REQUIRED') {
+				if (error.response?.data?.error_code === 'ITEM_LOGIN_REQUIRED') {
 					return 'UPDATE_MODE'
 				}
 				return null
 			}
 		})
 
-		// 3. Wait for all, then filter out the nulls (failed banks)
+		// 3. Wait for all, then filter out the nulls and per-bank UPDATE_MODE
+		// sentinels (failed banks) so they don't pollute totals or downstream
+		// array indexing.
 		const accounts = (await Promise.all(accountsPromises || [])).filter(
-			(account) => account !== null,
+			(account) => account !== null && account !== 'UPDATE_MODE',
 		)
 
 		const totalBanks = accounts.length
@@ -112,10 +114,10 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 
 		return parseStringify({ data: accounts, totalBanks, totalCurrentBalance })
 	} catch (error: any) {
-		if (error.response.data.error_code === 'ITEM_LOGIN_REQUIRED') {
+		console.error('An error occurred while getting the accounts:', error)
+		if (error.response?.data?.error_code === 'ITEM_LOGIN_REQUIRED') {
 			return 'UPDATE_MODE'
 		}
-		console.error('An error occurred while getting the accounts:', error)
 	}
 }
 
@@ -209,6 +211,7 @@ export const getInstitution = async ({
 		return parseStringify(intitution)
 	} catch (error) {
 		console.error('An error occurred while getting the institution:', error)
+		throw error
 	}
 }
 
@@ -252,6 +255,7 @@ export const getTransactions = async ({
 		return parseStringify(transactions)
 	} catch (error) {
 		console.error('An error occurred while getting the transactions:', error)
+		return parseStringify(transactions)
 	}
 }
 
