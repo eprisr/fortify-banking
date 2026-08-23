@@ -87,9 +87,19 @@ const SignUpForm = () => {
 					</Field>
 				</div>
 				<div className="flex flex-col gap-1 md:gap-3">
-					<h1 className="text-3xl font-bold">Create your account</h1>
+					<h1 className="text-3xl font-bold">
+						{step === 1
+							? 'Create your account'
+							: step === 2
+								? 'Connect your bank'
+								: ''}
+					</h1>
 					<p className="text-sm text-ink/60 font-serif italic">
-						Let's get you started.
+						{step === 1
+							? "Let's get you started."
+							: step === 2
+								? 'See your full picture, automatically.'
+								: ''}
 					</p>
 				</div>
 			</header>
@@ -121,12 +131,14 @@ const SignUpForm = () => {
 										variant="primary"
 										text="Connect my bank now"
 										redirectTo="/confirmation?connected=true"
+										className="py-4 text-base shadow-xl"
 									/>
 									<Button
 										type="button"
 										onClick={() => redirect('/confirmation')}
 										disabled={isLoading}
-										variant="secondary">
+										variant="secondary"
+										className="py-4 text-base shadow-xl">
 										I'll do this later
 									</Button>
 								</div>
@@ -135,12 +147,16 @@ const SignUpForm = () => {
 					</form>
 				</Form>
 
-				<footer className="flex justify-center gap-1">
-					<p className="text-sm font-normal text-gray-600">Have an account?</p>
-					<Link href="/signin" className="form-link">
-						Sign In
-					</Link>
-				</footer>
+				{step === 1 && (
+					<footer className="flex justify-center gap-1">
+						<p className="text-sm font-normal text-gray-600">
+							Have an account?
+						</p>
+						<Link href="/signin" className="form-link">
+							Sign In
+						</Link>
+					</footer>
+				)}
 			</>
 		</section>
 	)
