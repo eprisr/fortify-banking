@@ -4,9 +4,8 @@ import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
-import { Loader2 } from 'lucide-react'
+import { ChevronLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
 	AuthFormType,
@@ -75,9 +74,12 @@ const AuthForm = ({
 		<section className="auth-form">
 			{config.heading && (
 				<header className="flex flex-col gap-5 md:gap-8">
+					<div className="flex flex-center h-8 w-8 bg-cloud rounded-full">
+						<ChevronLeft size={12} />
+					</div>
 					<div className="flex flex-col gap-1 md:gap-3">
-						<h1 className="text-2xl lg:text- font-bold">{config.heading}</h1>
-						<p className="text-xs text-gray-600 font-serif italic">
+						<h1 className="text-3xl font-bold">{config.heading}</h1>
+						<p className="text-sm text-ink/60 font-serif italic">
 							{config.subheading}
 						</p>
 					</div>
@@ -91,7 +93,7 @@ const AuthForm = ({
 							control={form.control}
 							name="email"
 							label="Email"
-							placeholder="email@email.com"
+							placeholder="Email"
 							required
 						/>
 					)}
@@ -118,30 +120,28 @@ const AuthForm = ({
 
 					{config.fields.forgotPasswordLink && (
 						<div className="flex justify-end mt-1!">
-							<Link className="text-right text-xs" href="/forgot-password">
-								Forgot password?
+							<Link
+								className="text-right text-sm text-ink/60"
+								href="/forgot-password">
+								Forgot your password?
 							</Link>
 						</div>
 					)}
 
 					<div className="flex flex-col gap-4">
 						{serverError && <p className="form-message">{serverError}</p>}
-						<Button type="submit" disabled={isLoading}>
-							{isLoading ? (
-								<>
-									<Loader2 size={20} className="animate-spin" /> &nbsp;
-									Loading...
-								</>
-							) : (
-								config.submitLabel
-							)}
+						<Button
+							type="submit"
+							disabled={isLoading}
+							className="py-5 text-base shadow-xl">
+							{config.submitLabel}
 						</Button>
 					</div>
 				</form>
 			</Form>
 
 			<footer className="flex justify-center gap-1">
-				<p className="text-sm font-normal text-gray-600">
+				<p className="text-sm font-normal text-ink/50">
 					{config.footer.prompt}
 				</p>
 				<Link href={config.footer.linkHref} className="form-link">

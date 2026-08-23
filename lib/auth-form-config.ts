@@ -61,9 +61,9 @@ type FormConfig = {
 
 export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 	signin: {
-		heading: 'Welcome Back!',
-		subheading: 'Hello there, sign in to continue.',
-		submitLabel: 'Sign In',
+		heading: 'Welcome back',
+		subheading: 'Good to see you again.',
+		submitLabel: 'Sign in',
 		fields: {
 			email: true,
 			password: true,
@@ -71,9 +71,9 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 			forgotPasswordLink: true,
 		},
 		footer: {
-			prompt: 'New to Fortify?',
+			prompt: "Don't have an account?",
 			linkHref: '/signup',
-			linkLabel: 'Create account',
+			linkLabel: 'Sign up',
 		},
 	},
 	'forgot-pw': {

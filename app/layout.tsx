@@ -31,6 +31,7 @@ const firaSans = Fira_Sans({
 })
 const ibmPlexSerif = IBM_Plex_Serif({
 	weight: ['400', '700'],
+	style: ['italic'],
 	subsets: ['latin'],
 	variable: '--font-ibm-plex-serif',
 })

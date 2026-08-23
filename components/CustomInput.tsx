@@ -36,7 +36,7 @@ function CustomInput<T extends FieldValues>({
 							{required && <sup>*</sup>}
 						</FormLabel>
 					</VisuallyHiddenPrimative.Root>
-					<div className="flex w-full flex-col">
+					<div className="flex w-full flex-col bg-cloud rounded-lg px-2">
 						<FormControl>
 							<Input
 								placeholder={placeholder}
@@ -46,6 +46,7 @@ function CustomInput<T extends FieldValues>({
 										: 'text'
 								}
 								id={name}
+								className="h-14 border-none placeholder:text-base placeholder:text-ink/40"
 								{...field}
 							/>
 						</FormControl>
