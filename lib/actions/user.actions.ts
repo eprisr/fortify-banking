@@ -106,6 +106,7 @@ export const resetPw = async ({
 
 		return { success: true, data: parseStringify(res) }
 	} catch (error: any) {
+		console.error('Reset Password Error: ', error)
 		return {
 			success: false,
 			error: error?.response?.message || 'Failed to update password',
@@ -171,8 +172,15 @@ export const signUp = async ({
 		return { success: true, data: parseStringify(newUser) }
 	} catch (error: any) {
 		if (newUserAccountId) {
-			const { user } = await createAdminClient()
-			await user.delete({ userId: newUserAccountId })
+			try {
+				const { user } = await createAdminClient()
+				await user.delete({ userId: newUserAccountId })
+			} catch (cleanupError) {
+				console.error(
+					`Failed to roll back orphaned auth account ${newUserAccountId}: `,
+					cleanupError,
+				)
+			}
 		}
 
 		return handleError(error, 'An error occurred during sign up')
@@ -200,6 +208,7 @@ export const logoutAccount = async () => {
 		await account.deleteSession({ sessionId: 'current' })
 		return true
 	} catch (error) {
+		console.error('Logout Error: ', error)
 		return false
 	}
 }
@@ -326,7 +335,7 @@ export const exchangePublicToken = async ({
 
 		if (!fundingSourceUrl) throw new Error('Failed to link funding source')
 
-		await createBankAccount({
+		const bankAccount = await createBankAccount({
 			userId: user.$id,
 			bankId: itemId,
 			accountId: accountData.account_id,
@@ -334,6 +343,8 @@ export const exchangePublicToken = async ({
 			fundingSourceUrl,
 			shareableId: encryptId(accountData.account_id),
 		})
+
+		if (!bankAccount) throw new Error('Failed to save bank account')
 
 		await waitForInitialTransactions(accessToken)
 
@@ -370,9 +381,12 @@ export const getBank = async ({ documentId }: getBankProps) => {
 			queries: [Query.equal('$id', [documentId])],
 		})
 
+		if (!bank.rows[0]) throw new Error(`Bank not found: ${documentId}`)
+
 		return parseStringify(bank.rows[0])
 	} catch (error) {
 		console.error('Get Bank Error: ', error)
+		throw error
 	}
 }
 
