@@ -295,12 +295,12 @@ export const passwordRequirements: {
 }[] = [
 	{ label: 'At least 8 characters', test: (password) => password.length >= 8 },
 	{
-		label: 'Contains an uppercase letter',
+		label: 'Uppercase letter',
 		test: (password) => /[A-Z]/.test(password),
 	},
-	{ label: 'Contains a number', test: (password) => /[0-9]/.test(password) },
+	{ label: 'A number', test: (password) => /[0-9]/.test(password) },
 	{
-		label: 'Contains a special character',
+		label: 'Special character',
 		test: (password) => /[^A-Za-z0-9]/.test(password),
 	},
 ]
@@ -339,6 +339,9 @@ export const signupSchema = z.object({
 	lastName: z.string().min(2, { error: 'Last Name is Required' }),
 	email: emailField,
 	password: passwordField,
+	agreeToTerms: z.boolean().refine((val) => val === true, {
+		error: 'You must agree to the Terms and Conditions',
+	}),
 })
 
 export const waitlistSchema = z.object({

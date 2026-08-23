@@ -5,12 +5,9 @@ import Navbar from '@/components/Navbar'
 const SignUp = async () => {
 	await connection()
 	return (
-		<>
-			<Navbar type="sub" pageTitle="Sign up" background />
-			<section className="flex-center size-full px-6 bg-white rounded-t-3xl">
-				<SignUpForm />
-			</section>
-		</>
+		<section className="flex-center size-full px-6 bg-white rounded-t-3xl">
+			<SignUpForm />
+		</section>
 	)
 }
 
