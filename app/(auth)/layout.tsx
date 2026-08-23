@@ -12,7 +12,7 @@ export default async function RootLayout({
 
 	return (
 		<MobileContainer>
-			<main className="flex flex-col w-full font-poppins">{children}</main>
+			<main className="flex flex-col w-full font-sans">{children}</main>
 		</MobileContainer>
 	)
 }
