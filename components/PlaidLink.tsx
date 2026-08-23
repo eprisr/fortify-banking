@@ -62,9 +62,9 @@ const PlaidLink = ({ user, variant, text, update }: PlaidLinkProps) => {
 					onClick={() => open()}
 					variant="ghost"
 					className="plaidlink-ghost">
-					<p className="hidden text-16px font-semibold text-neutral-800 xl:block">
+					<p className="hidden text-16 font-semibold text-neutral-800 xl:block">
 						<MdOutlineAddCard className="text-24" />
-						<p className="text-16px font-semibold text-neutral-800">
+						<p className="text-16 font-semibold text-neutral-800">
 							Connect Bank
 						</p>
 					</p>
@@ -85,16 +85,14 @@ const PlaidLink = ({ user, variant, text, update }: PlaidLinkProps) => {
 			) : variant === 'relink' ? (
 				<Button
 					onClick={() => open()}
-					className="plaidlink-ghost gap-1 bg-primary-700 text-white px-3">
+					className="plaidlink-ghost gap-1 bg-primary text-primary-foreground px-3">
 					<p className="text-12 font-semibold">Re-Link</p>
 					<MdArrowRight className="text-18" />
 				</Button>
 			) : (
 				<Button onClick={() => open()} className="plaidlink-default px-1">
 					<MdOutlineAddCard className="text-24" />
-					<p className="text-16px font-semibold text-neutral-800">
-						Connect Bank
-					</p>
+					<p className="text-16 font-semibold text-neutral-800">Connect Bank</p>
 				</Button>
 			)}
 		</>
