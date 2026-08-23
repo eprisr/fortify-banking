@@ -17,7 +17,7 @@ import { type ChartConfig, ChartContainer } from './ui/chart'
 import { Area, AreaChart, Tooltip, XAxis } from 'recharts'
 import { BiDownArrow, BiUpArrow } from 'react-icons/bi'
 
-const MonthSpend = ({ transactions }: TransactionTableProps) => {
+const MonthSpend = ({ transactions = [] }: TransactionTableProps) => {
 	const currMonthName = getCurrentMonthName()
 	const lastYear = getTrailingMonthsYYYYMM()
 
@@ -53,12 +53,14 @@ const MonthSpend = ({ transactions }: TransactionTableProps) => {
 	const currMonthSpend: number = chartData[currMonthNum].totals.debit
 		? Number(chartData[currMonthNum].totals.debit.toFixed(2))
 		: 0
-	const prevMonthSpend: number = Number(
-		chartData[currMonthNum - 1].totals.debit.toFixed(2),
-	)
-	const lastMonthCompare: number = Number(
-		(((currMonthSpend - prevMonthSpend) / prevMonthSpend) * 100).toFixed(1),
-	)
+	const prevMonthSpend: number = chartData[currMonthNum - 1].totals.debit
+		? Number(chartData[currMonthNum - 1].totals.debit.toFixed(2))
+		: 0
+	const lastMonthCompare: number = prevMonthSpend
+		? Number(
+				(((currMonthSpend - prevMonthSpend) / prevMonthSpend) * 100).toFixed(1),
+			)
+		: 0
 
 	return (
 		<Card className="overflow-visible shadow-card rounded-lg ring-0">

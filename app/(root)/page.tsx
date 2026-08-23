@@ -15,7 +15,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 
 	const accountsData = accounts?.data
 	const emptyAccount = accounts === 'UPDATE_MODE' || accounts.totalBanks === 0
-	const demoAccount = accountsData[0].id.includes('demo')
+	const demoAccount = accountsData[0]?.id?.includes('demo') ?? false
 	const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId
 
 	const account = await getAccount({ appwriteItemId })

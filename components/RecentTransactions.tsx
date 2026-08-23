@@ -11,7 +11,7 @@ import {
 import { Card, CardContent } from './ui/card'
 import { ArrowRight, DollarSign } from 'lucide-react'
 
-export const RecentTransactions = ({ transactions }: TransactionTableProps) => {
+export const RecentTransactions = ({ transactions = [] }: TransactionTableProps) => {
 	const getRecentTransactions = [...transactions]
 		.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 		.slice(0, 5)
