@@ -312,7 +312,7 @@ const passwordField = passwordRequirements.reduce(
 
 export const signinSchema = z.object({
 	email: emailField,
-	password: passwordField,
+	password: z.string().min(1, { error: 'Password is Required' }),
 })
 
 export const forgotPwSchema = z.object({
