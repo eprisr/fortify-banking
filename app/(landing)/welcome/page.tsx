@@ -6,7 +6,7 @@ import { Form } from '@/components/ui/form'
 import { WaitlistValues } from '@/lib/auth-form-config'
 import { waitlistSchema } from '@/lib/utils'
 import logo from '@/public/icons/logo.svg'
-import signinImage from '@/public/sign-in.png'
+import mockup from '@/public/mockup.png'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
 	features,
@@ -49,13 +49,13 @@ const Landing = () => {
 					<Button variant="default">Get early access</Button>
 				</div>
 			</div>
-			<div className="flex items-center justify-between h-fit px-70 py-10 bg-primary-100">
-				<div className="max-w-1/3">
+			<div className="flex items-center justify-between h-fit px-70 pt-10 bg-radial-[at_25%_50%] from-white via-primary-100 to-primary-500">
+				<div>
 					<h1>
 						Your money, <br />
 						<span className="text-primary-700">finally clear.</span>
 					</h1>
-					<p className="leading-7 my-4">
+					<p className="text-black-1 leading-7 my-4 w-[32ch]">
 						Fortify connects to your bank and turns raw transactions into a
 						clear picture of where your money goes — and where it should go
 						next.
@@ -88,9 +88,9 @@ const Landing = () => {
 						</div>
 					</div>
 				</div>
-				<div className="w-3xs h-xl">
+				<div>
 					<Image
-						src={signinImage}
+						src={mockup}
 						alt="Fortify Sign In Screen"
 						className="w-auto h-full rounded-lg"
 					/>
