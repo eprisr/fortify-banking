@@ -40,7 +40,6 @@ function CustomInput<T extends FieldValues>({
 						<FormControl>
 							<Input
 								placeholder={placeholder}
-								className="input-class"
 								type={
 									name === 'password' || name === 'confirmPassword'
 										? 'password'

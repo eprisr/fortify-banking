@@ -139,7 +139,7 @@ const AuthForm = ({
 
 					<div className="flex flex-col gap-4">
 						{serverError && <p className="form-message">{serverError}</p>}
-						<Button type="submit" disabled={isLoading} className="form-btn">
+						<Button type="submit" disabled={isLoading}>
 							{isLoading ? (
 								<>
 									<Loader2 size={20} className="animate-spin" /> &nbsp; Loading...

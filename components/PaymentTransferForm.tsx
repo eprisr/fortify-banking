@@ -169,11 +169,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 										</FormLabel>
 										<div className="flex w-full flex-col">
 											<FormControl>
-												<Input
-													placeholder="J Doe"
-													className="input-class"
-													{...field}
-												/>
+												<Input placeholder="J Doe" {...field} />
 											</FormControl>
 											<FormMessage className="text-12 text-red-500" />
 										</div>
@@ -195,7 +191,6 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 											<FormControl>
 												<Input
 													placeholder="ex: johndoe@email.com"
-													className="input-class"
 													{...field}
 												/>
 											</FormControl>
@@ -219,7 +214,6 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 											<FormControl>
 												<Input
 													placeholder="ex: fdewkl8JF23fS93ngr8984"
-													className="input-class"
 													{...field}
 												/>
 											</FormControl>
@@ -246,7 +240,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 											<div className="flex w-full flex-col relative currency-input">
 												<FormControl>
 													<Input
-														className="input-class pl-16"
+														className="pl-16"
 														placeholder="ex: 5.00"
 														type="text"
 														{...field}
@@ -284,7 +278,6 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 											<FormControl>
 												<Textarea
 													placeholder="Write a short note here"
-													className="input-class"
 													{...field}
 												/>
 											</FormControl>
@@ -296,10 +289,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 						/>
 
 						<div className="payment-transfer_btn-box">
-							<Button
-								type="submit"
-								disabled={isLoading}
-								className="form-btn w-full">
+							<Button type="submit" disabled={isLoading} className="w-full">
 								{isLoading ? (
 									<>
 										<Loader2 size={20} className="animate-spin" /> &nbsp;
