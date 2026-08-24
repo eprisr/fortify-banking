@@ -13,7 +13,7 @@ const HeaderBox = ({
 			<h1
 				className={cn(
 					'header-box-title',
-					type === 'greeting' && 'text-xxs text-ink/40',
+					type === 'greeting' && 'text-xxs text-ink/70',
 				)}>
 				{title} <br />
 				{type === 'greeting' && user !== 'Guest' && (

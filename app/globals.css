@@ -12,9 +12,12 @@
 	--color-plum: #55344f;
 	--color-plum-hover: #6a4364;
 	--color-plum-tint: #f0e7ee;
-	--color-gold: #c6a15b;
-	--color-sage: #4c7a63;
-	--color-terracotta: #bc5b45;
+	--color-gold: #81693b;
+	--color-gold-decorative: #c6a15b;
+	--color-sage: #3d624f;
+	--color-sage-decorative: #4c7a63;
+	--color-terracotta: #964937;
+	--color-terracotta-decorative: #bc5b45;
 
 	/* Legacy purple scale — superseded by --color-plum-*, kept only until
 	   every reference below is migrated in the component-audit pass. */
@@ -27,8 +30,8 @@
 
 	--color-semantic-error: #bc5b45;
 	--color-semantic-info: #0890fe;
-	--color-semantic-warning: #c6a15b;
-	--color-semantic-success: #4c7a63;
+	--color-semantic-warning: #81693b;
+	--color-semantic-success: #3d624f;
 	--color-semantic-danger: #bc5b45;
 
 	--color-fortify-rose: #bc5b45;

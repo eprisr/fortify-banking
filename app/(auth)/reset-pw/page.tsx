@@ -43,7 +43,7 @@ const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 					<h1 className="text-3xl font-bold">
 						{successful ? 'All set!' : 'This link has expired.'}
 					</h1>
-					<p className="font-normal text-ink/60">
+					<p className="font-normal text-ink/70">
 						{successful
 							? 'Your password has been changed. Use it the next time you sign in.'
 							: 'For your security, password reset links only last a short while. Request a new one to continue.'}

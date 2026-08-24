@@ -13,10 +13,10 @@ const Terms = () => {
 				</div>
 			</header>
 			<hr className="border-[0.5] border-t-primary/20 mt-4 mb-8" />
-			<p className="text-xs text-ink/50 mb-5">
+			<p className="text-xs text-ink/70 mb-5">
 				Last updated August 23, 2026 · For demonstration purposes only
 			</p>
-			<p className="font-serif italic text-ink/50">
+			<p className="font-serif italic text-ink/70">
 				This agreement explains how Fortify works, what we ask of you as a
 				member, and what you can expect from us in return. We've tried to write
 				it plainly — but it's still a contract, so please read it.

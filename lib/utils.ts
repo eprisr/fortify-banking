@@ -153,9 +153,6 @@ export function getAccountTypeColors(type: AccountTypes) {
 				subText: 'text-success-700',
 			}
 
-		// loan / investment / other — gold is a "sparing use" accent per the
-		// design system, so it only shows up as a soft background wash here,
-		// never as text (gold text also fails contrast on paper/cloud bg).
 		default:
 			return {
 				bg: 'bg-gold/10',

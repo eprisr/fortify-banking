@@ -97,7 +97,7 @@ const AuthForm = ({
 					)}
 					<div className="flex flex-col gap-1 md:gap-3">
 						<h1 className="text-3xl font-bold">{config.heading}</h1>
-						<p className="text-sm text-ink/60 font-serif italic">
+						<p className="text-sm text-ink/70 font-serif italic">
 							{config.subheading}
 						</p>
 					</div>
@@ -147,7 +147,7 @@ const AuthForm = ({
 											</ItemMedia>
 											<ItemContent>
 												<ItemTitle
-													className={`text-xs! ${met ? 'text-black' : 'text-ink/30'}`}>
+													className={`text-xs! ${met ? 'text-black' : 'text-ink/70'}`}>
 													{label}
 												</ItemTitle>
 											</ItemContent>
@@ -175,7 +175,7 @@ const AuthForm = ({
 					{config.fields.forgotPasswordLink && (
 						<div className="flex justify-end mt-1!">
 							<Link
-								className="text-right text-sm text-ink/60"
+								className="text-right text-sm text-ink/70"
 								href="/forgot-password">
 								Forgot your password?
 							</Link>
@@ -195,7 +195,7 @@ const AuthForm = ({
 			</Form>
 
 			<footer className="flex justify-center gap-1">
-				<p className="text-sm font-normal text-ink/50">
+				<p className="text-sm font-normal text-ink/70">
 					{config.footer.prompt}
 				</p>
 				{config.footer.linkHref && (

@@ -30,7 +30,7 @@ const Confirmation = ({
 					<h1 className="text-3xl font-bold">
 						{connected ? "You're all set!" : 'Welcome aboard!'}
 					</h1>
-					<p className="font-normal text-ink/60">
+					<p className="font-normal text-ink/70">
 						{connected
 							? 'Your account is created and your bank is connected. Your real balances, transactions, and insights are ready.'
 							: "You're browsing with sample data — connect your bank anytime to unlock everything."}

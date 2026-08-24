@@ -66,7 +66,7 @@ const StepOne = ({ control, password }: StepOneProps) => {
 								</ItemMedia>
 								<ItemContent>
 									<ItemTitle
-										className={`text-xs! ${met ? 'text-black' : 'text-ink/30'}`}>
+										className={`text-xs! ${met ? 'text-black' : 'text-ink/70'}`}>
 										{label}
 									</ItemTitle>
 								</ItemContent>
@@ -91,7 +91,7 @@ const StepOne = ({ control, password }: StepOneProps) => {
 							</FormControl>
 							<Label
 								htmlFor="terms-checkbox"
-								className="block text-xs leading-5 text-ink/50">
+								className="block text-xs leading-5 text-ink/70">
 								By creating an account you agree to our{' '}
 								<Link href="/terms" className="font-bold text-primary">
 									Terms and Conditions

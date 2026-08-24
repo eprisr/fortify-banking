@@ -94,7 +94,7 @@ const SignUpForm = () => {
 								? 'Connect your bank'
 								: ''}
 					</h1>
-					<p className="text-sm text-ink/60 font-serif italic">
+					<p className="text-sm text-ink/70 font-serif italic">
 						{step === 1
 							? "Let's get you started."
 							: step === 2
