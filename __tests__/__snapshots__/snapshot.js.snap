@@ -3,7 +3,7 @@
 exports[`renders the sign-in page unchanged 1`] = `
 <div>
   <section
-    class="pt-4 bg-primary-700 pb-5 -mb-5"
+    class="pt-4 bg-primary pb-5 -mb-5"
   >
     <nav
       class="px-6 py-4 gap-4 font-semibold text-white"
@@ -41,12 +41,12 @@ exports[`renders the sign-in page unchanged 1`] = `
           class="flex flex-col gap-1 md:gap-3"
         >
           <h1
-            class="text-24 lg:text-36 font-semibold text-primary-700 text-center"
+            class="text-2xl lg:text-36 font-semibold text-primary text-center"
           >
             Welcome Back!
           </h1>
           <p
-            class="text-12 font-normal text-gray-600 text-center"
+            class="text-xs font-normal text-gray-600 text-center"
           >
             Hello there, sign in to continue.
           </p>
@@ -78,7 +78,7 @@ exports[`renders the sign-in page unchanged 1`] = `
             <input
               aria-describedby="_r_0_-form-item-description"
               aria-invalid="false"
-              class="w-full min-w-0 rounded-lg border border-input bg-transparent p-3 text-xs transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-xs file:font-medium file:text-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 md:text-xs dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 input-class"
+              class="w-full min-w-0 rounded-lg border border-input bg-transparent p-3 text-xs transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-xs file:font-medium file:text-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 md:text-xs dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
               data-slot="input"
               id="email"
               name="email"
@@ -111,7 +111,7 @@ exports[`renders the sign-in page unchanged 1`] = `
             <input
               aria-describedby="_r_1_-form-item-description"
               aria-invalid="false"
-              class="w-full min-w-0 rounded-lg border border-input bg-transparent p-3 text-xs transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-xs file:font-medium file:text-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 md:text-xs dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 input-class"
+              class="w-full min-w-0 rounded-lg border border-input bg-transparent p-3 text-xs transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-xs file:font-medium file:text-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 md:text-xs dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
               data-slot="input"
               id="password"
               name="password"
@@ -125,7 +125,7 @@ exports[`renders the sign-in page unchanged 1`] = `
           class="flex justify-end mt-1!"
         >
           <a
-            class="text-right text-12"
+            class="text-right text-xs"
             href="/forgot-password"
           >
             Forgot password?
@@ -135,7 +135,7 @@ exports[`renders the sign-in page unchanged 1`] = `
           class="flex flex-col gap-4"
         >
           <button
-            class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 gap-1.5 px-2.5 py-3 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 form-btn"
+            class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 gap-1.5 px-2.5 py-3 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"
             data-size="default"
             data-slot="button"
             data-variant="default"
@@ -149,7 +149,7 @@ exports[`renders the sign-in page unchanged 1`] = `
         class="flex justify-center gap-1"
       >
         <p
-          class="text-14 font-normal text-gray-600"
+          class="text-sm font-normal text-gray-600"
         >
           New to Fortify?
         </p>

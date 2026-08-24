@@ -17,8 +17,16 @@ import {
 	createLinkToken,
 	exchangePublicToken,
 } from '@/lib/actions/user.actions'
+import { cn } from '@/lib/utils'
 
-const PlaidLink = ({ user, variant, text, update }: PlaidLinkProps) => {
+const PlaidLink = ({
+	user,
+	variant,
+	text,
+	update,
+	redirectTo = '/',
+	className,
+}: PlaidLinkProps) => {
 	const router = useRouter()
 	const [token, setToken] = useState('')
 
@@ -39,9 +47,9 @@ const PlaidLink = ({ user, variant, text, update }: PlaidLinkProps) => {
 			})
 
 			router.refresh()
-			router.push('/')
+			router.push(redirectTo)
 		},
-		[user],
+		[user, redirectTo],
 	)
 
 	const config: PlaidLinkOptions = {
@@ -54,45 +62,47 @@ const PlaidLink = ({ user, variant, text, update }: PlaidLinkProps) => {
 	return (
 		<>
 			{variant === 'primary' ? (
-				<Button type="button" onClick={() => open()} disabled={!ready}>
+				<Button
+					type="button"
+					onClick={() => open()}
+					disabled={!ready}
+					className={cn(className)}>
 					{text ? text : 'Connect bank'}
 				</Button>
 			) : variant === 'ghost' ? (
 				<Button
 					onClick={() => open()}
 					variant="ghost"
-					className="plaidlink-ghost">
-					<p className="hidden text-16px font-semibold text-neutral-800 xl:block">
-						<MdOutlineAddCard className="text-24" />
-						<p className="text-16px font-semibold text-neutral-800">
-							Connect Bank
+					className={cn('plaidlink-ghost', className)}>
+					<p className="hidden text-base font-semibold text-neutral-800 xl:block">
+						<p className="text-base font-semibold text-neutral-800">
+							{text ? text : 'Connect bank'}
 						</p>
 					</p>
 				</Button>
 			) : variant === 'reconnect' ? (
-				<Button onClick={() => open()} disabled={!ready} className="w-full p-0">
-					<div className="connect-box">
-						<MdOutlineAddCard className="text-24 mr-2" />
-						<div className="text-left shrink-[5]">
-							<h3 className="font-extrabold">Connect your bank</h3>
-							<p className="font-extralight text-12 text-wrap">
-								Link an account to unlock your full dashboard
-							</p>
-						</div>
-						<MdOutlineArrowCircleRight className="text-24 ml-5" />
-					</div>
+				<Button
+					onClick={() => open()}
+					disabled={!ready}
+					className={cn(className)}>
+					Connect
 				</Button>
 			) : variant === 'relink' ? (
 				<Button
 					onClick={() => open()}
-					className="plaidlink-ghost gap-1 bg-primary-700 text-white px-3">
-					<p className="text-12 font-semibold">Re-Link</p>
-					<MdArrowRight className="text-18" />
+					className={cn(
+						'plaidlink-ghost gap-1 bg-primary text-primary-foreground px-3',
+						className,
+					)}>
+					<p className="text-xs font-semibold">Re-Link</p>
+					<MdArrowRight className="text-lg" />
 				</Button>
 			) : (
-				<Button onClick={() => open()} className="plaidlink-default px-1">
-					<MdOutlineAddCard className="text-24" />
-					<p className="text-16px font-semibold text-neutral-800">
+				<Button
+					onClick={() => open()}
+					className={cn('plaidlink-default px-1', className)}>
+					<MdOutlineAddCard className="text-2xl" />
+					<p className="text-base font-semibold text-neutral-800">
 						Connect Bank
 					</p>
 				</Button>

@@ -9,8 +9,8 @@ import {
 } from 'lucide-react'
 import {
 	BiCog,
+	BiDotsHorizontalRounded,
 	BiEnvelope,
-	BiMobile,
 	BiMoneyWithdraw,
 	BiSearchAlt,
 	BiSolidHomeAlt2,
@@ -71,60 +71,26 @@ export const navLinks = [
 ]
 
 export const quickLinks = [
-	// {
-	// 	Icon: BiSolidWallet,
-	// 	route: '/my-banks',
-	// 	label: 'Account and Card',
-	// 	color: '#3629B7',
-	// },
 	{
 		Icon: BiTransferAlt,
 		route: '/payment-transfer',
 		label: 'Transfer',
-		color: '#FF4267',
-	},
-	{
-		Icon: BiMoneyWithdraw,
-		route: '#',
-		label: 'Withdraw',
-		color: '#0890FE',
-	},
-	{
-		Icon: BiMobile,
-		route: '#',
-		label: 'Prepaid',
-		color: '#FFAF2A',
 	},
 	{
 		Icon: BiSolidReceipt,
 		route: '#',
 		label: 'Pay bill',
-		color: '#52D5BA',
 	},
-	// {
-	// 	Icon: FaPiggyBank,
-	// 	route: '#',
-	// 	label: 'Save online',
-	// 	color: '#5655B9',
-	// },
-	// {
-	// 	Icon: BiSolidCreditCard,
-	// 	route: '#',
-	// 	label: 'Credit card',
-	// 	color: '#FB6B18',
-	// },
-	// {
-	// 	Icon: FaReceipt,
-	// 	route: '/transaction-history',
-	// 	label: 'Transaction history',
-	// 	color: '#3629B7',
-	// },
-	// {
-	// 	Icon: BiSolidUserBadge,
-	// 	route: '#',
-	// 	label: 'Beneficiary',
-	// 	color: '#FF4267',
-	// },
+	{
+		Icon: BiMoneyWithdraw,
+		route: '#',
+		label: 'Withdraw',
+	},
+	{
+		Icon: BiDotsHorizontalRounded,
+		route: '#',
+		label: 'More',
+	},
 ]
 
 export const mobileLinks = [

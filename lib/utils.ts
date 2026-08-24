@@ -139,10 +139,10 @@ export function getAccountTypeColors(type: AccountTypes) {
 	switch (type) {
 		case 'depository':
 			return {
-				bg: 'bg-blue-25',
-				lightBg: 'bg-blue-100',
-				title: 'text-blue-900',
-				subText: 'text-blue-700',
+				bg: 'bg-plum-tint',
+				lightBg: 'bg-plum/15',
+				title: 'text-plum',
+				subText: 'text-plum/70',
 			}
 
 		case 'credit':
@@ -155,10 +155,10 @@ export function getAccountTypeColors(type: AccountTypes) {
 
 		default:
 			return {
-				bg: 'bg-green-25',
-				lightBg: 'bg-green-100',
-				title: 'text-green-900',
-				subText: 'text-green-700',
+				bg: 'bg-gold/10',
+				lightBg: 'bg-gold/20',
+				title: 'text-ink',
+				subText: 'text-gray-600',
 			}
 	}
 }
@@ -232,12 +232,12 @@ interface SumByKeyOptions {
 	strict?: boolean
 }
 
-export function sumTransTotalsByMonth<T extends Record<string, unknown>>(
+export const sumTransTotalsByKey = <T extends Record<string, unknown>>(
 	arr: T[],
 	key: keyof T,
 	valueKey: keyof T,
 	{ strict = false }: SumByKeyOptions = {},
-): Record<string, number> {
+): Record<string, number> => {
 	if (!Array.isArray(arr)) {
 		throw new TypeError('First argument must be an array')
 	}
@@ -292,12 +292,12 @@ export const passwordRequirements: {
 }[] = [
 	{ label: 'At least 8 characters', test: (password) => password.length >= 8 },
 	{
-		label: 'Contains an uppercase letter',
+		label: 'Uppercase letter',
 		test: (password) => /[A-Z]/.test(password),
 	},
-	{ label: 'Contains a number', test: (password) => /[0-9]/.test(password) },
+	{ label: 'A number', test: (password) => /[0-9]/.test(password) },
 	{
-		label: 'Contains a special character',
+		label: 'Special character',
 		test: (password) => /[^A-Za-z0-9]/.test(password),
 	},
 ]
@@ -309,7 +309,7 @@ const passwordField = passwordRequirements.reduce(
 
 export const signinSchema = z.object({
 	email: emailField,
-	password: passwordField,
+	password: z.string().min(1, { error: 'Password is Required' }),
 })
 
 export const forgotPwSchema = z.object({
@@ -336,6 +336,9 @@ export const signupSchema = z.object({
 	lastName: z.string().min(2, { error: 'Last Name is Required' }),
 	email: emailField,
 	password: passwordField,
+	agreeToTerms: z.boolean().refine((val) => val === true, {
+		error: 'You must agree to the Terms and Conditions',
+	}),
 })
 
 export const waitlistSchema = z.object({

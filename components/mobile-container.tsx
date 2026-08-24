@@ -16,7 +16,7 @@ export function MobileContainer({ children }: { children: React.ReactNode }) {
 		<MobileContainerCtx.Provider value={container}>
 			<div
 				ref={ref}
-				className="relative mx-auto min-h-screen w-full max-w-107.5 bg-white shadow-xl transform-[translateZ(0)]">
+				className="relative mx-auto min-h-screen w-full max-w-107.5 pt-9 bg-white shadow-xl transform-[translateZ(0)]">
 				{children}
 			</div>
 		</MobileContainerCtx.Provider>

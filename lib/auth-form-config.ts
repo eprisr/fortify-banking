@@ -18,6 +18,11 @@ export type ResetParams = {
 	secret: string | undefined
 }
 
+export type ResetStatus = {
+	expired: boolean | undefined
+	success: boolean | undefined
+}
+
 export const AUTH_SCHEMAS = {
 	signin: signinSchema,
 	'forgot-pw': forgotPwSchema,
@@ -43,7 +48,6 @@ export const getAuthResolver = (type: AuthFormType): Resolver<AuthFormValues> =>
 // ─── Form Config ──────────────────────────────────────────────────────────────
 
 type FormConfig = {
-	illustration: { src: string; alt: string } | null
 	heading: string | null
 	subheading: string | null
 	submitLabel: string
@@ -54,21 +58,17 @@ type FormConfig = {
 		forgotPasswordLink: boolean
 	}
 	footer: {
-		prompt: string
-		linkHref: string
-		linkLabel: string
+		prompt: string | null
+		linkHref: string | null
+		linkLabel: string | null
 	}
 }
 
 export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 	signin: {
-		illustration: {
-			src: '/icons/signin.svg',
-			alt: 'Sign In Lock Illustration',
-		},
-		heading: 'Welcome Back!',
-		subheading: 'Hello there, sign in to continue.',
-		submitLabel: 'Sign In',
+		heading: 'Welcome back',
+		subheading: 'Good to see you again.',
+		submitLabel: 'Sign in',
 		fields: {
 			email: true,
 			password: true,
@@ -76,15 +76,15 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 			forgotPasswordLink: true,
 		},
 		footer: {
-			prompt: 'New to Fortify?',
+			prompt: "Don't have an account?",
 			linkHref: '/signup',
-			linkLabel: 'Create account',
+			linkLabel: 'Sign up',
 		},
 	},
 	'forgot-pw': {
-		illustration: null,
-		heading: null,
-		subheading: null,
+		heading: 'Reset your password',
+		subheading:
+			"Enter the email on your account and we'll send a code to verify it's you.",
 		submitLabel: 'Send',
 		fields: {
 			email: true,
@@ -99,9 +99,8 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 		},
 	},
 	'reset-pw': {
-		illustration: null,
-		heading: null,
-		subheading: null,
+		heading: 'Set a new password',
+		subheading: "Make it something you'll remember.",
 		submitLabel: 'Reset Password',
 		fields: {
 			email: false,
@@ -110,9 +109,9 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 			forgotPasswordLink: false,
 		},
 		footer: {
-			prompt: 'Remembered your password?',
-			linkHref: '/signin',
-			linkLabel: 'Sign In',
+			prompt: null,
+			linkHref: null,
+			linkLabel: null,
 		},
 	},
 }

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import {
+	DM_Mono,
 	DM_Sans,
 	Fira_Sans,
 	IBM_Plex_Serif,
@@ -18,6 +19,11 @@ export const viewport: Viewport = {
 }
 
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
+const dmMono = DM_Mono({
+	weight: ['400', '500'],
+	subsets: ['latin'],
+	variable: '--font-dm-mono',
+})
 const firaSans = Fira_Sans({
 	weight: '400',
 	subsets: ['latin'],
@@ -25,6 +31,7 @@ const firaSans = Fira_Sans({
 })
 const ibmPlexSerif = IBM_Plex_Serif({
 	weight: ['400', '700'],
+	style: ['italic'],
 	subsets: ['latin'],
 	variable: '--font-ibm-plex-serif',
 })
@@ -51,12 +58,9 @@ export default function RootLayout({
 	children: React.ReactNode
 }>) {
 	return (
-		<html
-			lang="en"
-			suppressHydrationWarning
-			className={cn('font-sans', inter.variable)}>
+		<html lang="en" suppressHydrationWarning className={cn('font-sans')}>
 			<body
-				className={`${poppins.variable} ${firaSans.variable} ${ibmPlexSerif.variable} ${inter.variable} ${dmSans.variable} ${sora.variable}`}>
+				className={`${poppins.variable} ${firaSans.variable} ${ibmPlexSerif.variable} ${inter.variable} ${dmSans.variable} ${dmMono.variable} ${sora.variable}`}>
 				<div>{children}</div>
 			</body>
 		</html>

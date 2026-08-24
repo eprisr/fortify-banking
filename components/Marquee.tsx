@@ -10,7 +10,7 @@ const Marquee = ({ items }: Props) => {
 			<motion.ul
 				animate={{ x: ['0%', '-50%'] }}
 				transition={{ duration: 30, ease: 'linear', repeat: Infinity }}
-				className="flex gap-16 items-center text-12">
+				className="flex gap-16 items-center text-xs">
 				{items.map((item, i) => (
 					<li key={i} className="whitespace-nowrap">
 						{item}

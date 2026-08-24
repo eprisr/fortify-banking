@@ -1,12 +1,11 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useFormState, useWatch } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
-import { Loader2 } from 'lucide-react'
+import { ChevronLeft, CircleCheckBigIcon, CircleIcon } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
 	AuthFormType,
@@ -17,6 +16,8 @@ import {
 	getAuthResolver,
 } from '@/lib/auth-form-config'
 import CustomInput from './CustomInput'
+import { passwordRequirements } from '@/lib/utils'
+import { Item, ItemContent, ItemMedia, ItemTitle } from './ui/item'
 
 const AuthForm = ({
 	type,
@@ -45,13 +46,27 @@ const AuthForm = ({
 
 	const form = useForm<AuthFormValues>({
 		resolver: getAuthResolver(type),
-		mode: 'onSubmit',
+		mode: 'onChange',
 		defaultValues: {
 			email: '',
 			password: '',
 			confirmPassword: '',
 		},
 	})
+
+	const { control } = form
+
+	const password = useWatch({ control, name: 'password' })
+
+	const { dirtyFields, errors } = useFormState({ control: form.control })
+
+	const requiredFields = (
+		['email', 'password', 'confirmPassword'] as const
+	).filter((field) => config.fields[field])
+
+	const isFilledForm = requiredFields.every((field) => dirtyFields[field])
+	const isFormValid = requiredFields.every((field) => !errors[field])
+	const canSubmit = isFilledForm && isFormValid
 
 	const onSubmit = async (data: AuthFormValues) => {
 		setIsLoading(true)
@@ -73,24 +88,16 @@ const AuthForm = ({
 
 	return (
 		<section className="auth-form">
-			{config.illustration && (
-				<div className="flex justify-center my-8">
-					<Image
-						src={config.illustration.src}
-						height={165}
-						width={213}
-						alt={config.illustration.alt}
-					/>
-				</div>
-			)}
-
 			{config.heading && (
 				<header className="flex flex-col gap-5 md:gap-8">
+					{type !== 'signin' && (
+						<div className="flex flex-center h-8 w-8 bg-cloud rounded-full">
+							<ChevronLeft size={12} />
+						</div>
+					)}
 					<div className="flex flex-col gap-1 md:gap-3">
-						<h1 className="text-24 lg:text-36 font-semibold text-primary-700 text-center">
-							{config.heading}
-						</h1>
-						<p className="text-12 font-normal text-gray-600 text-center">
+						<h1 className="text-3xl font-bold">{config.heading}</h1>
+						<p className="text-sm text-ink/70 font-serif italic">
 							{config.subheading}
 						</p>
 					</div>
@@ -104,7 +111,7 @@ const AuthForm = ({
 							control={form.control}
 							name="email"
 							label="Email"
-							placeholder="email@email.com"
+							placeholder="Email"
 							required
 						/>
 					)}
@@ -114,9 +121,41 @@ const AuthForm = ({
 							control={form.control}
 							name="password"
 							label="Password"
-							placeholder="Password"
+							placeholder={
+								type === 'reset-pw' ? 'Enter new password' : 'Password'
+							}
 							required
 						/>
+					)}
+
+					{type === 'reset-pw' && (
+						<div className="grid grid-cols-2 grid-rows-2 gap-2">
+							{passwordRequirements.map(({ label, test }) => {
+								const met = test(password ?? '')
+								return (
+									<Item className="p-0" size="sm" key={label} asChild>
+										<div>
+											<ItemMedia
+												className={
+													met ? 'text-semantic-success' : 'text-ink/30'
+												}>
+												{met ? (
+													<CircleCheckBigIcon className="size-5" />
+												) : (
+													<CircleIcon className="size-5" />
+												)}
+											</ItemMedia>
+											<ItemContent>
+												<ItemTitle
+													className={`text-xs! ${met ? 'text-black' : 'text-ink/70'}`}>
+													{label}
+												</ItemTitle>
+											</ItemContent>
+										</div>
+									</Item>
+								)
+							})}
+						</div>
 					)}
 
 					{config.fields.confirmPassword && (
@@ -124,39 +163,46 @@ const AuthForm = ({
 							control={form.control}
 							name="confirmPassword"
 							label="Confirm Password"
-							placeholder="Confirm your password"
+							placeholder={
+								type === 'reset-pw'
+									? 'Re-enter new password'
+									: 'Confirm your password'
+							}
 							required
 						/>
 					)}
 
 					{config.fields.forgotPasswordLink && (
 						<div className="flex justify-end mt-1!">
-							<Link className="text-right text-12" href="/forgot-password">
-								Forgot password?
+							<Link
+								className="text-right text-sm text-ink/70"
+								href="/forgot-password">
+								Forgot your password?
 							</Link>
 						</div>
 					)}
 
 					<div className="flex flex-col gap-4">
 						{serverError && <p className="form-message">{serverError}</p>}
-						<Button type="submit" disabled={isLoading} className="form-btn">
-							{isLoading ? (
-								<>
-									<Loader2 size={20} className="animate-spin" /> &nbsp; Loading...
-								</>
-							) : (
-								config.submitLabel
-							)}
+						<Button
+							type="submit"
+							disabled={isLoading || !canSubmit}
+							className="py-5 text-base shadow-xl">
+							{isLoading ? <>Signing in...</> : config.submitLabel}
 						</Button>
 					</div>
 				</form>
 			</Form>
 
 			<footer className="flex justify-center gap-1">
-				<p className="text-14 font-normal text-gray-600">{config.footer.prompt}</p>
-				<Link href={config.footer.linkHref} className="form-link">
-					{config.footer.linkLabel}
-				</Link>
+				<p className="text-sm font-normal text-ink/70">
+					{config.footer.prompt}
+				</p>
+				{config.footer.linkHref && (
+					<Link href={config.footer.linkHref} className="form-link">
+						{config.footer.linkLabel}
+					</Link>
+				)}
 			</footer>
 		</section>
 	)

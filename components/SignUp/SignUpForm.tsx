@@ -2,10 +2,10 @@
 
 import { BaseSyntheticEvent, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm, useFormState, useWatch } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
-import { Loader2 } from 'lucide-react'
+import { ChevronLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { signupSchema } from '@/lib/utils'
 import { type SignUpValues } from '@/lib/auth-form-config'
@@ -35,6 +35,7 @@ const SignUpForm = () => {
 			lastName: '',
 			email: '',
 			password: '',
+			agreeToTerms: false,
 		},
 	})
 
@@ -42,12 +43,16 @@ const SignUpForm = () => {
 
 	const password = useWatch({ control, name: 'password' })
 
+	const { dirtyFields, isValid } = useFormState({ control })
+	const isStepOneFilled = STEP_ONE_FIELDS.every((field) => dirtyFields[field])
+	const canContinue = isStepOneFilled && isValid
+
 	const handleNext = async () => {
 		const valid = await trigger(STEP_ONE_FIELDS)
 		if (valid) setStep((prevStep) => prevStep + 1)
 	}
 
-	const onSubmit = async (data: SignUpValues) => {
+	const onSubmit = async ({ agreeToTerms, ...data }: SignUpValues) => {
 		setIsLoading(true)
 		setServerError('')
 		try {
@@ -65,22 +70,36 @@ const SignUpForm = () => {
 
 	return (
 		<section className="auth-form">
-			<Field className="w-full">
-				<FieldLabel htmlFor="progress-upload">
-					<span>Step {step} of 2 -</span>
-					{step === 1 && <span>Your details</span>}
-					{step === 2 && <span> Optional but recommended</span>}
-				</FieldLabel>
-				<Progress value={(step / 2) * 100} id="progress-upload" />
-			</Field>
-
 			<header className="flex flex-col gap-5 md:gap-8">
+				<div className="flex items-center justify-between">
+					<div className="flex flex-center h-8 w-8 bg-cloud rounded-full">
+						<ChevronLeft size={12} />
+					</div>
+					<Field orientation="horizontal" className="w-fit">
+						<FieldLabel htmlFor="progress-upload">
+							<span>Step {step} of 2</span>
+						</FieldLabel>
+						<Progress
+							value={(step / 2) * 100}
+							id="progress-upload"
+							className="w-10! rounded-sm"
+						/>
+					</Field>
+				</div>
 				<div className="flex flex-col gap-1 md:gap-3">
-					<h1 className="text-24 lg:text-36 font-semibold text-primary-700 text-center">
-						Welcome to Fortify!
+					<h1 className="text-3xl font-bold">
+						{step === 1
+							? 'Create your account'
+							: step === 2
+								? 'Connect your bank'
+								: ''}
 					</h1>
-					<p className="text-12 font-normal text-gray-600 text-center">
-						Hello there, create your account.
+					<p className="text-sm text-ink/70 font-serif italic">
+						{step === 1
+							? "Let's get you started."
+							: step === 2
+								? 'See your full picture, automatically.'
+								: ''}
 					</p>
 				</div>
 			</header>
@@ -97,19 +116,29 @@ const SignUpForm = () => {
 						</div>
 
 						<div className="flex flex-col gap-4">
-							{step === 1 && <Button type="submit">Continue</Button>}
+							{step === 1 && (
+								<Button
+									type="submit"
+									disabled={isLoading || !canContinue}
+									className="py-4 text-base shadow-xl">
+									Continue
+								</Button>
+							)}
 							{step === 2 && user && (
 								<div className="flex flex-col gap-4">
 									<PlaidLink
 										user={user}
 										variant="primary"
 										text="Connect my bank now"
+										redirectTo="/confirmation?connected=true"
+										className="py-4 text-base shadow-xl"
 									/>
 									<Button
 										type="button"
 										onClick={() => redirect('/confirmation')}
 										disabled={isLoading}
-										variant="secondary">
+										variant="secondary"
+										className="py-4 text-base shadow-xl">
 										I'll do this later
 									</Button>
 								</div>
@@ -118,14 +147,16 @@ const SignUpForm = () => {
 					</form>
 				</Form>
 
-				<footer className="flex justify-center gap-1">
-					<p className="text-14 font-normal text-gray-600">
-						Already have an account?
-					</p>
-					<Link href="/signin" className="form-link">
-						Sign In
-					</Link>
-				</footer>
+				{step === 1 && (
+					<footer className="flex justify-center gap-1">
+						<p className="text-sm font-normal text-gray-600">
+							Have an account?
+						</p>
+						<Link href="/signin" className="form-link">
+							Sign In
+						</Link>
+					</footer>
+				)}
 			</>
 		</section>
 	)

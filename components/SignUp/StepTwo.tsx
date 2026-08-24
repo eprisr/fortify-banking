@@ -41,12 +41,24 @@ const StepTwo = () => {
 		<div className="flex w-full max-w-md flex-col gap-6">
 			<ItemGroup className="gap-4">
 				{features.map((feat) => (
-					<Item key={feat.title} variant="outline" asChild role="listitem">
+					<Item
+						key={feat.title}
+						asChild
+						role="listitem"
+						className="rounded-sm bg-cloud/60 p-5">
 						<div>
-							<ItemMedia variant="icon" className="self-center!">
-								{feat.icon === 'chart' && <ChartNoAxesColumn size={60} />}
-								{feat.icon === 'money' && <PiggyBank size={60} />}
-								{feat.icon === 'alert' && <TriangleAlert size={60} />}
+							<ItemMedia
+								variant="icon"
+								className="self-center! w-10 h-10 [&_svg:not([class='size-'])]:size-7">
+								{feat.icon === 'chart' && (
+									<ChartNoAxesColumn size={28} strokeWidth={1.25} />
+								)}
+								{feat.icon === 'money' && (
+									<PiggyBank size={28} strokeWidth={1.25} />
+								)}
+								{feat.icon === 'alert' && (
+									<TriangleAlert size={28} strokeWidth={1.25} />
+								)}
 							</ItemMedia>
 							<ItemContent>
 								<ItemTitle className="line-clamp-1">{feat.title}</ItemTitle>
@@ -56,42 +68,38 @@ const StepTwo = () => {
 					</Item>
 				))}
 			</ItemGroup>
-			<Item
-				className="justify-between"
-				variant="outline"
-				asChild
-				role="listitem">
+			<Item className="justify-between text-ink/70" asChild role="listitem">
 				<div>
-					<div className="flex flex-col">
+					<div className="flex flex-col gap-2">
 						<ItemMedia variant="icon">
 							<Lock />
 						</ItemMedia>
 						<ItemContent>
-							<ItemTitle className="text-10!">256-bit SSL</ItemTitle>
+							<ItemTitle className="text-xxs!">256-bit SSL</ItemTitle>
 						</ItemContent>
 					</div>
-					<div className="flex flex-col">
+					<div className="flex flex-col gap-2">
 						<ItemMedia variant="icon">
 							<Eye />
 						</ItemMedia>
 						<ItemContent>
-							<ItemTitle className="text-10!">Read-only</ItemTitle>
+							<ItemTitle className="text-xxs!">Read-only</ItemTitle>
 						</ItemContent>
 					</div>
-					<div className="flex flex-col">
+					<div className="flex flex-col gap-2">
 						<ItemMedia variant="icon">
 							<Ban />
 						</ItemMedia>
 						<ItemContent>
-							<ItemTitle className="text-10!">Never sold</ItemTitle>
+							<ItemTitle className="text-xxs!">Never sold</ItemTitle>
 						</ItemContent>
 					</div>
-					<div className="flex flex-col">
+					<div className="flex flex-col gap-2">
 						<ItemMedia variant="icon">
 							<Landmark />
 						</ItemMedia>
 						<ItemContent>
-							<ItemTitle className="text-10!">10,000+ banks</ItemTitle>
+							<ItemTitle className="text-xxs!">10,000+ banks</ItemTitle>
 						</ItemContent>
 					</div>
 				</div>

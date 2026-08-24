@@ -60,9 +60,11 @@ declare type Account = {
 	id: string
 	availableBalance: number
 	currentBalance: number
+	creditLimit?: number
 	officialName: string
 	mask: string
 	institutionId: string
+	institutionName: string
 	name: string
 	type: string
 	subtype: string
@@ -186,6 +188,8 @@ declare interface PlaidLinkProps {
 	text?: string
 	dwollaCustomerId?: string
 	update?: boolean
+	redirectTo?: string
+	className?: string
 }
 
 // declare type User = sdk.Models.Document & {
@@ -234,7 +238,6 @@ declare interface NavbarProps {
 	user?: User
 	type: string
 	pageTitle?: string
-	background?: boolean
 }
 
 declare interface TransactionsProps {
@@ -319,6 +322,9 @@ declare interface ResetPwProps {
 	userId: string
 	secret: string
 	password: string
+}
+declare interface ResendRecoveryProps {
+	userId: string
 }
 
 declare interface getUserInfoProps {

@@ -6,12 +6,9 @@ import React from 'react'
 const SignIn = async () => {
 	await connection()
 	return (
-		<>
-			<Navbar type="sub" pageTitle="Sign in" background />
-			<section className="flex-center size-full px-6 bg-white rounded-t-3xl">
-				<AuthForm type="signin" />
-			</section>
-		</>
+		<section className="flex-center size-full px-6 bg-white">
+			<AuthForm type="signin" />
+		</section>
 	)
 }
 

@@ -36,24 +36,20 @@ function CustomInput<T extends FieldValues>({
 							{required && <sup>*</sup>}
 						</FormLabel>
 					</VisuallyHiddenPrimative.Root>
-					<div className="flex w-full flex-col">
+					<div className="flex w-full flex-col bg-cloud rounded-lg">
 						<FormControl>
 							<Input
 								placeholder={placeholder}
-								className="input-class"
 								type={
 									name === 'password' || name === 'confirmPassword'
 										? 'password'
 										: 'text'
 								}
 								id={name}
+								className="h-14 px-5 border-none text-base! placeholder:text-base placeholder:text-ink/40"
 								{...field}
 							/>
 						</FormControl>
-						{name === 'password' ||
-							(name === 'confirmPassword' && (
-								<FormMessage className="form-message mt-2" />
-							))}
 					</div>
 				</FormItem>
 			)}
