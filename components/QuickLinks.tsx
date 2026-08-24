@@ -9,20 +9,21 @@ const QuickLinks = () => {
 		<div>
 			<div className="grid grid-cols-4 gap-2 justify-items-center">
 				{quickLinks.map((link) => {
-					const { Icon, route, label, color } = link
+					const { Icon, route, label } = link
 					const disabled = route === '#'
 					return (
-						<div key={label} className="h-fit w-18 rounded-2xl shadow-card">
+						<div key={label}>
 							<Link
 								href={route}
-								className={`grid grid-rows-2 gap-3 items-center justify-items-center text-center p-2 ${
+								className={`grid grid-rows-[minmax(0,1fr)_auto] gap-3 items-center justify-items-center text-center p-2 ${
 									disabled ? 'cursor-default' : 'cursor-pointer'
 								}`}>
-								<Icon
-									className="text-[16px]"
-									style={{ color: `${disabled ? '#898989' : color}` }}
-								/>
-								<p className="text-xxs text-gray-400">{label}</p>
+								<div className="flex-center h-14 w-14 bg-cloud rounded-2xl">
+									<Icon
+										className={`text-xl ${disabled ? 'text-primary/50' : 'text-primary'}`}
+									/>
+								</div>
+								<p className="text-xs text-ink font-semibold">{label}</p>
 							</Link>
 						</div>
 					)
