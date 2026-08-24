@@ -5,7 +5,6 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-	/* --- Design system palette (new theme) --- */
 	--color-ink: #221f2b;
 	--color-paper: #faf8f4;
 	--color-cloud: #f1eee7;
@@ -19,14 +18,13 @@
 	--color-terracotta: #964937;
 	--color-terracotta-decorative: #bc5b45;
 
-	/* Legacy purple scale — superseded by --color-plum-*, kept only until
-	   every reference below is migrated in the component-audit pass. */
-	--color-primary-100: #f2f1f9;
-	--color-primary-300: #d0cde9;
-	--color-primary-400: #a8a3d7;
-	--color-primary-500: #8c8bd0;
-	--color-primary-600: #5655b9;
-	--color-primary-700: #3629b7;
+	--color-primary-100: #f0e7ee;
+	--color-primary-200: #e1d5de;
+	--color-primary-300: #d1c3ce;
+	--color-primary-400: #b29fae;
+	--color-primary-500: #937c8f;
+	--color-primary-600: #74586f;
+	--color-primary-700: #55344f;
 
 	--color-semantic-error: #bc5b45;
 	--color-semantic-info: #0890fe;
