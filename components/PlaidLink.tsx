@@ -75,9 +75,8 @@ const PlaidLink = ({
 					variant="ghost"
 					className={cn('plaidlink-ghost', className)}>
 					<p className="hidden text-base font-semibold text-neutral-800 xl:block">
-						<MdOutlineAddCard className="text-2xl" />
 						<p className="text-base font-semibold text-neutral-800">
-							Connect Bank
+							{text ? text : 'Connect bank'}
 						</p>
 					</p>
 				</Button>
