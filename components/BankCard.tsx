@@ -73,7 +73,7 @@ const BankCard = ({
 						{credit ? <CreditCard size={12} /> : <Landmark size={12} />}
 						{account.institutionName}
 					</div>
-					<div className="border-[0.5] border-gold-decorative text-gold-decorative text-xxs text-center font-mono uppercase rounded-[4px] px-2 py-1">
+					<div className="border-[0.5] border-gold-decorative text-gold-decorative text-xxs text-center font-mono uppercase rounded-lg px-2 py-1">
 						{account.subtype}
 					</div>
 				</div>
