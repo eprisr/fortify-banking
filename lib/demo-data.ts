@@ -10,6 +10,7 @@ export const DEMO_ACCOUNTS: Account[] = [
 		officialName: 'Fortify Everyday Checking',
 		mask: '4821',
 		institutionId: 'demo_institution',
+		institutionName: 'Demo',
 		name: 'Everyday Checking',
 		type: 'depository',
 		subtype: 'checking',
@@ -23,10 +24,26 @@ export const DEMO_ACCOUNTS: Account[] = [
 		officialName: 'Fortify High-Yield Savings',
 		mask: '7790',
 		institutionId: 'demo_institution',
+		institutionName: 'Demo',
 		name: 'High-Yield Savings',
 		type: 'depository',
 		subtype: 'savings',
 		appwriteItemId: 'demo-bank-savings',
+		shareableId: 'ZGVtby1hY2NvdW50LXNhdmluZ3M=',
+	},
+	{
+		id: 'demo-account-credit',
+		availableBalance: 4830.0,
+		currentBalance: 1170.0,
+		creditLimit: 6000.0,
+		officialName: 'Fortify Signature Credit',
+		mask: '1006',
+		institutionId: 'demo_institution',
+		institutionName: 'Demo',
+		name: 'Signature Credit',
+		type: 'credit',
+		subtype: 'credit',
+		appwriteItemId: 'demo-bank-credit',
 		shareableId: 'ZGVtby1hY2NvdW50LXNhdmluZ3M=',
 	},
 ]
@@ -168,19 +185,28 @@ export const isDemoAppwriteItemId = (appwriteItemId?: string) =>
 // (keeps the demo dataset stable across page reloads).
 const jitter = (base: number, seed: number) => {
 	const delta = ((seed * 37) % 11) - 5
-	return Math.max(1, Math.round((base + delta * (base > 100 ? 4 : 0.4)) * 100) / 100)
+	return Math.max(
+		1,
+		Math.round((base + delta * (base > 100 ? 4 : 0.4)) * 100) / 100,
+	)
 }
 
 export const getDemoTransactions = (accountId: string): Transaction[] => {
-	const items = accountId === DEMO_ACCOUNTS[1].id ? SAVINGS_ITEMS : CHECKING_ITEMS
+	const items =
+		accountId === DEMO_ACCOUNTS[1].id ? SAVINGS_ITEMS : CHECKING_ITEMS
 	const today = new Date()
 	const transactions: Transaction[] = []
 
 	for (let monthsAgo = 13; monthsAgo >= 0; monthsAgo--) {
-		const monthDate = new Date(today.getFullYear(), today.getMonth() - monthsAgo, 1)
+		const monthDate = new Date(
+			today.getFullYear(),
+			today.getMonth() - monthsAgo,
+			1,
+		)
 		const year = monthDate.getFullYear()
 		const month = monthDate.getMonth() + 1
-		const maxDay = monthsAgo === 0 ? today.getDate() : new Date(year, month, 0).getDate()
+		const maxDay =
+			monthsAgo === 0 ? today.getDate() : new Date(year, month, 0).getDate()
 
 		items.forEach((item, index) => {
 			// Skip the quarterly savings transfer in non-matching months.

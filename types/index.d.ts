@@ -60,9 +60,11 @@ declare type Account = {
 	id: string
 	availableBalance: number
 	currentBalance: number
+	creditLimit?: number
 	officialName: string
 	mask: string
 	institutionId: string
+	institutionName: string
 	name: string
 	type: string
 	subtype: string
