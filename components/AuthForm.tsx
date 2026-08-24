@@ -84,9 +84,11 @@ const AuthForm = ({
 		<section className="auth-form">
 			{config.heading && (
 				<header className="flex flex-col gap-5 md:gap-8">
-					<div className="flex flex-center h-8 w-8 bg-cloud rounded-full">
-						<ChevronLeft size={12} />
-					</div>
+					{type !== 'signin' && (
+						<div className="flex flex-center h-8 w-8 bg-cloud rounded-full">
+							<ChevronLeft size={12} />
+						</div>
+					)}
 					<div className="flex flex-col gap-1 md:gap-3">
 						<h1 className="text-3xl font-bold">{config.heading}</h1>
 						<p className="text-sm text-ink/60 font-serif italic">
