@@ -338,6 +338,10 @@ export const signupSchema = z.object({
 	password: passwordField,
 })
 
+export const waitlistSchema = z.object({
+	email: emailField,
+})
+
 export const dwollaSchema = z.object({
 	address1: z.string().min(5, { error: 'Address is Required' }).max(50),
 	city: z.string().min(2, { error: 'City is Required' }).max(50),
