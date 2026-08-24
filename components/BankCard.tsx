@@ -59,7 +59,7 @@ const BankCard = ({
 									4.10 APY
 								</p>
 							)}
-							{credit && (
+							{credit && account.creditLimit && (
 								<p className="text-xxs tracking-wide font-normal text-paper/70 font-sans">
 									{formatAmount(account.availableBalance)} available of{' '}
 									{formatAmount(account?.creditLimit)} limit
