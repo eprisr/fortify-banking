@@ -2,8 +2,8 @@ import { ChevronLeft } from 'lucide-react'
 import React from 'react'
 
 const Terms = () => {
-  return (
-		<section className="size-full px-6 text-sm bg-white rounded-t-3xl">
+	return (
+		<section className="size-full px-6 text-sm bg-white">
 			<header className="flex items-center gap-4">
 				<div className="flex flex-center h-8 w-8 bg-cloud rounded-full">
 					<ChevronLeft size={12} />
@@ -54,11 +54,17 @@ const Terms = () => {
 					connecting an account, you authorize these providers to access account
 					information — such as balances and transaction history — on your
 					behalf, governed by their respective privacy policies in addition to
-          this one.
-          <div className="bg-plum/10 p-5 rounded-md mt-4">
-            <p className="uppercase font-semibold text-plum text-xs mb-4">Good to know</p>
-            <p>You can disconnect a linked bank account at any time from Settings. Disconnecting doesn't delete your Fortify account or transaction history.</p>
-          </div>
+					this one.
+					<div className="bg-plum/10 p-5 rounded-md mt-4">
+						<p className="uppercase font-semibold text-plum text-xs mb-4">
+							Good to know
+						</p>
+						<p>
+							You can disconnect a linked bank account at any time from
+							Settings. Disconnecting doesn't delete your Fortify account or
+							transaction history.
+						</p>
+					</div>
 				</li>
 				<li className="mb-4">
 					<span className="text-base font-heading font-bold text-primary leading-10">
@@ -76,10 +82,18 @@ const Terms = () => {
 					</span>{' '}
 					<br />
 					<ul className="list-disc ps-5">
-            <li>Using Fortify for illegal transactions, money laundering, or fraud</li>
-            <li>Attempting to access another member's account without authorization</li>
-            <li>Reverse engineering or interfering with Fortify's systems or security</li>
-          </ul>
+						<li>
+							Using Fortify for illegal transactions, money laundering, or fraud
+						</li>
+						<li>
+							Attempting to access another member's account without
+							authorization
+						</li>
+						<li>
+							Reverse engineering or interfering with Fortify's systems or
+							security
+						</li>
+					</ul>
 				</li>
 				<li className="mb-4">
 					<span className="text-base font-heading font-bold text-primary leading-10">

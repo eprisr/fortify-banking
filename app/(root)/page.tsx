@@ -30,7 +30,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 	return (
 		<>
 			<Navbar user={loggedIn} type="main" background />
-			<section className="home bg-background rounded-t-3xl min-h-[calc(100vh-152px)] mb-24">
+			<section className="home bg-background min-h-[calc(100vh-152px)] mb-24">
 				<div className="home-content">
 					{(emptyAccount || demoAccount) && (
 						<div className={`${emptyAccount && 'account-update'} mt-10`}>
