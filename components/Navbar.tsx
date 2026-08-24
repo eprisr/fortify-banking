@@ -54,7 +54,7 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 					: 'night'
 
 	return (
-		<section className="border-t border-gray-400">
+		<section>
 			{type === 'main' && user ? (
 				<nav className="flex w-full items-center gap-4 p-4">
 					<Sheet modal={false}>
