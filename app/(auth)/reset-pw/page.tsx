@@ -1,18 +1,22 @@
 import { connection } from 'next/server'
 import AuthForm from '@/components/AuthForm'
 import Navbar from '@/components/Navbar'
+import ResendRecoveryButton from '@/components/ResendRecoveryButton'
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
+import { Check, Clock } from 'lucide-react'
 
 const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 	await connection()
 
 	const { userId, secret, expire, success } = await searchParams
 
-	const expireToTime = expire?.toString().replace(' ', 'T')
+	const successful = success === 'true'
 
-	const expireDate = new Date(`${expireToTime!}Z`)
+	const expireToTime = expire?.toString().replace('\\', '')
+
+	const expireDate = new Date(`${expireToTime!}`)
 	const todaysDate = new Date()
 
 	const expired = expireDate < todaysDate
@@ -21,55 +25,48 @@ const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 	const secretString = secret?.toString()
 
 	return (
-		<>
-			<Navbar type="sub" pageTitle="Reset password" />
-			<section className="flex-center size-full px-6 bg-white">
-				{expired ? (
-					<div className="flex flex-col items-center py-10">
-						<Image
-							src="/icons/reset-expired.svg"
-							alt="Expired Reset Password Illustration"
-							width="300"
-							height="300"
-							className="pb-10"
-						/>
-						<div className="flex flex-col items-center gap-4">
-							<p>This password link has expired.</p>
-							<Link href="/forgot-password" className="text-primary-700">
-								Request a new link
-							</Link>
-						</div>
+		<section className="flex flex-col justify-center w-full h-[calc(100vh-72px)] px-6 bg-white">
+			{(expired || successful) && (
+				<div className="flex flex-col justify-center flex-center gap-5 text-center">
+					<div
+						className={`flex items-center justify-center h-13 w-13 rounded-full ${successful ? 'bg-semantic-success/10' : 'bg-semantic-danger/10'}`}>
+						{successful ? (
+							<Check className="text-semantic-success" size={24} />
+						) : (
+							<Clock className="text-semantic-danger" size={24} />
+						)}
 					</div>
-				) : success === 'true' ? (
-					<div className="flex flex-col items-center py-10">
-						<Image
-							src="/icons/pw-success.svg"
-							alt="Successful Reset Password Illustration"
-							width="300"
-							height="300"
-							className="pb-10"
-						/>
-						<div className="flex flex-col items-center gap-4">
-							<p className="text-primary-700">Change password successfully!</p>
-							<p>
-								You have successfully changed your password. Please use the new
-								password to sign in.
-							</p>
-							<Link
-								href="/signin"
-								className="w-full inline-flex items-center justify-center  rounded-2xl px-4 py-2 bg-primary-700 text-white">
-								Ok
-							</Link>
+					<p
+						className={`uppercase ${successful ? 'text-semantic-success' : 'text-semantic-danger'} text-xs tracking-wider font-semibold`}>
+						{successful ? 'Password updated' : 'Link expired'}
+					</p>
+					<h1 className="text-3xl font-bold">
+						{successful ? 'All set!' : 'This link has expired.'}
+					</h1>
+					<p className="font-normal text-ink/60">
+						{successful
+							? 'Your password has been changed. Use it the next time you sign in.'
+							: 'For your security, password reset links only last a short while. Request a new one to continue.'}
+					</p>
+					{expired && !successful && (
+						<div className="w-full mt-5">
+							<ResendRecoveryButton userId={userIdString} />
 						</div>
-					</div>
-				) : (
-					<AuthForm
-						type="reset-pw"
-						resetParams={{ userId: userIdString, secret: secretString }}
-					/>
-				)}
-			</section>
-		</>
+					)}
+					<Link
+						href="/signin"
+						className={`font-semibold text-primary ${success && 'w-full inline-flex items-center justify-center  rounded-xl px-4 py-4 bg-primary text-white shadow-xl mt-2'}`}>
+						Back to sign in
+					</Link>
+				</div>
+			)}
+			{!expired && !successful && (
+				<AuthForm
+					type="reset-pw"
+					resetParams={{ userId: userIdString, secret: secretString }}
+				/>
+			)}
+		</section>
 	)
 }
 

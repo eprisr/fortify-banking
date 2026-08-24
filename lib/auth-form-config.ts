@@ -18,6 +18,11 @@ export type ResetParams = {
 	secret: string | undefined
 }
 
+export type ResetStatus = {
+	expired: boolean | undefined
+	success: boolean | undefined
+}
+
 export const AUTH_SCHEMAS = {
 	signin: signinSchema,
 	'forgot-pw': forgotPwSchema,
@@ -53,9 +58,9 @@ type FormConfig = {
 		forgotPasswordLink: boolean
 	}
 	footer: {
-		prompt: string
-		linkHref: string
-		linkLabel: string
+		prompt: string | null
+		linkHref: string | null
+		linkLabel: string | null
 	}
 }
 
@@ -77,8 +82,9 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 		},
 	},
 	'forgot-pw': {
-		heading: null,
-		subheading: null,
+		heading: 'Reset your password',
+		subheading:
+			"Enter the email on your account and we'll send a code to verify it's you.",
 		submitLabel: 'Send',
 		fields: {
 			email: true,
@@ -93,8 +99,8 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 		},
 	},
 	'reset-pw': {
-		heading: null,
-		subheading: null,
+		heading: 'Set a new password',
+		subheading: "Make it something you'll remember.",
 		submitLabel: 'Reset Password',
 		fields: {
 			email: false,
@@ -103,9 +109,9 @@ export const FORM_CONFIG: Record<AuthFormType, FormConfig> = {
 			forgotPasswordLink: false,
 		},
 		footer: {
-			prompt: 'Remembered your password?',
-			linkHref: '/signin',
-			linkLabel: 'Sign In',
+			prompt: null,
+			linkHref: null,
+			linkLabel: null,
 		},
 	},
 }

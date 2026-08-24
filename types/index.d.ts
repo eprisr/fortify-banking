@@ -322,6 +322,9 @@ declare interface ResetPwProps {
 	secret: string
 	password: string
 }
+declare interface ResendRecoveryProps {
+	userId: string
+}
 
 declare interface getUserInfoProps {
 	userId: string

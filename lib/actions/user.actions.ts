@@ -114,6 +114,26 @@ export const resetPw = async ({
 	}
 }
 
+export const resendRecoveryLink = async ({
+	userId,
+}: ResendRecoveryProps): Promise<ActionResponse<User>> => {
+	try {
+		const { account, user } = await createAdminClient()
+
+		const target = await user.get({ userId })
+
+		const res = await account.createRecovery({
+			email: target.email,
+			url: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`,
+		})
+
+		return { success: true, data: parseStringify(res) }
+	} catch (error: any) {
+		console.error('An Error Occurred while Resending Recovery Link: ', error)
+		return { success: false, error: 'Failed to resend recovery link' }
+	}
+}
+
 export const signUp = async ({
 	password,
 	...userData

@@ -1,10 +1,10 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { useForm, useFormState } from 'react-hook-form'
+import { useForm, useFormState, useWatch } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, CircleCheckBigIcon, CircleIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -16,6 +16,8 @@ import {
 	getAuthResolver,
 } from '@/lib/auth-form-config'
 import CustomInput from './CustomInput'
+import { passwordRequirements } from '@/lib/utils'
+import { Item, ItemContent, ItemMedia, ItemTitle } from './ui/item'
 
 const AuthForm = ({
 	type,
@@ -52,6 +54,10 @@ const AuthForm = ({
 		},
 	})
 
+	const { control } = form
+
+	const password = useWatch({ control, name: 'password' })
+
 	const { dirtyFields, errors } = useFormState({ control: form.control })
 
 	const requiredFields = (
@@ -59,8 +65,8 @@ const AuthForm = ({
 	).filter((field) => config.fields[field])
 
 	const isFilledForm = requiredFields.every((field) => dirtyFields[field])
-	const isEmailValid = !config.fields.email || !errors.email
-	const canSubmit = isFilledForm && isEmailValid
+	const isFormValid = requiredFields.every((field) => !errors[field])
+	const canSubmit = isFilledForm && isFormValid
 
 	const onSubmit = async (data: AuthFormValues) => {
 		setIsLoading(true)
@@ -115,9 +121,41 @@ const AuthForm = ({
 							control={form.control}
 							name="password"
 							label="Password"
-							placeholder="Password"
+							placeholder={
+								type === 'reset-pw' ? 'Enter new password' : 'Password'
+							}
 							required
 						/>
+					)}
+
+					{type === 'reset-pw' && (
+						<div className="grid grid-cols-2 grid-rows-2 gap-2">
+							{passwordRequirements.map(({ label, test }) => {
+								const met = test(password ?? '')
+								return (
+									<Item className="p-0" size="sm" key={label} asChild>
+										<div>
+											<ItemMedia
+												className={
+													met ? 'text-semantic-success' : 'text-ink/30'
+												}>
+												{met ? (
+													<CircleCheckBigIcon className="size-5" />
+												) : (
+													<CircleIcon className="size-5" />
+												)}
+											</ItemMedia>
+											<ItemContent>
+												<ItemTitle
+													className={`text-xs! ${met ? 'text-black' : 'text-ink/30'}`}>
+													{label}
+												</ItemTitle>
+											</ItemContent>
+										</div>
+									</Item>
+								)
+							})}
+						</div>
 					)}
 
 					{config.fields.confirmPassword && (
@@ -125,7 +163,11 @@ const AuthForm = ({
 							control={form.control}
 							name="confirmPassword"
 							label="Confirm Password"
-							placeholder="Confirm your password"
+							placeholder={
+								type === 'reset-pw'
+									? 'Re-enter new password'
+									: 'Confirm your password'
+							}
 							required
 						/>
 					)}
@@ -156,9 +198,11 @@ const AuthForm = ({
 				<p className="text-sm font-normal text-ink/50">
 					{config.footer.prompt}
 				</p>
-				<Link href={config.footer.linkHref} className="form-link">
-					{config.footer.linkLabel}
-				</Link>
+				{config.footer.linkHref && (
+					<Link href={config.footer.linkHref} className="form-link">
+						{config.footer.linkLabel}
+					</Link>
+				)}
 			</footer>
 		</section>
 	)
