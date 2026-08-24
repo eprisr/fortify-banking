@@ -45,7 +45,7 @@ export const BankDropdown = ({
 				defaultValue={selected?.id || ''}
 				onValueChange={(value) => handleBankChange(value)}>
 				<SelectTrigger
-					className={`flex w-full gap-3 md:w-[300px] bg-white ${otherStyles}`}>
+					className={`flex w-full gap-3 md:w-75 bg-white ${otherStyles}`}>
 					<Image
 						src="icons/credit-card.svg"
 						width={20}
@@ -55,7 +55,7 @@ export const BankDropdown = ({
 					<p className="line-clamp-1 w-full text-left">{selected?.name}</p>
 				</SelectTrigger>
 				<SelectContent
-					className={`w-full md:w-[300px] bg-white ${otherStyles}`}
+					className={`w-full md:w-75 bg-white ${otherStyles}`}
 					align="end">
 					<SelectGroup>
 						<SelectLabel className="py-2 font-normal text-gray-500">

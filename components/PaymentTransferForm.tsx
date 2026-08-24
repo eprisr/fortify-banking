@@ -164,7 +164,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 							render={({ field }) => (
 								<FormItem>
 									<div className="payment-transfer_form-item pb-5 pt-6">
-										<FormLabel className="text-sm w-full max-w-[280px] font-medium text-gray-700">
+										<FormLabel className="text-sm w-full max-w-70 font-medium text-gray-700">
 											Recipient&apos;s Name
 										</FormLabel>
 										<div className="flex w-full flex-col">
@@ -184,7 +184,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 							render={({ field }) => (
 								<FormItem>
 									<div className="payment-transfer_form-item py-5">
-										<FormLabel className="text-sm w-full max-w-[280px] font-medium text-gray-700">
+										<FormLabel className="text-sm w-full max-w-70 font-medium text-gray-700">
 											Recipient&apos;s Email Address
 										</FormLabel>
 										<div className="flex w-full flex-col">
@@ -204,7 +204,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 							render={({ field }) => (
 								<FormItem>
 									<div className="payment-transfer_form-item pb-5 pt-6">
-										<FormLabel className="text-sm w-full max-w-[280px] font-medium text-gray-700">
+										<FormLabel className="text-sm w-full max-w-70 font-medium text-gray-700">
 											Recipient&apos;s Sharable Id
 										</FormLabel>
 										<div className="flex w-full flex-col">
@@ -231,7 +231,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 								return (
 									<FormItem>
 										<div className="payment-transfer_form-item py-5">
-											<FormLabel className="text-sm w-full max-w-[280px] font-medium text-gray-700">
+											<FormLabel className="text-sm w-full max-w-70 font-medium text-gray-700">
 												Amount
 											</FormLabel>
 											<div className="flex w-full flex-col relative currency-input">
