@@ -229,7 +229,7 @@
 	}
 
 	.profile-img {
-		@apply flex-center size-12 rounded-full bg-gray-100 border-2 border-gray-300 p-2;
+		@apply flex-center size-12 rounded-full bg-primary p-2;
 	}
 
 	.profile-details {
@@ -249,6 +249,17 @@
 	}
 	.home-header {
 		@apply flex flex-col justify-between gap-8;
+	}
+	.header-box {
+		@apply flex flex-col gap-1;
+	}
+
+	.header-box-title {
+		@apply text-xs font-light;
+	}
+
+	.header-box-subtext {
+		@apply text-base font-medium;
 	}
 	.account-update {
 		@apply flex bg-primary text-primary-foreground px-5 py-10 -mx-5 -mt-6;
@@ -311,18 +322,6 @@
 	/* My Banks */
 	.my-banks {
 		@apply flex h-screen max-h-screen w-full flex-col gap-8 bg-gray-25 p-8 xl:py-12;
-	}
-
-	.header-box {
-		@apply flex flex-col gap-1;
-	}
-
-	.header-box-title {
-		@apply text-xs lg:text-lg font-light text-primary-foreground;
-	}
-
-	.header-box-subtext {
-		@apply text-base font-medium text-primary-foreground/70;
 	}
 
 	.banktab-item {

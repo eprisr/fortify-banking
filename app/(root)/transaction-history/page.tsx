@@ -19,7 +19,7 @@ const TransactionHistory = async ({ searchParams }: SearchParamProps) => {
 
 	return (
 		<>
-			<Navbar type="sub" pageTitle="Transaction history" background />
+			<Navbar type="sub" pageTitle="Transaction history" />
 			<section className="flex flex-col px-5 sm:px-6 py-5 lg:py-6 bg-white min-h-[calc(100vh_-_152px)]">
 				<Transactions
 					accounts={accountsData}

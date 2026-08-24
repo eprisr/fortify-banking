@@ -236,7 +236,6 @@ declare interface NavbarProps {
 	user?: User
 	type: string
 	pageTitle?: string
-	background?: boolean
 }
 
 declare interface TransactionsProps {

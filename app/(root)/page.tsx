@@ -29,7 +29,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 
 	return (
 		<>
-			<Navbar user={loggedIn} type="main" background />
+			<Navbar user={loggedIn} type="main" />
 			<section className="home bg-background min-h-[calc(100vh-152px)] mb-24">
 				<div className="home-content">
 					{(emptyAccount || demoAccount) && (

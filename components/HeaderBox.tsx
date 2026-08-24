@@ -13,13 +13,11 @@ const HeaderBox = ({
 			<h1
 				className={cn(
 					'header-box-title',
-					type === 'greeting' && 'font-ibmPlexSerif italic font-normal',
+					type === 'greeting' && 'text-xxs text-ink/40',
 				)}>
 				{title} <br />
 				{type === 'greeting' && user !== 'Guest' && (
-					<span className="text-lg text-primary-foreground font-bold">
-						{user}!
-					</span>
+					<span className="font-serif text-base text-ink">{user}!</span>
 				)}
 			</h1>
 			<p className="header-box-subtext">{subtext}</p>

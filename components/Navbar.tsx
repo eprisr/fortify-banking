@@ -21,12 +21,7 @@ import { useMobileContainer } from './mobile-container'
 import { ChevronRight } from 'lucide-react'
 import { Button } from './ui/button'
 
-const Navbar = ({
-	user,
-	type,
-	pageTitle = '',
-	background = false,
-}: NavbarProps) => {
+const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 	const container = useMobileContainer()
 	let path
 
@@ -47,17 +42,28 @@ const Navbar = ({
 
 	const links = Object.groupBy(navLinks, ({ category }) => category)
 
+	const date = new Date()
+	const hours = date.getHours()
+	const timeOfDay =
+		hours >= 1 && hours < 12
+			? 'morning'
+			: hours >= 12 && hours < 17
+				? 'afternoon'
+				: hours >= 17 && hours < 20
+					? 'evening'
+					: 'night'
+
 	return (
-		<section
-			className={cn('pt-4 pb-0', { 'bg-primary pb-5 -mb-5': background })}>
+		<section className="border-t border-gray-400">
 			{type === 'main' && user ? (
 				<nav className="flex w-full items-center gap-4 p-4">
 					<Sheet modal={false}>
 						<SheetTrigger>
 							<div className="profile">
 								<div className="profile-img">
-									<span className="text-xl font-bold text-primary">
+									<span className="text-lg font-bold text-white">
 										{user?.firstName[0]}
+										{user?.lastName[0]}
 									</span>
 								</div>
 							</div>
@@ -131,19 +137,18 @@ const Navbar = ({
 					<header className="home-header">
 						<HeaderBox
 							type="greeting"
-							title="Good Morning,"
+							title={'Good ' + `${timeOfDay}` + ','}
 							user={`${user?.firstName + ' ' + user?.lastName}` || 'Guest'}
 							subtext=""
 						/>
 					</header>
 
-					<BiBell className="w-5 h-5 text-white justify-self-end ml-auto" />
+					<div className="flex flex-center w-10 h-10 justify-self-end ml-auto bg-cloud/70 rounded-full">
+						<BiBell className="w-5 h-5" />
+					</div>
 				</nav>
 			) : (
-				<nav
-					className={cn('px-6 py-4 gap-4 font-semibold', {
-						'text-white': background,
-					})}>
+				<nav className="px-6 py-4 gap-4 font-semibold">
 					<Link href={path} className="flex w-full items-center gap-2">
 						{pageTitle !== 'Sign in' && <BiChevronLeft className="size-6" />}
 						<p>{pageTitle}</p>
