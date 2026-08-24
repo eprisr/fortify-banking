@@ -10,7 +10,7 @@ const MobileMenu = () => {
 	const pathname = usePathname()
 
 	return (
-		<div className="w-full max-w-107.5 flex flex-nowrap items-center justify-between px-10 py-5 bg-white fixed bottom-0 shadow-cardSmall">
+		<div className="w-full max-w-107.5 flex flex-nowrap items-center justify-between px-10 py-5 bg-white border border-t-ink/10 fixed bottom-0">
 			{mobileLinks.map((link) => {
 				const { Icon, route, label } = link
 				const active = pathname === route
@@ -20,19 +20,23 @@ const MobileMenu = () => {
 					<div
 						key={label}
 						className={cn('text-gray-500', {
-							'text-purple-800': active,
+							'text-white': active,
+							'bg-primary': active,
+							'rounded-full': active,
+							'py-2': active,
+							'px-4': active,
 						})}>
 						<Link
 							href={route}
-							className={cn('flex flex-col gap-1 items-center justify-center', {
+							className={cn('flex gap-2 items-center justify-center', {
 								'cursor-default': disabled,
 							})}>
 							<Icon
 								className={cn('text-xl text-gray-500', {
-									'text-purple-800': active,
+									'text-white': active,
 								})}
 							/>
-							<p className={cn('text-xs')}>{label}</p>
+							{active && <p className={cn('text-xs font-semibold')}>{label}</p>}
 						</Link>
 					</div>
 				)
