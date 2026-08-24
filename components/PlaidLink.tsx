@@ -84,17 +84,8 @@ const PlaidLink = ({
 				<Button
 					onClick={() => open()}
 					disabled={!ready}
-					className={cn('w-full p-0', className)}>
-					<div className="connect-box">
-						<MdOutlineAddCard className="text-2xl mr-2" />
-						<div className="text-left shrink-[5]">
-							<h3 className="font-extrabold">Connect your bank</h3>
-							<p className="font-extralight text-xs text-wrap">
-								Link an account to unlock your full dashboard
-							</p>
-						</div>
-						<MdOutlineArrowCircleRight className="text-2xl ml-5" />
-					</div>
+					className={cn(className)}>
+					Connect
 				</Button>
 			) : variant === 'relink' ? (
 				<Button
