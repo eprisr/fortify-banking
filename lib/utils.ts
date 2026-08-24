@@ -232,12 +232,12 @@ interface SumByKeyOptions {
 	strict?: boolean
 }
 
-export function sumTransTotalsByMonth<T extends Record<string, unknown>>(
+export const sumTransTotalsByKey = <T extends Record<string, unknown>>(
 	arr: T[],
 	key: keyof T,
 	valueKey: keyof T,
 	{ strict = false }: SumByKeyOptions = {},
-): Record<string, number> {
+): Record<string, number> => {
 	if (!Array.isArray(arr)) {
 		throw new TypeError('First argument must be an array')
 	}
