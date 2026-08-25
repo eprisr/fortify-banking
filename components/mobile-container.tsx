@@ -16,7 +16,7 @@ export function MobileContainer({ children }: { children: React.ReactNode }) {
 		<MobileContainerCtx.Provider value={container}>
 			<div
 				ref={ref}
-				className="relative mx-auto min-h-screen w-full max-w-107.5 pt-9 bg-white shadow-xl transform-[translateZ(0)]">
+				className="relative mx-auto my-auto h-166.75 w-full max-w-93.75 p-9 bg-white rounded-2xl shadow-xl top-1/2 transform-[translateY(10%)] overflow-scroll">
 				{children}
 			</div>
 		</MobileContainerCtx.Provider>
