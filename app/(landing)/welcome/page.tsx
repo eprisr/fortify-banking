@@ -195,7 +195,7 @@ const Landing = () => {
 					aria-labelledby="features-heading"
 					className="flex flex-col items-center justify-center gap-10 px-5 sm:px-10 lg:px-20 xl:px-40 py-16 lg:py-20">
 					<div className="text-center">
-						<p>Features</p>
+						<p className="text-primary font-semibold">Features</p>
 						<h2 id="features-heading">Everything your finances need</h2>
 						<p className="mt-2">
 							Built for people who want clarity, not complexity.
@@ -217,7 +217,7 @@ const Landing = () => {
 					aria-labelledby="works-heading"
 					className="flex flex-col items-center justify-center gap-10 px-5 sm:px-10 lg:px-20 xl:px-40 py-16 lg:py-24 bg-plum-tint border border-gray-200">
 					<div className="text-center">
-						<p>How It Works</p>
+						<p className="text-primary font-semibold">How It Works</p>
 						<h2 id="works-heading">Up and running in three steps</h2>
 					</div>
 					<div className="grid grid-cols-1 sm:grid-cols-3 text-center gap-10 sm:gap-16 relative w-full max-w-4xl">
@@ -242,7 +242,7 @@ const Landing = () => {
 					aria-labelledby="security-heading"
 					className="flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-6 px-5 sm:px-10 lg:px-20 xl:px-50 py-16 lg:py-20">
 					<div className="w-full lg:w-1/2 text-center lg:text-left">
-						<p>Security</p>
+						<p className="text-primary font-semibold">Security</p>
 						<h2 className="lg:max-w-[12ch] text-3xl lg:text-4xl my-4">
 							Built with your safety first.
 						</h2>
