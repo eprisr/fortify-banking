@@ -1,0 +1,83 @@
+# ADR-007: Security Hardening Pass
+
+**Date:** 2026-08-25  
+**Status:** Proposed  
+**Author:** Epris R.
+
+---
+
+## Context
+
+A security audit ahead of the Plaid OAuth and 2FA work surfaced three categories of concern. All three are rooted in the same underlying pattern: server actions in `lib/actions/user.actions.ts` return third-party SDK responses wholesale via `parseStringify()` rather than narrow DTOs shaped to what the UI actually needs. Before going deeper into bank linking and payment flows, these need to be addressed.
+
+---
+
+## Decision
+
+Complete a focused security hardening pass covering three items before implementing Plaid OAuth or 2FA. No new features until this is done.
+
+---
+
+## The Three Issues
+
+### 1. Recovery token likely leaking to the client (Critical)
+
+`forgotPw`, `resetPw`, and `resendRecoveryLink` in `lib/actions/user.actions.ts` all return `{ data: parseStringify(res) }` where `res` is Appwrite's `Models.Token`. That type's `secret` field is documented as empty unless the response is returned using an API key. All three calls go through `createAdminClient()`, which authenticates with an API key, so `secret` is likely populated with the real plaintext recovery token in the server action response.
+
+Because Next.js serializes server action returns to the browser, that token would be visible in the Network or RSC panel. In practice, `forgotPw` or `resendRecoveryLink` could hand out a working reset token without the user ever opening their email.
+
+**Fix:** Confirm against an actual network capture, then strip `secret` and any other sensitive fields before the data is returned. Each action should return a narrow DTO containing only what the UI needs, not the full SDK model.
+
+### 2. Input sanitization on free-text fields
+
+Zod schemas validate shape, format, and length on all inputs, but there's no explicit sanitization pass on free-text fields — names, any transfer memo or note fields, profile fields — against injection before they're persisted, emailed, or forwarded to Dwolla or Plaid.
+
+**Fix:** Add a sanitization pass on all free-text fields at the server action boundary, before any value is written to Appwrite, sent to a third-party service, or included in an outbound email.
+
+### 3. Broader audit of what crosses the wire
+
+Item 1 is one instance of a pattern that likely appears elsewhere. Every `parseStringify()` call in `lib/actions/*.ts` that wraps a third-party SDK response, Appwrite, Dwolla, or Plaid, should be checked for fields the UI doesn't need. SDK models often carry more than expected, and forwarding them wholesale means sensitive or irrelevant data crosses the wire on every call.
+
+**Fix:** Grep `lib/actions/*.ts` for every `parseStringify()` call. For each one, confirm what the wrapped object actually contains at runtime and replace any wholesale SDK returns with narrow, explicitly shaped DTOs. Note: the `dwolla_customer_upgrade_path` is a known additional site worth checking under this item.
+
+---
+
+## Alternatives Considered
+
+| Option                                         | Pros                                                                                      | Cons                                                                                                       |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Fix now, before Plaid OAuth/2FA** _(chosen)_ | Security debt doesn't compound into more complex flows, easier to audit a smaller surface | Delays feature work                                                                                        |
+| **Fix alongside Plaid OAuth/2FA**              | No delay                                                                                  | Security issues get harder to isolate when the surface is growing                                          |
+| **Fix later**                                  | None                                                                                      | The `secret` leak in particular is a critical issue that shouldn't ship in any state resembling production |
+
+---
+
+## Consequences (Expected)
+
+**Good:**
+
+- The `secret` leak is closed before any further auth work builds on top of it.
+- Establishing narrow DTOs per action is a better long-term pattern regardless, making future audits faster and the data contract between server and client explicit.
+- The sanitization pass sets a consistent baseline before Dwolla payment flows introduce additional free-text fields like transfer memos.
+
+**Bad / Trade-offs:**
+
+- Every `parseStringify()` call needs to be audited individually. Some may be fine, some may need new DTO types. It's thorough work, not quick work.
+
+**Risks:**
+
+- The network capture to confirm item 1 is a required first step. If `secret` isn't populated in practice, the severity of that item changes, though the broader DTO pattern is still the right fix regardless.
+
+---
+
+## Consequences (Actual)
+
+_To be filled in after implementation._
+
+---
+
+## References
+
+- [Appwrite Models.Token documentation](https://appwrite.io/docs/references/cloud/models/token)
+- [ADR-001: Appwrite over Supabase and Firebase](ADR-001-appwrite-vs-supabase-firebase.md)
+- Security backlog surfaced during reset-pw resend work, 2026-08-24
