@@ -54,7 +54,7 @@ const StepOne = ({ control, password }: StepOneProps) => {
 				{passwordRequirements.map(({ label, test }) => {
 					const met = test(password ?? '')
 					return (
-						<Item className="p-0" size="sm" key={label} asChild>
+						<Item className="gap-1.5 p-0" size="sm" key={label} asChild>
 							<div>
 								<ItemMedia
 									className={met ? 'text-semantic-success' : 'text-ink/30'}>
