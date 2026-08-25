@@ -19,14 +19,8 @@ import '@testing-library/jest-dom'
 import { useRouter } from 'next/navigation'
 import PaymentTransferForm from '@/components/PaymentTransferForm'
 import TransferPage from '@/app/(root)/payment-transfer/page'
-import {
-	getLoggedInUser,
-	getBank,
-	getBankByAccountId,
-} from '@/lib/actions/user.actions'
+import { getLoggedInUser, transferFunds } from '@/lib/actions/user.actions'
 import { getAccounts } from '@/lib/actions/bank.actions'
-import { createTransfer } from '@/lib/actions/dwolla.actions'
-import { createTransaction } from '@/lib/actions/transaction.actions'
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -85,21 +79,12 @@ jest.mock('@/lib/utils', () => {
 
 jest.mock('@/lib/actions/user.actions', () => ({
 	getLoggedInUser: jest.fn(),
-	getBank: jest.fn(),
-	getBankByAccountId: jest.fn(),
+	transferFunds: jest.fn(),
 }))
 
 jest.mock('@/lib/actions/bank.actions', () => ({
 	getAccounts: jest.fn(),
 	getAccount: jest.fn(),
-}))
-
-jest.mock('@/lib/actions/dwolla.actions', () => ({
-	createTransfer: jest.fn(),
-}))
-
-jest.mock('@/lib/actions/transaction.actions', () => ({
-	createTransaction: jest.fn(),
 }))
 
 // ---------------------------------------------------------------------------
@@ -137,25 +122,10 @@ const mockAccount: Account = {
 	shareableId: 'share-1',
 }
 
-const mockSenderBank = {
-	$id: 'bank-sender-1',
-	userId: { $id: 'user-123' },
-	fundingSourceUrl: 'https://api-sandbox.dwolla.com/funding-sources/sender-1',
-}
+const mockTransferSuccess = { success: true, data: null }
 
-// getBankByAccountId resolves { success, data } — unlike getBank, which
-// resolves the row directly.
-const mockReceiverBank = {
-	success: true,
-	data: {
-		$id: 'bank-receiver-1',
-		userId: { $id: 'user-456' },
-		fundingSourceUrl:
-			'https://api-sandbox.dwolla.com/funding-sources/receiver-1',
-	},
-}
-
-// A valid base64 sharableId: btoa('receiver-acc-1') — 20 chars, passes min(8)
+// Stands in for a real (AES-GCM encrypted) shareableId — the client treats
+// it as an opaque string, so any value passing the schema's min(8) works.
 const VALID_SHARABLE_ID = btoa('receiver-acc-1')
 
 // ---------------------------------------------------------------------------
@@ -415,10 +385,7 @@ describe('Payment Transfer Flow', () => {
 				screen.getByRole('button', { name: /transfer funds/i }),
 			)
 			await screen.findByText(/please select a valid bank account/i)
-			expect(getBankByAccountId).not.toHaveBeenCalled()
-			expect(getBank).not.toHaveBeenCalled()
-			expect(createTransfer).not.toHaveBeenCalled()
-			expect(createTransaction).not.toHaveBeenCalled()
+			expect(transferFunds).not.toHaveBeenCalled()
 		})
 	})
 
@@ -427,51 +394,32 @@ describe('Payment Transfer Flow', () => {
 		// =========================================================================
 
 		beforeEach(() => {
-			;(getBankByAccountId as jest.Mock).mockResolvedValue(mockReceiverBank)
-			;(getBank as jest.Mock).mockResolvedValue(mockSenderBank)
-			;(createTransfer as jest.Mock).mockResolvedValue(
-				'https://api-sandbox.dwolla.com/transfers/transfer-1',
-			)
-			;(createTransaction as jest.Mock).mockResolvedValue({ $id: 'txn-1' })
+			;(transferFunds as jest.Mock).mockResolvedValue(mockTransferSuccess)
 			render(<PaymentTransferForm accounts={[mockAccount]} />)
 		})
 
-		it('calls getBankByAccountId with the decoded sharableId', async () => {
+		it('calls transferFunds with the sender bank id, the raw (still-encrypted) shareableId, and amount', async () => {
 			await fillAndSubmit()
 			await waitFor(() =>
-				expect(getBankByAccountId).toHaveBeenCalledWith({
-					accountId: 'receiver-acc-1',
-				}),
-			)
-		})
-
-		it('calls getBank with the selected sender bank document id', async () => {
-			await fillAndSubmit()
-			await waitFor(() =>
-				expect(getBank).toHaveBeenCalledWith({ documentId: 'item-1' }),
-			)
-		})
-
-		it('calls createTransfer with sender and receiver funding source URLs', async () => {
-			await fillAndSubmit()
-			await waitFor(() =>
-				expect(createTransfer).toHaveBeenCalledWith({
-					sourceFundingSourceUrl: mockSenderBank.fundingSourceUrl,
-					destinationFundingSourceUrl: mockReceiverBank.data.fundingSourceUrl,
-					amount: expect.any(String),
-				}),
-			)
-		})
-
-		it('calls createTransaction with recipient name, email, and bank ids', async () => {
-			await fillAndSubmit()
-			await waitFor(() =>
-				expect(createTransaction).toHaveBeenCalledWith(
+				expect(transferFunds).toHaveBeenCalledWith(
 					expect.objectContaining({
-						name: 'Jane Doe',
-						email: 'receiver@example.com',
-						senderBankId: mockSenderBank.$id,
-						receiverBankId: mockReceiverBank.data.$id,
+						senderBankDocumentId: 'item-1',
+						// Decryption is server-only now (lib/server/encryption.ts) —
+						// the client must pass the shareableId through unchanged.
+						receiverShareableId: VALID_SHARABLE_ID,
+						amount: expect.any(String),
+					}),
+				),
+			)
+		})
+
+		it('calls transferFunds with recipient name and email', async () => {
+			await fillAndSubmit()
+			await waitFor(() =>
+				expect(transferFunds).toHaveBeenCalledWith(
+					expect.objectContaining({
+						recipientName: 'Jane Doe',
+						recipientEmail: 'receiver@example.com',
 					}),
 				),
 			)
@@ -483,14 +431,10 @@ describe('Payment Transfer Flow', () => {
 		})
 
 		it('shows a "Sending..." loading indicator while in-flight', async () => {
-			;(createTransfer as jest.Mock).mockImplementation(
+			;(transferFunds as jest.Mock).mockImplementation(
 				() =>
 					new Promise((resolve) =>
-						setTimeout(
-							() =>
-								resolve('https://api-sandbox.dwolla.com/transfers/transfer-1'),
-							300,
-						),
+						setTimeout(() => resolve(mockTransferSuccess), 300),
 					),
 			)
 			await userEvent.selectOptions(
@@ -524,9 +468,9 @@ describe('Payment Transfer Flow', () => {
 			)
 		})
 
-		it('calls createTransfer exactly once per submit', async () => {
+		it('calls transferFunds exactly once per submit', async () => {
 			await fillAndSubmit()
-			await waitFor(() => expect(createTransfer).toHaveBeenCalledTimes(1))
+			await waitFor(() => expect(transferFunds).toHaveBeenCalledTimes(1))
 		})
 	})
 
@@ -535,47 +479,24 @@ describe('Payment Transfer Flow', () => {
 		// =========================================================================
 
 		beforeEach(() => {
-			;(getBankByAccountId as jest.Mock).mockResolvedValue(mockReceiverBank)
-			;(getBank as jest.Mock).mockResolvedValue(mockSenderBank)
 			render(<PaymentTransferForm accounts={[mockAccount]} />)
 		})
 
-		it('does not redirect when createTransfer returns null', async () => {
-			;(createTransfer as jest.Mock).mockResolvedValue(null)
+		it('does not redirect when transferFunds returns success: false', async () => {
+			;(transferFunds as jest.Mock).mockResolvedValue({
+				success: false,
+				error: 'Transfer service unavailable',
+			})
 			await fillAndSubmit()
-			await waitFor(() => expect(createTransfer).toHaveBeenCalled())
-			expect(mockPush).not.toHaveBeenCalled()
-		})
-
-		it('does not call createTransaction when createTransfer returns null', async () => {
-			;(createTransfer as jest.Mock).mockResolvedValue(null)
-			await fillAndSubmit()
-			await waitFor(() => expect(createTransfer).toHaveBeenCalled())
-			expect(createTransaction).not.toHaveBeenCalled()
-		})
-
-		it('does not redirect when createTransaction returns null', async () => {
-			;(createTransfer as jest.Mock).mockResolvedValue(
-				'https://api-sandbox.dwolla.com/transfers/transfer-1',
-			)
-			;(createTransaction as jest.Mock).mockResolvedValue(null)
-			await fillAndSubmit()
-			await waitFor(() => expect(createTransaction).toHaveBeenCalled())
-			expect(mockPush).not.toHaveBeenCalled()
-		})
-
-		it('does not redirect when createTransaction returns undefined', async () => {
-			;(createTransfer as jest.Mock).mockResolvedValue(
-				'https://api-sandbox.dwolla.com/transfers/transfer-1',
-			)
-			;(createTransaction as jest.Mock).mockResolvedValue(undefined)
-			await fillAndSubmit()
-			await waitFor(() => expect(createTransaction).toHaveBeenCalled())
+			await waitFor(() => expect(transferFunds).toHaveBeenCalled())
 			expect(mockPush).not.toHaveBeenCalled()
 		})
 
 		it('re-enables the submit button after a failed transfer', async () => {
-			;(createTransfer as jest.Mock).mockResolvedValue(null)
+			;(transferFunds as jest.Mock).mockResolvedValue({
+				success: false,
+				error: 'Transfer service unavailable',
+			})
 			await fillAndSubmit()
 			await waitFor(() =>
 				expect(
@@ -584,33 +505,9 @@ describe('Payment Transfer Flow', () => {
 			)
 		})
 
-		it('does not crash when getBankByAccountId throws', async () => {
-			;(getBankByAccountId as jest.Mock).mockRejectedValue(
-				new Error('Bank lookup failed'),
-			)
-			await expect(fillAndSubmit()).resolves.not.toThrow()
-			await waitFor(() =>
-				expect(
-					screen.getByRole('button', { name: /transfer funds/i }),
-				).toBeEnabled(),
-			)
-		})
-
-		it('does not crash when createTransfer throws', async () => {
-			;(createTransfer as jest.Mock).mockRejectedValue(
+		it('does not crash when transferFunds throws', async () => {
+			;(transferFunds as jest.Mock).mockRejectedValue(
 				new Error('Transfer service unavailable'),
-			)
-			await expect(fillAndSubmit()).resolves.not.toThrow()
-			await waitFor(() =>
-				expect(
-					screen.getByRole('button', { name: /transfer funds/i }),
-				).toBeEnabled(),
-			)
-		})
-
-		it('does not crash when getBank throws', async () => {
-			;(getBank as jest.Mock).mockRejectedValue(
-				new Error('Sender bank not found'),
 			)
 			await expect(fillAndSubmit()).resolves.not.toThrow()
 			await waitFor(() =>
@@ -658,12 +555,7 @@ describe('Payment Transfer Flow', () => {
 		})
 
 		it('submits a transfer note when provided', async () => {
-			;(getBankByAccountId as jest.Mock).mockResolvedValue(mockReceiverBank)
-			;(getBank as jest.Mock).mockResolvedValue(mockSenderBank)
-			;(createTransfer as jest.Mock).mockResolvedValue(
-				'https://api-sandbox.dwolla.com/transfers/transfer-1',
-			)
-			;(createTransaction as jest.Mock).mockResolvedValue({ $id: 'txn-1' })
+			;(transferFunds as jest.Mock).mockResolvedValue(mockTransferSuccess)
 
 			render(<PaymentTransferForm accounts={[mockAccount]} />)
 			await userEvent.selectOptions(
@@ -689,7 +581,7 @@ describe('Payment Transfer Flow', () => {
 			)
 
 			await waitFor(() =>
-				expect(createTransaction).toHaveBeenCalledWith(
+				expect(transferFunds).toHaveBeenCalledWith(
 					expect.objectContaining({ note: 'Birthday gift' }),
 				),
 			)

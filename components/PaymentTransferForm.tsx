@@ -7,10 +7,8 @@ import { useEffect, useReducer, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
-import { createTransfer } from '@/lib/actions/dwolla.actions'
-import { createTransaction } from '@/lib/actions/transaction.actions'
-import { getBank, getBankByAccountId } from '@/lib/actions/user.actions'
-import { decryptId, formatAmount, transferFormSchema } from '@/lib/utils'
+import { transferFunds } from '@/lib/actions/user.actions'
+import { formatAmount, transferFormSchema } from '@/lib/utils'
 
 import { BankDropdown } from './BankDropdown'
 import { Button } from './ui/button'
@@ -74,40 +72,19 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 		setIsLoading(true)
 
 		try {
-			const receiverAccountId = decryptId(data.sharableId)
-			const receiverBank = await getBankByAccountId({
-				accountId: receiverAccountId,
-			})
-			const senderBank = await getBank({ documentId: data.senderBank })
-
-			const transferParams = {
-				sourceFundingSourceUrl: senderBank.fundingSourceUrl,
-				destinationFundingSourceUrl: receiverBank.data.fundingSourceUrl,
+			const res = await transferFunds({
+				senderBankDocumentId: data.senderBank,
+				receiverShareableId: data.sharableId,
 				amount: data.amount,
-			}
-			// create transfer
-			const transfer = await createTransfer(transferParams)
+				recipientName: data.recipientName,
+				recipientEmail: data.recipientEmail,
+				note: data.note,
+			})
 
-			// create transfer transaction
-			if (transfer) {
-				const transaction = {
-					name: data.recipientName,
-					email: data.recipientEmail,
-					amount: data.amount,
-					senderId: senderBank.userId.$id,
-					senderBankId: senderBank.$id,
-					receiverId: receiverBank.data.userId.$id,
-					receiverBankId: receiverBank.data.$id,
-					note: data.note,
-				}
+			if (!res.success) throw new Error(res.error)
 
-				const newTransaction = await createTransaction(transaction)
-
-				if (newTransaction) {
-					form.reset()
-					router.push('/')
-				}
-			}
+			form.reset()
+			router.push('/')
 		} catch (error) {
 			console.error('Submitting create transfer request failed: ', error)
 		}

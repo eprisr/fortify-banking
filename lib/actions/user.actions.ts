@@ -4,11 +4,18 @@ import { ID, Query } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../server/appwrite'
 import { cookies } from 'next/headers'
 import {
-	encryptId,
 	extractCustomerIdFromUrl,
 	handleError,
 	parseStringify,
+	passwordField,
 } from '../utils'
+import { encryptId, decryptId } from '../server/encryption'
+import {
+	emailField,
+	firstIssueMessage,
+	signUpServerSchema,
+	transferServerSchema,
+} from '../server/validation'
 import {
 	CountryCode,
 	ProcessorTokenCreateRequest,
@@ -17,7 +24,12 @@ import {
 } from 'plaid'
 import { plaidClient } from '../plaid'
 import { revalidatePath } from 'next/cache'
-import { addFundingSource, createDwollaCustomer } from './dwolla.actions'
+import {
+	addFundingSource,
+	createDwollaCustomer,
+	createTransfer as createDwollaTransfer,
+} from './dwolla.actions'
+import { createTransaction } from './transaction.actions'
 
 const {
 	APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -74,16 +86,21 @@ export const signIn = async ({
 
 export const forgotPw = async ({
 	email,
-}: ForgotPwProps): Promise<ActionResponse<User>> => {
+}: ForgotPwProps): Promise<ActionResponse<null>> => {
+	const parsedEmail = emailField.safeParse(email)
+	if (!parsedEmail.success) {
+		return { success: false, error: firstIssueMessage(parsedEmail.error) }
+	}
+
 	try {
 		const { account } = await createAdminClient()
 
-		const res = await account.createRecovery({
-			email: email,
+		await account.createRecovery({
+			email: parsedEmail.data,
 			url: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`,
 		})
 
-		return { success: true, data: parseStringify(res) }
+		return { success: true, data: null }
 	} catch (error: any) {
 		console.error('An Error Occurred while Resetting Password: ', error)
 		const message =
@@ -98,13 +115,22 @@ export const resetPw = async ({
 	userId,
 	secret,
 	password,
-}: ResetPwProps): Promise<ActionResponse<Account>> => {
+}: ResetPwProps): Promise<ActionResponse<null>> => {
+	const parsedPassword = passwordField.safeParse(password)
+	if (!parsedPassword.success) {
+		return { success: false, error: firstIssueMessage(parsedPassword.error) }
+	}
+
 	try {
 		const { account } = await createAdminClient()
 
-		const res = await account.updateRecovery({ userId, secret, password })
+		await account.updateRecovery({
+			userId,
+			secret,
+			password: parsedPassword.data,
+		})
 
-		return { success: true, data: parseStringify(res) }
+		return { success: true, data: null }
 	} catch (error: any) {
 		console.error('Reset Password Error: ', error)
 		return {
@@ -116,29 +142,34 @@ export const resetPw = async ({
 
 export const resendRecoveryLink = async ({
 	userId,
-}: ResendRecoveryProps): Promise<ActionResponse<User>> => {
+}: ResendRecoveryProps): Promise<ActionResponse<null>> => {
 	try {
 		const { account, user } = await createAdminClient()
 
 		const target = await user.get({ userId })
 
-		const res = await account.createRecovery({
+		// See note in forgotPw — never return the recovery secret to the client.
+		await account.createRecovery({
 			email: target.email,
 			url: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`,
 		})
 
-		return { success: true, data: parseStringify(res) }
+		return { success: true, data: null }
 	} catch (error: any) {
 		console.error('An Error Occurred while Resending Recovery Link: ', error)
 		return { success: false, error: 'Failed to resend recovery link' }
 	}
 }
 
-export const signUp = async ({
-	password,
-	...userData
-}: SignUpParams): Promise<ActionResponse<User>> => {
-	const { email, firstName, lastName } = userData
+export const signUp = async (
+	params: SignUpParams,
+): Promise<ActionResponse<User>> => {
+	const parsed = signUpServerSchema.safeParse(params)
+	if (!parsed.success) {
+		return { success: false, error: firstIssueMessage(parsed.error) }
+	}
+	const { firstName, lastName, email, password } = parsed.data
+
 	let newUserAccountId: string | null = null
 
 	try {
@@ -156,7 +187,9 @@ export const signUp = async ({
 		newUserAccountId = newUserAccount.$id
 
 		const dwollaCustomerUrl = await createDwollaCustomer({
-			...userData,
+			firstName,
+			lastName,
+			email,
 			type: 'unverified',
 		})
 
@@ -169,7 +202,9 @@ export const signUp = async ({
 			tableId: USER_COLLECTION_ID!,
 			rowId: ID.unique(),
 			data: {
-				...userData,
+				firstName,
+				lastName,
+				email,
 				userId: newUserAccount.$id,
 				dwollaCustomerId,
 				dwollaCustomerUrl,
@@ -292,10 +327,6 @@ export const createBankAccount = async ({
 	}
 }
 
-// Plaid's initial transaction pull for a newly linked item completes
-// asynchronously on their end, so the first transactionsSync call right
-// after linking can legitimately come back empty. Poll briefly so the
-// dashboard doesn't render with no transactions immediately after linking.
 const waitForInitialTransactions = async (accessToken: string) => {
 	const MAX_ATTEMPTS = 5
 	const RETRY_DELAY_MS = 1000
@@ -427,5 +458,70 @@ export const getBankByAccountId = async ({
 	} catch (error) {
 		console.error('Get Bank Error: ', error)
 		return { success: false, error: 'Internal server error' }
+	}
+}
+
+export const transferFunds = async (
+	params: TransferFundsProps,
+): Promise<ActionResponse<null>> => {
+	const parsed = transferServerSchema.safeParse(params)
+	if (!parsed.success) {
+		return { success: false, error: firstIssueMessage(parsed.error) }
+	}
+	const {
+		senderBankDocumentId,
+		receiverShareableId,
+		amount,
+		recipientName,
+		recipientEmail,
+		note,
+	} = parsed.data
+	const normalizedAmount = amount.toFixed(2)
+
+	try {
+		const senderBank = await getBank({ documentId: senderBankDocumentId })
+
+		const receiverAccountId = decryptId(receiverShareableId)
+		const receiverBankResult = await getBankByAccountId({
+			accountId: receiverAccountId,
+		})
+		if (!receiverBankResult.success) {
+			return {
+				success: false,
+				error: receiverBankResult.error ?? 'Bank not found',
+			}
+		}
+		const receiverBank = receiverBankResult.data
+
+		const transfer = await createDwollaTransfer({
+			sourceFundingSourceUrl: senderBank.fundingSourceUrl,
+			destinationFundingSourceUrl: receiverBank.fundingSourceUrl,
+			amount: normalizedAmount,
+		})
+
+		if (!transfer) throw new Error('Failed to create transfer')
+
+		const newTransaction = await createTransaction({
+			name: recipientName,
+			email: recipientEmail,
+			amount: normalizedAmount,
+			senderId: senderBank.userId.$id,
+			senderBankId: senderBank.$id,
+			receiverId: receiverBank.userId.$id,
+			receiverBankId: receiverBank.$id,
+			note,
+		})
+
+		if (!newTransaction) throw new Error('Failed to record transaction')
+
+		revalidatePath('/')
+
+		return { success: true, data: null }
+	} catch (error: any) {
+		console.error('Transfer Funds Error: ', error)
+		return {
+			success: false,
+			error: error?.message || 'Failed to complete transfer',
+		}
 	}
 }
