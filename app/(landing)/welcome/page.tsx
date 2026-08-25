@@ -6,6 +6,7 @@ import { Form } from '@/components/ui/form'
 import { WaitlistValues } from '@/lib/auth-form-config'
 import { waitlistSchema } from '@/lib/utils'
 import logo from '@/public/icons/logo.svg'
+import logoLight from '@/public/icons/logo-light.svg'
 import mockup from '@/public/mockup.png'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -36,7 +37,7 @@ const Landing = () => {
 			<nav className="flex items-center justify-between px-10 py-4 fixed top-0 left-0 w-full bg-white z-10">
 				<div className="flex items-center gap-2">
 					<Image src={logo} alt="Fortify Banking Logo" width={32} height={32} />
-					<p className="text-base font-bold">Fortify</p>
+					<p className="text-base text-ink font-bold font-heading">Fortify</p>
 				</div>
 				<ul className="flex items-center gap-7">
 					<Link href={'#features'}>Features</Link>
@@ -175,7 +176,7 @@ const Landing = () => {
 			</div>
 			<div className="flex items-center justify-center text-center bg-primary-600 text-white px-30 py-20">
 				<div className="flex flex-col items-center w-8/17">
-					<Image src={logo} alt="Fortify Banking" width={64} height={64} />
+					<Image src={logoLight} alt="Fortify Banking" width={64} height={64} />
 					<h3 className="text-white text-4xl leading-12 w-[18ch] my-4">
 						Ready to see where your money really goes?
 					</h3>
@@ -213,7 +214,9 @@ const Landing = () => {
 								width={32}
 								height={32}
 							/>
-							<p className="text-base font-bold text-black">Fortify</p>
+							<p className="text-base font-bold text-ink font-heading">
+								Fortify
+							</p>
 						</div>
 						<p className="text-sm w-[24ch] mt-4">
 							Your money, finally clear. Built with Next.js, Plaid, and Dwolla.
