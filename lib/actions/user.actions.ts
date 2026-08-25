@@ -17,7 +17,12 @@ import {
 } from 'plaid'
 import { plaidClient } from '../plaid'
 import { revalidatePath } from 'next/cache'
-import { addFundingSource, createDwollaCustomer } from './dwolla.actions'
+import {
+	addFundingSource,
+	createDwollaCustomer,
+	createTransfer as createDwollaTransfer,
+} from './dwolla.actions'
+import { createTransaction } from './transaction.actions'
 
 const {
 	APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -296,10 +301,6 @@ export const createBankAccount = async ({
 	}
 }
 
-// Plaid's initial transaction pull for a newly linked item completes
-// asynchronously on their end, so the first transactionsSync call right
-// after linking can legitimately come back empty. Poll briefly so the
-// dashboard doesn't render with no transactions immediately after linking.
 const waitForInitialTransactions = async (accessToken: string) => {
 	const MAX_ATTEMPTS = 5
 	const RETRY_DELAY_MS = 1000
@@ -431,5 +432,60 @@ export const getBankByAccountId = async ({
 	} catch (error) {
 		console.error('Get Bank Error: ', error)
 		return { success: false, error: 'Internal server error' }
+	}
+}
+
+export const transferFunds = async ({
+	senderBankDocumentId,
+	receiverAccountId,
+	amount,
+	recipientName,
+	recipientEmail,
+	note,
+}: TransferFundsProps): Promise<ActionResponse<null>> => {
+	try {
+		const senderBank = await getBank({ documentId: senderBankDocumentId })
+
+		const receiverBankResult = await getBankByAccountId({
+			accountId: receiverAccountId,
+		})
+		if (!receiverBankResult.success) {
+			return {
+				success: false,
+				error: receiverBankResult.error ?? 'Bank not found',
+			}
+		}
+		const receiverBank = receiverBankResult.data
+
+		const transfer = await createDwollaTransfer({
+			sourceFundingSourceUrl: senderBank.fundingSourceUrl,
+			destinationFundingSourceUrl: receiverBank.fundingSourceUrl,
+			amount,
+		})
+
+		if (!transfer) throw new Error('Failed to create transfer')
+
+		const newTransaction = await createTransaction({
+			name: recipientName,
+			email: recipientEmail,
+			amount,
+			senderId: senderBank.userId.$id,
+			senderBankId: senderBank.$id,
+			receiverId: receiverBank.userId.$id,
+			receiverBankId: receiverBank.$id,
+			note,
+		})
+
+		if (!newTransaction) throw new Error('Failed to record transaction')
+
+		revalidatePath('/')
+
+		return { success: true, data: null }
+	} catch (error: any) {
+		console.error('Transfer Funds Error: ', error)
+		return {
+			success: false,
+			error: error?.message || 'Failed to complete transfer',
+		}
 	}
 }

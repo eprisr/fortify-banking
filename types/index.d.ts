@@ -307,6 +307,15 @@ declare interface CreateTransactionProps {
 	note?: string
 }
 
+declare interface TransferFundsProps {
+	senderBankDocumentId: string
+	receiverAccountId: string
+	amount: string
+	recipientName: string
+	recipientEmail: string
+	note?: string
+}
+
 declare interface getTransactionsByBankIdProps {
 	bankId: string
 }
