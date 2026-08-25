@@ -279,13 +279,13 @@
 
 	/* Banking Elements */
 	.bank-card {
-		@apply relative flex h-50 w-full justify-between text-white! rounded-xl border border-white shadow-creditCard backdrop-blur-[6px];
+		@apply relative h-50 w-full text-white! rounded-xl border border-white shadow-creditCard backdrop-blur-[6px];
 	}
 	.bank-card_content {
-		@apply relative z-10 flex size-full max-w-[60%] flex-col justify-between rounded-l-2xl px-5 pb-4 pt-5;
+		@apply relative z-10 grid grid-cols-2 grid-rows-2 size-full rounded-l-2xl px-5 pb-4 pt-5;
 	}
 	.bank-card_icon {
-		@apply flex flex-col items-end gap-2 h-fit text-paper/70! py-6 pr-5;
+		@apply flex flex-col items-end gap-2 h-fit text-paper/70!;
 	}
 
 	.bank-card-circle_one {

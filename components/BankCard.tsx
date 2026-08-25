@@ -1,7 +1,5 @@
 import { formatAmount } from '@/lib/utils'
 import Link from 'next/link'
-import React from 'react'
-import { BiLogoVisa } from 'react-icons/bi'
 import Copy from './Copy'
 import { CreditCard, Landmark } from 'lucide-react'
 
@@ -30,7 +28,7 @@ const BankCard = ({
 		<div className={`flex flex-col ${stackNumber === 2 && 'items-center'}`}>
 			<Link
 				href="/"
-				className={`bank-card relative overflow-hidden ${savings ? 'bg-plum' : 'bg-ink'}`}>
+				className={`bank-card overflow-hidden ${savings ? 'bg-plum' : 'bg-ink'}`}>
 				{stackNumber === 1 && (
 					<div className="bank-card_content">
 						<div>
@@ -40,7 +38,17 @@ const BankCard = ({
 							</p>
 						</div>
 
-						<article className="flex flex-col gap-2">
+						<div className="bank-card_icon">
+							<div className="flex items-center gap-2 text-xxs">
+								{credit ? <CreditCard size={12} /> : <Landmark size={12} />}
+								{account.institutionName}
+							</div>
+							<div className="border-[0.5] border-gold-decorative text-gold-decorative text-xxs text-center font-mono uppercase rounded-lg px-2 py-1">
+								{account.subtype}
+							</div>
+						</div>
+
+						<article className="flex flex-col gap-2 col-span-2">
 							<p className="text-[6px] tracking-[3px] flex items-center font-mono">
 								&#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679;
 								&#9679;&#9679;&#9679;&#9679;{' '}
@@ -68,15 +76,6 @@ const BankCard = ({
 						</article>
 					</div>
 				)}
-				<div className="bank-card_icon">
-					<div className="flex items-center gap-2 text-xxs">
-						{credit ? <CreditCard size={12} /> : <Landmark size={12} />}
-						{account.institutionName}
-					</div>
-					<div className="border-[0.5] border-gold-decorative text-gold-decorative text-xxs text-center font-mono uppercase rounded-lg px-2 py-1">
-						{account.subtype}
-					</div>
-				</div>
 			</Link>
 
 			{showBalance && <Copy title={account?.shareableId} />}
