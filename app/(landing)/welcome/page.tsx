@@ -210,6 +210,7 @@ const Landing = () => {
 							<div
 								key={i}
 								className="bg-gold-decorative/5 border border-gray-200 rounded-xl p-6">
+								<img src={feat.image} alt="" />
 								<h3>{feat.title}</h3>
 								<p className="mt-2">{feat.content}</p>
 							</div>
