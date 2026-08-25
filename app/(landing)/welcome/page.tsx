@@ -51,7 +51,7 @@ const Landing = () => {
 					<Button variant="default">Get early access</Button>
 				</div>
 			</nav>
-			<div className="flex items-center justify-between h-fit px-70 pt-10 bg-radial-[at_25%_50%] from-white via-primary-100 to-primary-500">
+			<div className="flex items-center justify-between h-fit bg-paper px-70 pt-10">
 				<div>
 					<h1>
 						Your money, <br />
