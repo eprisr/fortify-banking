@@ -212,14 +212,6 @@ export function extractCustomerIdFromUrl(url: string) {
 	return customerId
 }
 
-export function encryptId(id: string) {
-	return btoa(id)
-}
-
-export function decryptId(id: string) {
-	return atob(id)
-}
-
 export const getTransactionStatus = (date: Date) => {
 	const today = new Date()
 	const twoDaysAgo = new Date(today)

@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
 import { transferFunds } from '@/lib/actions/user.actions'
-import { decryptId, formatAmount, transferFormSchema } from '@/lib/utils'
+import { formatAmount, transferFormSchema } from '@/lib/utils'
 
 import { BankDropdown } from './BankDropdown'
 import { Button } from './ui/button'
@@ -72,11 +72,9 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 		setIsLoading(true)
 
 		try {
-			const receiverAccountId = decryptId(data.sharableId)
-
 			const res = await transferFunds({
 				senderBankDocumentId: data.senderBank,
-				receiverAccountId,
+				receiverShareableId: data.sharableId,
 				amount: data.amount,
 				recipientName: data.recipientName,
 				recipientEmail: data.recipientEmail,

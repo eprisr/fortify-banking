@@ -3,12 +3,8 @@
 import { ID, Query } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../server/appwrite'
 import { cookies } from 'next/headers'
-import {
-	encryptId,
-	extractCustomerIdFromUrl,
-	handleError,
-	parseStringify,
-} from '../utils'
+import { extractCustomerIdFromUrl, handleError, parseStringify } from '../utils'
+import { encryptId, decryptId } from '../server/encryption'
 import {
 	CountryCode,
 	ProcessorTokenCreateRequest,
@@ -437,7 +433,7 @@ export const getBankByAccountId = async ({
 
 export const transferFunds = async ({
 	senderBankDocumentId,
-	receiverAccountId,
+	receiverShareableId,
 	amount,
 	recipientName,
 	recipientEmail,
@@ -446,6 +442,7 @@ export const transferFunds = async ({
 	try {
 		const senderBank = await getBank({ documentId: senderBankDocumentId })
 
+		const receiverAccountId = decryptId(receiverShareableId)
 		const receiverBankResult = await getBankByAccountId({
 			accountId: receiverAccountId,
 		})

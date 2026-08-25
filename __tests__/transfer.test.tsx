@@ -124,7 +124,8 @@ const mockAccount: Account = {
 
 const mockTransferSuccess = { success: true, data: null }
 
-// A valid base64 sharableId: btoa('receiver-acc-1') — 20 chars, passes min(8)
+// Stands in for a real (AES-GCM encrypted) shareableId — the client treats
+// it as an opaque string, so any value passing the schema's min(8) works.
 const VALID_SHARABLE_ID = btoa('receiver-acc-1')
 
 // ---------------------------------------------------------------------------
@@ -397,13 +398,15 @@ describe('Payment Transfer Flow', () => {
 			render(<PaymentTransferForm accounts={[mockAccount]} />)
 		})
 
-		it('calls transferFunds with the sender bank id, decoded receiver account id, and amount', async () => {
+		it('calls transferFunds with the sender bank id, the raw (still-encrypted) shareableId, and amount', async () => {
 			await fillAndSubmit()
 			await waitFor(() =>
 				expect(transferFunds).toHaveBeenCalledWith(
 					expect.objectContaining({
 						senderBankDocumentId: 'item-1',
-						receiverAccountId: 'receiver-acc-1',
+						// Decryption is server-only now (lib/server/encryption.ts) —
+						// the client must pass the shareableId through unchanged.
+						receiverShareableId: VALID_SHARABLE_ID,
 						amount: expect.any(String),
 					}),
 				),

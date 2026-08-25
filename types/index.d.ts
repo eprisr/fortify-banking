@@ -309,7 +309,7 @@ declare interface CreateTransactionProps {
 
 declare interface TransferFundsProps {
 	senderBankDocumentId: string
-	receiverAccountId: string
+	receiverShareableId: string
 	amount: string
 	recipientName: string
 	recipientEmail: string
