@@ -31,6 +31,7 @@ import './styles.css'
 import { Badge } from '@/components/ui/badge'
 import Marquee from '@/components/Marquee'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 const navLinks = [
 	{ href: '#features', label: 'Features' },
@@ -84,7 +85,10 @@ const Landing = () => {
 						))}
 					</ul>
 					<div className="hidden md:flex items-center">
-						<Button variant="ghost" className="text-sm font-semibold mr-4">
+						<Button
+							onClick={() => redirect('/signin')}
+							variant="ghost"
+							className="text-sm font-semibold mr-4">
 							Sign in
 						</Button>
 						<Button
