@@ -300,7 +300,7 @@ const Landing = () => {
 										label="Email"
 										placeholder="your@email.com"
 									/>
-									<Button className="bg-white text-primary-700 font-semibold px-4">
+									<Button className="bg-white text-primary-700 text-sm font-semibold px-4 pt-3">
 										Join waitlist
 									</Button>
 								</form>
