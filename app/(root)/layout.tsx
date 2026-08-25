@@ -13,10 +13,8 @@ export default async function RootLayout({
 
 	return (
 		<MobileContainer>
-			<main className="flex flex-col w-full mb-20 font-sans">
-				{children}
-				<MobileMenu />
-			</main>
+			<main className="flex flex-col w-full mb-20 font-sans">{children}</main>
+			<MobileMenu />
 		</MobileContainer>
 	)
 }
