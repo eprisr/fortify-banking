@@ -215,7 +215,7 @@ const Landing = () => {
 				<section
 					id="works"
 					aria-labelledby="works-heading"
-					className="flex flex-col items-center justify-center gap-10 px-5 sm:px-10 lg:px-20 xl:px-40 py-16 lg:py-24 bg-gray-100 border border-gray-200">
+					className="flex flex-col items-center justify-center gap-10 px-5 sm:px-10 lg:px-20 xl:px-40 py-16 lg:py-24 bg-plum-tint border border-gray-200">
 					<div className="text-center">
 						<p>How It Works</p>
 						<h2 id="works-heading">Up and running in three steps</h2>
@@ -230,7 +230,7 @@ const Landing = () => {
 								<h3 className="font-sora font-bold text-lg text-black-1 my-4">
 									{w.title}
 								</h3>
-								<p className="max-w-[28ch] text-sm leading-6 mx-auto">
+								<p className="max-w-[28ch] text-sm text-ink leading-6 mx-auto">
 									{w.content}
 								</p>
 							</div>
