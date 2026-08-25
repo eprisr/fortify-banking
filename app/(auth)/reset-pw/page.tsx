@@ -27,7 +27,7 @@ const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 	return (
 		<section className="flex flex-col justify-center w-full h-[calc(100vh-72px)] bg-white">
 			{(expired || successful) && (
-				<div className="flex flex-col justify-center flex-center gap-5 text-center">
+				<div className="flex-center flex-col gap-5 text-center">
 					<div
 						className={`flex items-center justify-center h-13 w-13 rounded-full ${successful ? 'bg-semantic-success/10' : 'bg-semantic-danger/10'}`}>
 						{successful ? (
