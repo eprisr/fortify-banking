@@ -56,7 +56,7 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 	return (
 		<section>
 			{type === 'main' && user ? (
-				<nav className="flex w-full items-center gap-4 p-4">
+				<nav className="flex w-full items-center gap-4 py-4">
 					<Sheet modal={false}>
 						<SheetTrigger>
 							<div className="profile">
