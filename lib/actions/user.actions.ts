@@ -74,16 +74,19 @@ export const signIn = async ({
 
 export const forgotPw = async ({
 	email,
-}: ForgotPwProps): Promise<ActionResponse<User>> => {
+}: ForgotPwProps): Promise<ActionResponse<null>> => {
 	try {
 		const { account } = await createAdminClient()
 
-		const res = await account.createRecovery({
+		// Appwrite's response includes the recovery `secret` (the reset token
+		// itself), so it must never be forwarded to the client — only the
+		// outcome matters here, the token reaches the user via the emailed link.
+		await account.createRecovery({
 			email: email,
 			url: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`,
 		})
 
-		return { success: true, data: parseStringify(res) }
+		return { success: true, data: null }
 	} catch (error: any) {
 		console.error('An Error Occurred while Resetting Password: ', error)
 		const message =
@@ -98,13 +101,13 @@ export const resetPw = async ({
 	userId,
 	secret,
 	password,
-}: ResetPwProps): Promise<ActionResponse<Account>> => {
+}: ResetPwProps): Promise<ActionResponse<null>> => {
 	try {
 		const { account } = await createAdminClient()
 
-		const res = await account.updateRecovery({ userId, secret, password })
+		await account.updateRecovery({ userId, secret, password })
 
-		return { success: true, data: parseStringify(res) }
+		return { success: true, data: null }
 	} catch (error: any) {
 		console.error('Reset Password Error: ', error)
 		return {
@@ -116,18 +119,19 @@ export const resetPw = async ({
 
 export const resendRecoveryLink = async ({
 	userId,
-}: ResendRecoveryProps): Promise<ActionResponse<User>> => {
+}: ResendRecoveryProps): Promise<ActionResponse<null>> => {
 	try {
 		const { account, user } = await createAdminClient()
 
 		const target = await user.get({ userId })
 
-		const res = await account.createRecovery({
+		// See note in forgotPw — never return the recovery secret to the client.
+		await account.createRecovery({
 			email: target.email,
 			url: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`,
 		})
 
-		return { success: true, data: parseStringify(res) }
+		return { success: true, data: null }
 	} catch (error: any) {
 		console.error('An Error Occurred while Resending Recovery Link: ', error)
 		return { success: false, error: 'Failed to resend recovery link' }
