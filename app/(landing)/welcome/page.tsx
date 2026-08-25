@@ -274,7 +274,7 @@ const Landing = () => {
 				</section>
 				<section
 					aria-labelledby="cta-heading"
-					className="flex items-center justify-center text-center bg-primary-600 text-white px-5 sm:px-10 lg:px-20 xl:px-30 py-16 lg:py-20">
+					className="flex items-center justify-center text-center bg-primary-700 text-white px-5 sm:px-10 lg:px-20 xl:px-30 py-16 lg:py-20">
 					<div className="flex flex-col items-center w-full sm:w-3/4 lg:w-8/17">
 						<Image
 							src={logoLight}
