@@ -68,7 +68,12 @@ const Landing = () => {
 			<header className="fixed top-0 left-0 w-full z-10 bg-white">
 				<nav className="flex items-center justify-between px-5 sm:px-8 lg:px-10 py-4">
 					<div className="flex items-center gap-2">
-						<Image src={logo} alt="Fortify Banking Logo" width={32} height={32} />
+						<Image
+							src={logo}
+							alt="Fortify Banking Logo"
+							width={32}
+							height={32}
+						/>
 						<p className="text-base text-ink font-bold font-heading">Fortify</p>
 					</div>
 					<ul className="hidden md:flex items-center gap-7">
@@ -126,7 +131,7 @@ const Landing = () => {
 				</nav>
 			</header>
 			<main>
-				<section className="flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-6 bg-paper px-5 sm:px-10 lg:px-20 xl:px-32 pt-28 lg:pt-32 pb-16 lg:pb-10">
+				<section className="flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-6 bg-paper px-5 sm:px-10 lg:px-20 xl:px-32 pt-28 lg:pt-32">
 					<div className="text-center lg:text-left">
 						<h1>
 							Your money, <br />
@@ -165,12 +170,12 @@ const Landing = () => {
 							</div>
 						</div>
 					</div>
-					<div className="w-full max-w-md lg:max-w-none lg:w-auto">
+					<div className="w-full max-w-md lg:max-w-120">
 						<Image
 							src={mockup}
 							alt="Fortify Sign In Screen"
 							sizes="(min-width: 1024px) 480px, 90vw"
-							className="w-full h-auto lg:w-auto lg:h-full rounded-lg"
+							className="w-full h-auto max-w-120 lg:h-full rounded-lg"
 						/>
 					</div>
 				</section>
@@ -259,15 +264,20 @@ const Landing = () => {
 					aria-labelledby="cta-heading"
 					className="flex items-center justify-center text-center bg-primary-600 text-white px-5 sm:px-10 lg:px-20 xl:px-30 py-16 lg:py-20">
 					<div className="flex flex-col items-center w-full sm:w-3/4 lg:w-8/17">
-						<Image src={logoLight} alt="Fortify Banking" width={64} height={64} />
+						<Image
+							src={logoLight}
+							alt="Fortify Banking"
+							width={64}
+							height={64}
+						/>
 						<h2
 							id="cta-heading"
 							className="text-white text-3xl lg:text-4xl leading-tight lg:leading-12 max-w-[18ch] my-4">
 							Ready to see where your money really goes?
 						</h2>
 						<p className="text-15 leading-7 text-gray-200 max-w-[44ch]">
-							Join the early access list. We're onboarding users in small batches
-							— no spam, just a heads-up when your spot is ready.
+							Join the early access list. We're onboarding users in small
+							batches — no spam, just a heads-up when your spot is ready.
 						</p>
 						<div className="w-full">
 							<Form {...form}>
