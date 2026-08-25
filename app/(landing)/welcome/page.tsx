@@ -203,7 +203,9 @@ const Landing = () => {
 					</div>
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
 						{features.map((feat, i) => (
-							<div key={i} className="border border-gray-200 rounded-xl p-6">
+							<div
+								key={i}
+								className="bg-gold-decorative/5 border border-gray-200 rounded-xl p-6">
 								<h3>{feat.title}</h3>
 								<p className="mt-2">{feat.content}</p>
 							</div>
