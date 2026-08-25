@@ -3,8 +3,19 @@
 import { ID, Query } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../server/appwrite'
 import { cookies } from 'next/headers'
-import { extractCustomerIdFromUrl, handleError, parseStringify } from '../utils'
+import {
+	extractCustomerIdFromUrl,
+	handleError,
+	parseStringify,
+	passwordField,
+} from '../utils'
 import { encryptId, decryptId } from '../server/encryption'
+import {
+	emailField,
+	firstIssueMessage,
+	signUpServerSchema,
+	transferServerSchema,
+} from '../server/validation'
 import {
 	CountryCode,
 	ProcessorTokenCreateRequest,
@@ -76,14 +87,16 @@ export const signIn = async ({
 export const forgotPw = async ({
 	email,
 }: ForgotPwProps): Promise<ActionResponse<null>> => {
+	const parsedEmail = emailField.safeParse(email)
+	if (!parsedEmail.success) {
+		return { success: false, error: firstIssueMessage(parsedEmail.error) }
+	}
+
 	try {
 		const { account } = await createAdminClient()
 
-		// Appwrite's response includes the recovery `secret` (the reset token
-		// itself), so it must never be forwarded to the client — only the
-		// outcome matters here, the token reaches the user via the emailed link.
 		await account.createRecovery({
-			email: email,
+			email: parsedEmail.data,
 			url: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`,
 		})
 
@@ -103,10 +116,19 @@ export const resetPw = async ({
 	secret,
 	password,
 }: ResetPwProps): Promise<ActionResponse<null>> => {
+	const parsedPassword = passwordField.safeParse(password)
+	if (!parsedPassword.success) {
+		return { success: false, error: firstIssueMessage(parsedPassword.error) }
+	}
+
 	try {
 		const { account } = await createAdminClient()
 
-		await account.updateRecovery({ userId, secret, password })
+		await account.updateRecovery({
+			userId,
+			secret,
+			password: parsedPassword.data,
+		})
 
 		return { success: true, data: null }
 	} catch (error: any) {
@@ -139,11 +161,15 @@ export const resendRecoveryLink = async ({
 	}
 }
 
-export const signUp = async ({
-	password,
-	...userData
-}: SignUpParams): Promise<ActionResponse<User>> => {
-	const { email, firstName, lastName } = userData
+export const signUp = async (
+	params: SignUpParams,
+): Promise<ActionResponse<User>> => {
+	const parsed = signUpServerSchema.safeParse(params)
+	if (!parsed.success) {
+		return { success: false, error: firstIssueMessage(parsed.error) }
+	}
+	const { firstName, lastName, email, password } = parsed.data
+
 	let newUserAccountId: string | null = null
 
 	try {
@@ -161,7 +187,9 @@ export const signUp = async ({
 		newUserAccountId = newUserAccount.$id
 
 		const dwollaCustomerUrl = await createDwollaCustomer({
-			...userData,
+			firstName,
+			lastName,
+			email,
 			type: 'unverified',
 		})
 
@@ -174,7 +202,9 @@ export const signUp = async ({
 			tableId: USER_COLLECTION_ID!,
 			rowId: ID.unique(),
 			data: {
-				...userData,
+				firstName,
+				lastName,
+				email,
 				userId: newUserAccount.$id,
 				dwollaCustomerId,
 				dwollaCustomerUrl,
@@ -431,14 +461,23 @@ export const getBankByAccountId = async ({
 	}
 }
 
-export const transferFunds = async ({
-	senderBankDocumentId,
-	receiverShareableId,
-	amount,
-	recipientName,
-	recipientEmail,
-	note,
-}: TransferFundsProps): Promise<ActionResponse<null>> => {
+export const transferFunds = async (
+	params: TransferFundsProps,
+): Promise<ActionResponse<null>> => {
+	const parsed = transferServerSchema.safeParse(params)
+	if (!parsed.success) {
+		return { success: false, error: firstIssueMessage(parsed.error) }
+	}
+	const {
+		senderBankDocumentId,
+		receiverShareableId,
+		amount,
+		recipientName,
+		recipientEmail,
+		note,
+	} = parsed.data
+	const normalizedAmount = amount.toFixed(2)
+
 	try {
 		const senderBank = await getBank({ documentId: senderBankDocumentId })
 
@@ -457,7 +496,7 @@ export const transferFunds = async ({
 		const transfer = await createDwollaTransfer({
 			sourceFundingSourceUrl: senderBank.fundingSourceUrl,
 			destinationFundingSourceUrl: receiverBank.fundingSourceUrl,
-			amount,
+			amount: normalizedAmount,
 		})
 
 		if (!transfer) throw new Error('Failed to create transfer')
@@ -465,7 +504,7 @@ export const transferFunds = async ({
 		const newTransaction = await createTransaction({
 			name: recipientName,
 			email: recipientEmail,
-			amount,
+			amount: normalizedAmount,
 			senderId: senderBank.userId.$id,
 			senderBankId: senderBank.$id,
 			receiverId: receiverBank.userId.$id,

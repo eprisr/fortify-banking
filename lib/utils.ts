@@ -261,17 +261,41 @@ export const sumTransTotalsByKey = <T extends Record<string, unknown>>(
 }
 
 /********************************
+ ******** SANITIZATION **********
+ ********************************/
+const stripControlChars = (value: string) =>
+	value.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+
+/** Letters (any script) plus the punctuation real names actually use. */
+const NAME_PATTERN = /^[\p{L}\p{M}][\p{L}\p{M}'\- ]*$/u
+
+export const nameField = (label: string, maxLength = 50) =>
+	z
+		.string()
+		.trim()
+		.min(1, { error: `${label} is Required` })
+		.max(maxLength, {
+			error: `${label} must be ${maxLength} characters or fewer`,
+		})
+		.regex(NAME_PATTERN, {
+			error: `${label} contains characters that aren't allowed`,
+		})
+
+export const freeTextField = (maxLength: number) =>
+	z.string().trim().max(maxLength).transform(stripControlChars)
+
+/********************************
  ************ SCHEMA ************
  ********************************/
 
 export const transferFormSchema = () =>
 	z.object({
 		senderBank: z.string().min(4, 'Please select a valid bank account'),
-		recipientName: z.string().min(1, 'Please enter the name of the recipient'),
+		recipientName: nameField('Recipient name'),
 		recipientEmail: z.email('Invalid email address'),
 		sharableId: z.string().min(8, 'Please select a valid sharable Id'),
 		amount: z.string().min(4, 'Amount is too short'),
-		note: z.string().optional(),
+		note: freeTextField(500).optional(),
 	})
 
 const emailField = z.email('A Valid Email is Required')
@@ -294,7 +318,7 @@ export const passwordRequirements: {
 	},
 ]
 
-const passwordField = passwordRequirements.reduce(
+export const passwordField = passwordRequirements.reduce(
 	(schema, { label, test }) => schema.refine(test, { message: label }),
 	z.string().max(64, { error: 'Less than 64 characters' }),
 )
@@ -324,8 +348,8 @@ export const resetPwSchema = z
 	})
 
 export const signupSchema = z.object({
-	firstName: z.string().min(2, { error: 'First Name is Required' }),
-	lastName: z.string().min(2, { error: 'Last Name is Required' }),
+	firstName: nameField('First name'),
+	lastName: nameField('Last name'),
 	email: emailField,
 	password: passwordField,
 	agreeToTerms: z.boolean().refine((val) => val === true, {
