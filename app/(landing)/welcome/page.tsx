@@ -84,10 +84,14 @@ const Landing = () => {
 						))}
 					</ul>
 					<div className="hidden md:flex items-center">
-						<Button variant="ghost" className="mr-4">
+						<Button variant="ghost" className="text-sm font-semibold mr-4">
 							Sign in
 						</Button>
-						<Button variant="default">Get early access</Button>
+						<Button
+							variant="default"
+							className="text-sm font-semibold px-4 py-3">
+							Get early access
+						</Button>
 					</div>
 					<Sheet open={menuOpen} onOpenChange={setMenuOpen}>
 						<SheetTrigger asChild>
