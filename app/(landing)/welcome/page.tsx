@@ -147,10 +147,16 @@ const Landing = () => {
 							next.
 						</p>
 						<div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
-							<Button variant="default" size="lg" className="px-7">
+							<Button
+								variant="default"
+								size="lg"
+								className="font-semibold px-7">
 								Get early access
 							</Button>
-							<Button variant="outline" size="lg" className="px-7">
+							<Button
+								variant="outline"
+								size="lg"
+								className="font-semibold px-7 text-ink">
 								See how it works
 							</Button>
 						</div>
