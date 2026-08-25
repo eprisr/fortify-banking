@@ -6,7 +6,7 @@ import React from 'react'
 const SignIn = async () => {
 	await connection()
 	return (
-		<section className="flex-center size-full px-6 bg-white">
+		<section className="flex-center size-full bg-white">
 			<AuthForm type="signin" />
 		</section>
 	)

@@ -3,7 +3,7 @@ import React from 'react'
 
 const Terms = () => {
 	return (
-		<section className="size-full px-6 text-sm bg-white">
+		<section className="size-full text-sm bg-white">
 			<header className="flex items-center gap-4">
 				<div className="flex flex-center h-8 w-8 bg-cloud rounded-full">
 					<ChevronLeft size={12} />

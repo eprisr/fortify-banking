@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar'
 const ForgotPassword = async () => {
 	await connection()
 	return (
-		<section className="flex-center size-full px-6 bg-white">
+		<section className="flex-center size-full bg-white">
 			<AuthForm type="forgot-pw" />
 		</section>
 	)

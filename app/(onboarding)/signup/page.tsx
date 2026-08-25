@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar'
 const SignUp = async () => {
 	await connection()
 	return (
-		<section className="flex-center size-full px-6 bg-white">
+		<section className="flex-center size-full bg-white">
 			<SignUpForm />
 		</section>
 	)

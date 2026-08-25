@@ -11,7 +11,7 @@ const Conf = async ({ searchParams }: SearchParamProps) => {
 	if (!loggedIn) return null
 
 	return (
-		<section className="flex-center w-full h-[calc(100vh-72px)] px-6 bg-white">
+		<section className="flex-center w-full h-[calc(100vh-72px)] bg-white">
 			<Confirmation connected={connected === 'true'} user={loggedIn} />
 		</section>
 	)

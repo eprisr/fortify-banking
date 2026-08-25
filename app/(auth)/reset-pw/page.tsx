@@ -25,7 +25,7 @@ const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 	const secretString = secret?.toString()
 
 	return (
-		<section className="flex flex-col justify-center w-full h-[calc(100vh-72px)] px-6 bg-white">
+		<section className="flex flex-col justify-center w-full h-[calc(100vh-72px)] bg-white">
 			{(expired || successful) && (
 				<div className="flex flex-col justify-center flex-center gap-5 text-center">
 					<div
