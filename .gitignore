@@ -30,6 +30,10 @@ yarn-error.log*
 .env*
 .env*.local
 
+# .env.test holds only dummy values consumed by MSW-backed Jest tests
+# (see __tests__/msw/) and must be committed so CI/fresh clones have it.
+!.env.test
+
 # vercel
 .vercel
 

@@ -160,7 +160,14 @@ const config: Config = {
 	testEnvironment: 'jsdom',
 
 	// Options that will be passed to the testEnvironment
-	// testEnvironmentOptions: {},
+	// jest-environment-jsdom adds a "browser" export condition by default,
+	// which makes MSW (via @mswjs/interceptors) resolve to its ESM browser
+	// build instead of the CJS node build Jest can actually transform.
+	// Resetting export conditions here is MSW's documented fix.
+	// https://mswjs.io/docs/faq/#msw-doesnt-work-with-jest
+	testEnvironmentOptions: {
+		customExportConditions: [''],
+	},
 
 	// Adds a location field to test results
 	// testLocationInResults: false,
@@ -189,10 +196,12 @@ const config: Config = {
 	// transform: undefined,
 
 	// An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
-	// transformIgnorePatterns: [
-	//   "/node_modules/",
-	//   "\\.pnp\\.[^\\/]+$"
-	// ],
+	// MSW's ESM-only dependency tree (until-async, @mswjs/interceptors, etc.)
+	// needs to be transformed rather than skipped. next/jest builds its
+	// transformIgnorePatterns from next.config.mjs's `transpilePackages`
+	// (appending here wouldn't override next/jest's own base exclusion), so
+	// the actual fix lives there — see the comment in next.config.mjs.
+	// transformIgnorePatterns: [],
 
 	// An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
 	// unmockedModulePathPatterns: undefined,

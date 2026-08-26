@@ -6,27 +6,34 @@
  * Must run via `setupFiles`, not `setupFilesAfterEnv`.
  */
 const { TextDecoder, TextEncoder } = require('node:util')
-const { ReadableStream, TransformStream } = require('node:stream/web')
-const { MessageChannel, MessagePort } = require('node:worker_threads')
+const { ReadableStream, TransformStream, WritableStream } = require('node:stream/web')
+const { MessageChannel, MessagePort, BroadcastChannel } = require('node:worker_threads')
 
 Object.defineProperties(globalThis, {
 	TextDecoder: { value: TextDecoder },
 	TextEncoder: { value: TextEncoder },
 	ReadableStream: { value: ReadableStream },
 	TransformStream: { value: TransformStream },
+	WritableStream: { value: WritableStream },
 	MessageChannel: { value: MessageChannel },
 	MessagePort: { value: MessagePort },
+	// jsdom doesn't implement BroadcastChannel; MSW's core (ws support) reads
+	// it at import time even when a test never mocks WebSockets.
+	BroadcastChannel: { value: BroadcastChannel },
 })
 
 const { Blob, File } = require('node:buffer')
 const { fetch, Headers, FormData, Request, Response } = require('undici')
 
 Object.defineProperties(globalThis, {
-	fetch: { value: fetch, writable: true },
-	Blob: { value: Blob },
-	File: { value: File },
-	Headers: { value: Headers },
-	FormData: { value: FormData },
-	Request: { value: Request },
-	Response: { value: Response },
+	// configurable: true — MSW's node ClientRequest interceptor redefines
+	// Request/Response/Headers/fetch again at server.listen() time to record
+	// raw headers; without this it throws "Cannot redefine property".
+	fetch: { value: fetch, writable: true, configurable: true },
+	Blob: { value: Blob, configurable: true },
+	File: { value: File, configurable: true },
+	Headers: { value: Headers, configurable: true },
+	FormData: { value: FormData, configurable: true },
+	Request: { value: Request, configurable: true },
+	Response: { value: Response, configurable: true },
 })
