@@ -8,6 +8,7 @@ import {
 	MdOutlineArrowCircleRight,
 } from 'react-icons/md'
 import {
+	PlaidLinkOnExit,
 	PlaidLinkOnSuccess,
 	PlaidLinkOptions,
 	usePlaidLink,
@@ -29,10 +30,12 @@ const PlaidLink = ({
 }: PlaidLinkProps) => {
 	const router = useRouter()
 	const [token, setToken] = useState('')
+	const [error, setError] = useState<string | null>(null)
 
 	useEffect(() => {
 		const getLinkToken = async () => {
 			const data = await createLinkToken(user, update)
+			sessionStorage.setItem('link_token', data?.linkToken ?? '')
 			setToken(data?.linkToken ?? '')
 		}
 
@@ -41,10 +44,20 @@ const PlaidLink = ({
 
 	const onSuccess = useCallback<PlaidLinkOnSuccess>(
 		async (public_token: string) => {
-			await exchangePublicToken({
+			const result = await exchangePublicToken({
 				publicToken: public_token,
 				user,
 			})
+
+			sessionStorage.removeItem('link_token')
+
+			if (!result?.success) {
+				setError(
+					result?.error ??
+						'We connected to your bank, but saving the account failed. Please try again.',
+				)
+				return
+			}
 
 			router.refresh()
 			router.push(redirectTo)
@@ -52,26 +65,45 @@ const PlaidLink = ({
 		[user, redirectTo],
 	)
 
+	const onExit: PlaidLinkOnExit = (err) => {
+		sessionStorage.removeItem('link_token')
+
+		if (err) {
+			console.error('Plaid Link Exit Error: ', err)
+			setError(
+				err.display_message ??
+					err.error_message ??
+					'Something went wrong connecting your bank. Please try again.',
+			)
+		}
+	}
+
 	const config: PlaidLinkOptions = {
 		token,
 		onSuccess,
+		onExit,
 	}
 
 	const { open, ready } = usePlaidLink(config)
+
+	const handleOpen = () => {
+		setError(null)
+		open()
+	}
 
 	return (
 		<>
 			{variant === 'primary' ? (
 				<Button
 					type="button"
-					onClick={() => open()}
+					onClick={handleOpen}
 					disabled={!ready}
 					className={cn(className)}>
 					{text ? text : 'Connect bank'}
 				</Button>
 			) : variant === 'ghost' ? (
 				<Button
-					onClick={() => open()}
+					onClick={handleOpen}
 					variant="ghost"
 					className={cn('plaidlink-ghost', className)}>
 					<p className="hidden text-base font-semibold text-neutral-800 xl:block">
@@ -82,14 +114,14 @@ const PlaidLink = ({
 				</Button>
 			) : variant === 'reconnect' ? (
 				<Button
-					onClick={() => open()}
+					onClick={handleOpen}
 					disabled={!ready}
 					className={cn(className)}>
 					Connect
 				</Button>
 			) : variant === 'relink' ? (
 				<Button
-					onClick={() => open()}
+					onClick={handleOpen}
 					className={cn(
 						'plaidlink-ghost gap-1 bg-primary text-primary-foreground px-3',
 						className,
@@ -99,7 +131,7 @@ const PlaidLink = ({
 				</Button>
 			) : (
 				<Button
-					onClick={() => open()}
+					onClick={handleOpen}
 					className={cn('plaidlink-default px-1', className)}>
 					<MdOutlineAddCard className="text-2xl" />
 					<p className="text-base font-semibold text-neutral-800">
@@ -107,6 +139,7 @@ const PlaidLink = ({
 					</p>
 				</Button>
 			)}
+			{error && <p className="form-message mt-1">{error}</p>}
 		</>
 	)
 }

@@ -283,6 +283,7 @@ export const createLinkToken = async (
 			additional_consented_products: ['transactions', 'identity'] as Products[],
 			language: 'en',
 			country_codes: ['US'] as CountryCode[],
+			redirect_uri: `${process.env.NEXT_PUBLIC_SITE_URL}/oauth`,
 			...(update && { access_token: accessToken }),
 		}
 
@@ -351,7 +352,7 @@ const waitForInitialTransactions = async (accessToken: string) => {
 export const exchangePublicToken = async ({
 	publicToken,
 	user,
-}: exchangePublicTokenProps) => {
+}: exchangePublicTokenProps): Promise<ActionResponse<null>> => {
 	try {
 		// Exchange public token for access token and item ID
 		const res = await plaidClient.itemPublicTokenExchange({
@@ -401,7 +402,7 @@ export const exchangePublicToken = async ({
 
 		revalidatePath('/')
 
-		return { success: true }
+		return { success: true, data: null }
 	} catch (error) {
 		return handleError(error, 'Bank connection failed')
 	}
