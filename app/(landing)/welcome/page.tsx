@@ -124,8 +124,8 @@ const Landing = () => {
 							</ul>
 							<div className="flex flex-col gap-3 mt-8">
 								<SheetClose asChild>
-									<Button variant="outline" className="w-full">
-										Sign in
+									<Button variant="outline" className="w-full" asChild>
+										<Link href="/signin">Sign in</Link>
 									</Button>
 								</SheetClose>
 								<SheetClose asChild>
