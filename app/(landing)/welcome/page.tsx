@@ -205,12 +205,14 @@ const Landing = () => {
 							Built for people who want clarity, not complexity.
 						</p>
 					</div>
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-[minmax(200px,240px)_auto_auto] gap-4 w-full">
 						{features.map((feat, i) => (
-							<div
-								key={i}
-								className="bg-gold-decorative/5 border border-gray-200 rounded-xl p-6">
-								<img src={feat.image} alt="" />
+							<div key={i} className="grid grid-rows-subgrid row-span-3">
+								<img
+									src={feat.image}
+									alt={feat.imgAlt ?? ''}
+									className="w-full h-full object-cover rounded-lg"
+								/>
 								<h3>{feat.title}</h3>
 								<p className="mt-2">{feat.content}</p>
 							</div>
