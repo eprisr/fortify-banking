@@ -1,8 +1,7 @@
 /**
  * Forgot Password Flow Tests
  *
- * Covers: ForgotPassword page (RSC) and AuthForm in 'forgot-pw' mode. This
- * flow previously had no test coverage.
+ * Covers: ForgotPassword page (RSC) and AuthForm in 'forgot-pw' mode.
  */
 
 import { act, render, screen } from '@testing-library/react'
@@ -47,10 +46,10 @@ describe('Forgot Password Flow', () => {
 	// =========================================================================
 	describe('ForgotPassword Page component', () => {
 		// =========================================================================
-
-		it('renders the Navbar', async () => {
+		it('renders the title in forgot-pw mode', async () => {
 			render(await ForgotPasswordPage())
-			expect(screen.getByTestId('navbar')).toBeInTheDocument()
+			expect(screen.getByText(/reset your password/i)).toBeInTheDocument()
+			expect(screen.getByText(/enter the email/i)).toBeInTheDocument()
 		})
 
 		it('renders AuthForm in forgot-pw mode (email field, "Send" button)', async () => {
@@ -67,11 +66,6 @@ describe('Forgot Password Flow', () => {
 		// =========================================================================
 
 		beforeEach(() => render(<AuthForm type="forgot-pw" />))
-
-		it('does not render an illustration or heading (forgot-pw has none configured)', () => {
-			expect(screen.queryByRole('img')).not.toBeInTheDocument()
-			expect(screen.queryByRole('heading')).not.toBeInTheDocument()
-		})
 
 		it('renders only the email field', () => {
 			expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
@@ -94,9 +88,7 @@ describe('Forgot Password Flow', () => {
 		})
 
 		it('renders a footer link back to sign in', () => {
-			expect(
-				screen.getByText('Remembered your password?'),
-			).toBeInTheDocument()
+			expect(screen.getByText('Remembered your password?')).toBeInTheDocument()
 			const link = screen.getByRole('link', { name: /sign in/i })
 			expect(link).toHaveAttribute('href', '/signin')
 		})
@@ -110,10 +102,7 @@ describe('Forgot Password Flow', () => {
 			;(forgotPw as jest.Mock).mockResolvedValueOnce({ success: true })
 			render(<AuthForm type="forgot-pw" />)
 
-			await userEvent.type(
-				screen.getByLabelText(/email/i),
-				'jane@example.com',
-			)
+			await userEvent.type(screen.getByLabelText(/email/i), 'jane@example.com')
 			await userEvent.click(screen.getByRole('button', { name: /^send$/i }))
 
 			await act(async () => {})
@@ -124,10 +113,7 @@ describe('Forgot Password Flow', () => {
 			;(forgotPw as jest.Mock).mockResolvedValueOnce({ success: true })
 			render(<AuthForm type="forgot-pw" />)
 
-			await userEvent.type(
-				screen.getByLabelText(/email/i),
-				'jane@example.com',
-			)
+			await userEvent.type(screen.getByLabelText(/email/i), 'jane@example.com')
 			await userEvent.click(screen.getByRole('button', { name: /^send$/i }))
 
 			await act(async () => {})
@@ -148,10 +134,7 @@ describe('Forgot Password Flow', () => {
 			})
 			render(<AuthForm type="forgot-pw" />)
 
-			await userEvent.type(
-				screen.getByLabelText(/email/i),
-				'ghost@example.com',
-			)
+			await userEvent.type(screen.getByLabelText(/email/i), 'ghost@example.com')
 			await userEvent.click(screen.getByRole('button', { name: /^send$/i }))
 
 			expect(

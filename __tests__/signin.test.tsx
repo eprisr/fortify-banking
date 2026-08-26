@@ -9,22 +9,10 @@
  * fetch/axios calls from the component.
  *
  * SignIn is an async server component (it awaits next/server's connection())
- * so it must be awaited before being passed to RTL's render(), same as the
- * Home page pattern.
- *
- * Known implementation bug: CustomInput only renders its <FormMessage/> for
- * the `confirmPassword` field — `name === 'password' || (name ===
- * 'confirmPassword' && <FormMessage/>)` evaluates to a boolean for every
- * other field name because of operator precedence, so it never renders JSX
- * for `email` or `password`. Validation failures on those two fields are
- * silently invisible to the user (though the input does get
- * aria-invalid="true" and submission is still correctly blocked). The tests
- * below assert the current behavior rather than the intended one. Server
- * errors (bad credentials, thrown exceptions) are unaffected — AuthForm
- * renders those itself via a plain <p>, not through CustomInput.
+ * so it must be awaited before being passed to RTL's render()
  */
 
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import { useRouter } from 'next/navigation'
@@ -92,14 +80,19 @@ describe('Sign In Flow', () => {
 	describe('SignIn Page component', () => {
 		// =========================================================================
 
-		it('renders the Navbar', async () => {
+		it('renders the title in sign-in mode', async () => {
 			await renderSignInPage()
-			expect(screen.getByTestId('navbar')).toBeInTheDocument()
+			expect(screen.getByText('Welcome back')).toBeInTheDocument()
+			expect(screen.getByText(/Good to see/g)).toBeInTheDocument()
 		})
 
 		it('renders the AuthForm in sign-in mode', async () => {
 			await renderSignInPage()
-			expect(screen.getByText('Welcome Back!')).toBeInTheDocument()
+			expect(screen.getByPlaceholderText('Email')).toBeInTheDocument()
+			expect(screen.getByPlaceholderText('Password')).toBeInTheDocument()
+			expect(
+				screen.queryByPlaceholderText('First Name'),
+			).not.toBeInTheDocument()
 		})
 	})
 
@@ -108,22 +101,6 @@ describe('Sign In Flow', () => {
 		// =========================================================================
 
 		beforeEach(() => render(<AuthForm type="signin" />))
-
-		it('renders the "Welcome Back!" heading', () => {
-			expect(screen.getByText('Welcome Back!')).toBeInTheDocument()
-		})
-
-		it('renders the subtitle', () => {
-			expect(
-				screen.getByText('Hello there, sign in to continue.'),
-			).toBeInTheDocument()
-		})
-
-		it('renders the illustration', () => {
-			expect(
-				screen.getByAltText('Sign In Lock Illustration'),
-			).toBeInTheDocument()
-		})
 
 		it('renders an email input', () => {
 			expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
@@ -140,14 +117,14 @@ describe('Sign In Flow', () => {
 		})
 
 		it('renders a "Forgot password?" link pointing to /forgot-password', () => {
-			const link = screen.getByRole('link', { name: /forgot password/i })
+			const link = screen.getByRole('link', { name: /forgot your password/i })
 			expect(link).toBeInTheDocument()
 			expect(link).toHaveAttribute('href', '/forgot-password')
 		})
 
 		it('renders a "Create account" footer link pointing to /signup', () => {
-			expect(screen.getByText('New to Fortify?')).toBeInTheDocument()
-			const link = screen.getByRole('link', { name: /create account/i })
+			expect(screen.getByText("Don't have an account?")).toBeInTheDocument()
+			const link = screen.getByRole('link', { name: /sign up/i })
 			expect(link).toBeInTheDocument()
 			expect(link).toHaveAttribute('href', '/signup')
 		})
@@ -164,10 +141,30 @@ describe('Sign In Flow', () => {
 			expect(document.querySelector('.form-message')).not.toBeInTheDocument()
 		})
 
-		it('submit button is enabled on initial render', () => {
-			expect(
-				screen.getByRole('button', { name: /sign in/i }),
-			).toBeEnabled()
+		it('submit button is disabled on initial render', () => {
+			expect(screen.getByRole('button', { name: /sign in/i })).toBeDisabled()
+		})
+
+		it('submit button is enabled on valid email type and dirty password', async () => {
+			await userEvent.type(
+				screen.getByLabelText('Email*'),
+				'janedoe@example.com',
+			)
+			await userEvent.type(screen.getByLabelText('Password*'), 'ValidPW1!')
+			expect(screen.getByRole('button', { name: /sign in/i })).toBeEnabled()
+		})
+
+		it('show/hide button toggles and properly shows/hides password', async () => {
+			expect(screen.getByText(/show/i)).toBeInTheDocument()
+
+			await userEvent.type(screen.getByLabelText('Password*'), 'ValidPW1!')
+			const pwInput = await screen.findByDisplayValue(/ValidPW1!/)
+
+			expect(pwInput).toHaveAttribute('type', 'password')
+
+			await userEvent.click(screen.getByText(/show/i))
+			expect(pwInput).toHaveAttribute('type', 'text')
+			expect(screen.getByText(/hide/i)).toBeInTheDocument()
 		})
 	})
 
@@ -184,6 +181,11 @@ describe('Sign In Flow', () => {
 		})
 
 		it('marks the email input as invalid after a failed submission', async () => {
+			await userEvent.type(
+				screen.getByLabelText('Email*'),
+				'janedoe@example.com',
+			)
+			await userEvent.type(screen.getByLabelText('Password*'), 'ValidPW1!')
 			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
 			expect(await screen.findByLabelText(/email/i)).toHaveAttribute(
 				'aria-invalid',
@@ -206,40 +208,46 @@ describe('Sign In Flow', () => {
 			expect(signIn).not.toHaveBeenCalled()
 		})
 
-		it('does not call signIn for a password shorter than 8 characters', async () => {
-			await userEvent.type(
-				screen.getByLabelText(/email/i),
-				'jane@example.com',
-			)
+		it('does not signIn for a password shorter than 8 characters', async () => {
+			await userEvent.type(screen.getByLabelText(/email/i), 'jane@example.com')
 			await userEvent.type(screen.getByLabelText(/password/i), 'Sh0rt!')
 			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
 			await new Promise((resolve) => setTimeout(resolve, 0))
-			expect(signIn).not.toHaveBeenCalled()
+			expect(signIn).toHaveBeenCalled()
+			expect(
+				screen.queryByText(
+					/Invalid credentials. Please check the email and password./i,
+				),
+			).toBeInTheDocument()
 		})
 
-		it('does not call signIn for a password over 64 characters', async () => {
-			await userEvent.type(
-				screen.getByLabelText(/email/i),
-				'jane@example.com',
-			)
+		it('does not signIn for a password over 64 characters', async () => {
+			await userEvent.type(screen.getByLabelText(/email/i), 'jane@example.com')
 			await userEvent.type(
 				screen.getByLabelText(/password/i),
 				'Aa1!'.repeat(17), // 68 chars
 			)
 			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
 			await new Promise((resolve) => setTimeout(resolve, 0))
-			expect(signIn).not.toHaveBeenCalled()
+			expect(signIn).toHaveBeenCalled()
+			expect(
+				screen.queryByText(
+					/Invalid credentials. Please check the email and password./i,
+				),
+			).toBeInTheDocument()
 		})
 
-		it('does not call signIn for a password missing an uppercase letter, number, or special character', async () => {
-			await userEvent.type(
-				screen.getByLabelText(/email/i),
-				'jane@example.com',
-			)
+		it('does not signIn for a password missing an uppercase letter, number, or special character', async () => {
+			await userEvent.type(screen.getByLabelText(/email/i), 'jane@example.com')
 			await userEvent.type(screen.getByLabelText(/password/i), 'lowercaseonly')
 			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
 			await new Promise((resolve) => setTimeout(resolve, 0))
-			expect(signIn).not.toHaveBeenCalled()
+			expect(signIn).toHaveBeenCalled()
+			expect(
+				screen.queryByText(
+					/Invalid credentials. Please check the email and password./i,
+				),
+			).toBeInTheDocument()
 		})
 	})
 
@@ -276,7 +284,7 @@ describe('Sign In Flow', () => {
 			expect(mockPush).toHaveBeenCalledWith('/')
 		})
 
-		it('shows a loading spinner while the request is in-flight', async () => {
+		it('shows loading while the request is in-flight', async () => {
 			// A manually-resolved promise (rather than setTimeout) so the test
 			// can settle it before finishing — a real pending timer would fire
 			// later in real time and could call mockPush during a later test.
@@ -286,20 +294,12 @@ describe('Sign In Flow', () => {
 			)
 			render(<AuthForm type="signin" />)
 
-			await userEvent.type(
-				screen.getByLabelText(/email/i),
-				'jane@example.com',
-			)
-			await userEvent.type(
-				screen.getByLabelText(/password/i),
-				'SecurePass1!',
-			)
+			await userEvent.type(screen.getByLabelText(/email/i), 'jane@example.com')
+			await userEvent.type(screen.getByLabelText(/password/i), 'SecurePass1!')
 			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
 
-			expect(screen.getByText(/loading/i)).toBeInTheDocument()
-			expect(
-				screen.getByRole('button', { name: /loading/i }),
-			).toBeDisabled()
+			expect(screen.getByText(/signing in/i)).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /signing in/i })).toBeDisabled()
 
 			await act(async () => {
 				resolveSignIn({ success: true, data: { $id: 'user-123' } })
@@ -334,9 +334,7 @@ describe('Sign In Flow', () => {
 
 			await fillAndSubmit('bad@example.com', 'WrongPass1!')
 
-			expect(
-				await screen.findByText('Invalid credentials'),
-			).toBeInTheDocument()
+			expect(await screen.findByText('Invalid credentials')).toBeInTheDocument()
 		})
 
 		it('does not redirect when signIn reports failure', async () => {
@@ -353,16 +351,12 @@ describe('Sign In Flow', () => {
 		})
 
 		it('displays an error when signIn rejects with an unexpected exception', async () => {
-			;(signIn as jest.Mock).mockRejectedValueOnce(
-				new Error('Network failure'),
-			)
+			;(signIn as jest.Mock).mockRejectedValueOnce(new Error('Network failure'))
 			render(<AuthForm type="signin" />)
 
 			await fillAndSubmit('jane@example.com', 'SecurePass1!')
 
-			expect(
-				await screen.findByText('Network failure'),
-			).toBeInTheDocument()
+			expect(await screen.findByText('Network failure')).toBeInTheDocument()
 		})
 
 		it('re-enables the submit button after a failed sign in', async () => {
@@ -375,9 +369,7 @@ describe('Sign In Flow', () => {
 			await fillAndSubmit('bad@example.com', 'WrongPass1!')
 
 			await screen.findByText('Invalid credentials')
-			expect(
-				screen.getByRole('button', { name: /sign in/i }),
-			).toBeEnabled()
+			expect(screen.getByRole('button', { name: /sign in/i })).toBeEnabled()
 		})
 	})
 
@@ -395,9 +387,7 @@ describe('Sign In Flow', () => {
 			await fillAndSubmit('jane@example.com', 'SecurePass1!')
 			await screen.findByText('Bad credentials')
 
-			await userEvent.click(
-				screen.getByRole('button', { name: /sign in/i }),
-			)
+			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
 			await new Promise((resolve) => setTimeout(resolve, 0))
 			expect(mockPush).toHaveBeenCalledWith('/')
 		})

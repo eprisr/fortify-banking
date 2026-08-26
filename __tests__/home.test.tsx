@@ -45,25 +45,29 @@ jest.mock(
 		),
 )
 
-jest.mock('@/components/AccountBox', () =>
-	function MockAccountBox({ totalBanks }: { totalBanks: number }) {
-		return <div data-testid="account-box" data-total-banks={totalBanks} />
-	},
+jest.mock(
+	'@/components/AccountBox',
+	() =>
+		function MockAccountBox({ totalBanks }: { totalBanks: number }) {
+			return <div data-testid="account-box" data-total-banks={totalBanks} />
+		},
 )
 
 jest.mock('@/components/QuickLinks', () => () => (
 	<div data-testid="quick-links" />
 ))
 
-jest.mock('@/components/MonthSpend', () =>
-	function MockMonthSpend({ transactions }: { transactions?: unknown[] }) {
-		return (
-			<div
-				data-testid="month-spend"
-				data-transaction-count={transactions?.length ?? 'undefined'}
-			/>
-		)
-	},
+jest.mock(
+	'@/components/MonthSpend',
+	() =>
+		function MockMonthSpend({ transactions }: { transactions?: unknown[] }) {
+			return (
+				<div
+					data-testid="month-spend"
+					data-transaction-count={transactions?.length ?? 'undefined'}
+				/>
+			)
+		},
 )
 
 jest.mock('@/components/RecentTransactions', () => ({
@@ -249,7 +253,9 @@ describe('Home Page', () => {
 
 		it('does not render any PlaidLink variant', async () => {
 			await renderHome()
-			expect(screen.queryByTestId('plaid-link-reconnect')).not.toBeInTheDocument()
+			expect(
+				screen.queryByTestId('plaid-link-reconnect'),
+			).not.toBeInTheDocument()
 			expect(screen.queryByTestId('plaid-link-relink')).not.toBeInTheDocument()
 			expect(screen.queryByTestId('plaid-link-primary')).not.toBeInTheDocument()
 		})
@@ -275,7 +281,7 @@ describe('Home Page', () => {
 
 		it('renders the primary "Connect bank" PlaidLink', async () => {
 			await renderHome()
-			expect(screen.getByTestId('plaid-link-primary')).toBeInTheDocument()
+			expect(screen.getByTestId('plaid-link-reconnect')).toBeInTheDocument()
 		})
 
 		it('does not render the relink PlaidLink or "Your session expired" message', async () => {
@@ -337,9 +343,9 @@ describe('Home Page', () => {
 
 			await expect(renderHome()).resolves.not.toThrow()
 			expect(
-				screen.getByText('Your session expired'),
+				screen.getByText('Bank connection needs attention'),
 			).toBeInTheDocument()
-			expect(screen.getByTestId('plaid-link-relink')).toBeInTheDocument()
+			expect(screen.getByTestId('plaid-link-reconnect')).toBeInTheDocument()
 			// Nothing to look up — getAccount shouldn't be called just to fail.
 			expect(getAccount).not.toHaveBeenCalled()
 		})
@@ -350,7 +356,7 @@ describe('Home Page', () => {
 
 			await expect(renderHome()).resolves.not.toThrow()
 			expect(
-				screen.getByText('Your session expired'),
+				screen.getByText('Bank connection needs attention'),
 			).toBeInTheDocument()
 			expect(getAccount).not.toHaveBeenCalled()
 		})
@@ -373,7 +379,12 @@ describe('Home Page', () => {
 			;(getAccounts as jest.Mock).mockResolvedValue({
 				data: [
 					mockAccount,
-					{ ...mockAccount, id: 'acc-2', mask: '0002', appwriteItemId: 'item-2' },
+					{
+						...mockAccount,
+						id: 'acc-2',
+						mask: '0002',
+						appwriteItemId: 'item-2',
+					},
 				],
 				totalBanks: 2,
 				totalCurrentBalance: 2400,

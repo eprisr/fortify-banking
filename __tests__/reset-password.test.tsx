@@ -44,10 +44,10 @@ function setupRouter() {
 	})
 }
 
-async function renderResetPage(
-	searchParams: Record<string, string> = {},
-) {
-	return render(await ResetPasswordPage({ searchParams: Promise.resolve(searchParams) }))
+async function renderResetPage(searchParams: Record<string, string> = {}) {
+	return render(
+		await ResetPasswordPage({ searchParams: Promise.resolve(searchParams) }),
+	)
 }
 
 describe('Reset Password Flow', () => {
@@ -66,20 +66,18 @@ describe('Reset Password Flow', () => {
 				secret: 'secret-abc',
 				expire: '2000-01-01 00:00:00',
 			})
+			expect(screen.getByText(/link expired/i)).toBeInTheDocument()
 			expect(
-				screen.getByText('This password link has expired.'),
-			).toBeInTheDocument()
-			expect(
-				screen.getByRole('link', { name: /request a new link/i }),
-			).toHaveAttribute('href', '/forgot-password')
+				screen.getByRole('button', { name: /send a new link/i }),
+			).toHaveTextContent(/send a new link/i)
 		})
 
 		it('shows the success message when success=true', async () => {
 			await renderResetPage({ success: 'true' })
 			expect(
-				screen.getByText('Change password successfully!'),
+				screen.getByText(/your password has been changed/i),
 			).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /ok/i })).toHaveAttribute(
+			expect(screen.getByRole('link', { name: /sign in/i })).toHaveAttribute(
 				'href',
 				'/signin',
 			)
@@ -90,11 +88,6 @@ describe('Reset Password Flow', () => {
 			expect(
 				screen.getByRole('button', { name: /reset password/i }),
 			).toBeInTheDocument()
-		})
-
-		it('renders the Navbar in every state', async () => {
-			await renderResetPage({ success: 'true' })
-			expect(screen.getByTestId('navbar')).toBeInTheDocument()
 		})
 	})
 
@@ -113,9 +106,7 @@ describe('Reset Password Flow', () => {
 
 		it('renders password and confirm-password fields, not email', () => {
 			expect(screen.getByLabelText(/^password/i)).toBeInTheDocument()
-			expect(
-				screen.getByLabelText(/confirm password/i),
-			).toBeInTheDocument()
+			expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument()
 			expect(screen.queryByLabelText(/^email$/i)).not.toBeInTheDocument()
 		})
 
