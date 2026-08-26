@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import {
 	FormControl,
 	FormField,
@@ -24,6 +27,9 @@ function CustomInput<T extends FieldValues>({
 	placeholder,
 	required,
 }: CustomInputProps<T>) {
+	const [visible, setVisible] = useState(false)
+	const isPasswordField = name === 'password' || name === 'confirmPassword'
+
 	return (
 		<FormField
 			control={control}
@@ -36,13 +42,15 @@ function CustomInput<T extends FieldValues>({
 							{required && <sup>*</sup>}
 						</FormLabel>
 					</VisuallyHiddenPrimative.Root>
-					<div className="flex w-full flex-col bg-cloud rounded-lg">
+					<div className="relative flex w-full flex-col bg-cloud rounded-lg">
 						<FormControl>
 							<Input
 								placeholder={placeholder}
 								type={
-									name === 'password' || name === 'confirmPassword'
-										? 'password'
+									isPasswordField
+										? visible
+											? 'text'
+											: 'password'
 										: name === 'email' || name === 'recipientEmail'
 											? 'email'
 											: 'text'
@@ -54,10 +62,18 @@ function CustomInput<T extends FieldValues>({
 								autoCapitalize="none"
 								autoCorrect="off"
 								spellCheck={false}
-								className="h-14 px-5 border-none text-base! placeholder:text-base placeholder:text-ink/40"
+								className={`h-14 px-5 border-none text-base! placeholder:text-base placeholder:text-ink/40 ${isPasswordField ? 'pr-16' : ''}`}
 								{...field}
 							/>
 						</FormControl>
+						{isPasswordField && (
+							<button
+								type="button"
+								onClick={() => setVisible((prev) => !prev)}
+								className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-semibold tracking-wide text-ink/60 transition-colors hover:text-plum">
+								{visible ? 'HIDE' : 'SHOW'}
+							</button>
+						)}
 					</div>
 				</FormItem>
 			)}
