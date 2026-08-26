@@ -283,6 +283,7 @@ export const createLinkToken = async (
 			additional_consented_products: ['transactions', 'identity'] as Products[],
 			language: 'en',
 			country_codes: ['US'] as CountryCode[],
+			redirect_uri: `${process.env.NEXT_PUBLIC_SITE_URL}/oauth`,
 			...(update && { access_token: accessToken }),
 		}
 
