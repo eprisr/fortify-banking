@@ -227,6 +227,11 @@ const Landing = () => {
 						<p className="text-primary font-semibold">How It Works</p>
 						<h2 id="works-heading">Up and running in three steps</h2>
 					</div>
+					<img
+						src="/landing/fortify-how-it-works.png"
+						alt="How it works feature image"
+						className="max-w-200 h-auto"
+					/>
 					<div className="grid grid-cols-1 sm:grid-cols-3 text-center gap-10 sm:gap-16 relative w-full max-w-4xl">
 						<hr className="hidden sm:block absolute top-1/8 left-1/8 z-0 w-3/4 border-t-2 border-primary-400" />
 						{works.map((w, i) => (
