@@ -12,7 +12,7 @@
  * so it must be awaited before being passed to RTL's render()
  */
 
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import { useRouter } from 'next/navigation'
@@ -181,6 +181,10 @@ describe('Sign In Flow', () => {
 		})
 
 		it('marks the email input as invalid after a failed submission', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: false,
+				error: 'Invalid credentials. Please check the email and password.',
+			})
 			await userEvent.type(
 				screen.getByLabelText('Email*'),
 				'janedoe@example.com',
@@ -208,43 +212,52 @@ describe('Sign In Flow', () => {
 			expect(signIn).not.toHaveBeenCalled()
 		})
 
-		it('does not signIn for a password shorter than 8 characters', async () => {
+		it('still calls signIn for a password shorter than 8 characters, and shows the server error', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: false,
+				error: 'Invalid credentials. Please check the email and password.',
+			})
 			await userEvent.type(screen.getByLabelText(/email/i), 'jane@example.com')
 			await userEvent.type(screen.getByLabelText(/password/i), 'Sh0rt!')
 			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
-			await new Promise((resolve) => setTimeout(resolve, 0))
 			expect(signIn).toHaveBeenCalled()
 			expect(
-				screen.queryByText(
+				await screen.findByText(
 					/Invalid credentials. Please check the email and password./i,
 				),
 			).toBeInTheDocument()
 		})
 
-		it('does not signIn for a password over 64 characters', async () => {
+		it('still calls signIn for a password over 64 characters, and shows the server error', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: false,
+				error: 'Invalid credentials. Please check the email and password.',
+			})
 			await userEvent.type(screen.getByLabelText(/email/i), 'jane@example.com')
 			await userEvent.type(
 				screen.getByLabelText(/password/i),
 				'Aa1!'.repeat(17), // 68 chars
 			)
 			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
-			await new Promise((resolve) => setTimeout(resolve, 0))
 			expect(signIn).toHaveBeenCalled()
 			expect(
-				screen.queryByText(
+				await screen.findByText(
 					/Invalid credentials. Please check the email and password./i,
 				),
 			).toBeInTheDocument()
 		})
 
-		it('does not signIn for a password missing an uppercase letter, number, or special character', async () => {
+		it('still calls signIn for a password missing an uppercase letter, number, or special character, and shows the server error', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: false,
+				error: 'Invalid credentials. Please check the email and password.',
+			})
 			await userEvent.type(screen.getByLabelText(/email/i), 'jane@example.com')
 			await userEvent.type(screen.getByLabelText(/password/i), 'lowercaseonly')
 			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
-			await new Promise((resolve) => setTimeout(resolve, 0))
 			expect(signIn).toHaveBeenCalled()
 			expect(
-				screen.queryByText(
+				await screen.findByText(
 					/Invalid credentials. Please check the email and password./i,
 				),
 			).toBeInTheDocument()
