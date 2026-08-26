@@ -211,7 +211,7 @@ const Landing = () => {
 								<img
 									src={feat.image}
 									alt={feat.imgAlt ?? ''}
-									className="w-full h-full object-cover rounded-lg"
+									className="w-full h-full object-contain rounded-lg"
 								/>
 								<h3>{feat.title}</h3>
 								<p className="mt-2">{feat.content}</p>
