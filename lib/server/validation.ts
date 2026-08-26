@@ -1,7 +1,9 @@
 import { z } from 'zod'
 import { nameField, freeTextField, passwordField } from '../utils'
 
-export const emailField = z.email('A valid email is required')
+// Trimmed + lowercased so a mobile keyboard's autocapitalize-first-letter
+// behavior can't turn a correct email into a mismatched credential.
+export const emailField = z.email('A valid email is required').trim().toLowerCase()
 
 const MAX_TRANSFER_AMOUNT = 1_000_000
 

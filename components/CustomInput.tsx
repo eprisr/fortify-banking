@@ -43,9 +43,17 @@ function CustomInput<T extends FieldValues>({
 								type={
 									name === 'password' || name === 'confirmPassword'
 										? 'password'
-										: 'text'
+										: name === 'email' || name === 'recipientEmail'
+											? 'email'
+											: 'text'
 								}
 								id={name}
+								// Mobile keyboards auto-capitalize the first letter of a plain
+								// text input, which silently turns a valid email/password into
+								// a mismatched credential. Disable that here.
+								autoCapitalize="none"
+								autoCorrect="off"
+								spellCheck={false}
 								className="h-14 px-5 border-none text-base! placeholder:text-base placeholder:text-ink/40"
 								{...field}
 							/>

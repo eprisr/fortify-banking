@@ -298,7 +298,13 @@ export const transferFormSchema = () =>
 		note: freeTextField(500).optional(),
 	})
 
-const emailField = z.email('A Valid Email is Required')
+// Trimmed + lowercased so a mobile keyboard's autocapitalize-first-letter
+// behavior (e.g. "Someone@gmail.com") can't turn a correct email into a
+// mismatched credential — email auth should never be case-sensitive.
+const emailField = z
+	.email('A Valid Email is Required')
+	.trim()
+	.toLowerCase()
 
 // Single source of truth for both the password's Zod validation and the
 // live checklist rendered in the UI (see SignUpForm).
