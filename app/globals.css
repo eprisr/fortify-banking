@@ -5,6 +5,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+	--breakpoint-xs: 30rem;
+
 	--color-ink: #221f2b;
 	--color-paper: #faf8f4;
 	--color-cloud: #f1eee7;
@@ -135,9 +137,13 @@
 		margin: 0;
 		padding: 0;
 	}
-	body {
-		@apply bg-background text-foreground;
+
+	@media (width >= 30rem) {
+		body {
+			@apply bg-background text-foreground;
+		}
 	}
+
 	html {
 		@apply font-sans;
 	}
