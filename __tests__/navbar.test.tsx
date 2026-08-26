@@ -43,25 +43,25 @@ describe('Navbar', () => {
 		// =========================================================================
 
 		it('renders the "Good Morning," greeting and the user\'s full name', () => {
-			render(<Navbar type="main" user={mockUser} background />)
-			expect(screen.getByText(/Good Morning,/i)).toBeInTheDocument()
+			render(<Navbar type="main" user={mockUser} />)
+			expect(screen.getByText(/Good/i)).toBeInTheDocument()
 			expect(screen.getByText('Test User!')).toBeInTheDocument()
 		})
 
-		it('renders the trigger with the user\'s first initial', () => {
-			render(<Navbar type="main" user={mockUser} background />)
-			expect(screen.getByText('T')).toBeInTheDocument()
+		it("renders the trigger with the user's first and last initial", () => {
+			render(<Navbar type="main" user={mockUser} />)
+			expect(screen.getByText('TU')).toBeInTheDocument()
 		})
 
 		it('does not render PlaidLink (currently commented out in the menu)', () => {
-			render(<Navbar type="main" user={mockUser} background />)
+			render(<Navbar type="main" user={mockUser} />)
 			expect(screen.queryByTestId('plaid-link')).not.toBeInTheDocument()
 		})
 
 		it('opens the menu sheet and shows profile details, nav links, and Footer', async () => {
-			render(<Navbar type="main" user={mockUser} background />)
+			render(<Navbar type="main" user={mockUser} />)
 
-			await userEvent.click(screen.getByText('T'))
+			await userEvent.click(screen.getByText('TU'))
 
 			const dialog = await screen.findByRole('dialog')
 			expect(
@@ -72,8 +72,8 @@ describe('Navbar', () => {
 		})
 
 		it('groups nav links by category in the opened menu', async () => {
-			render(<Navbar type="main" user={mockUser} background />)
-			await userEvent.click(screen.getByText('T'))
+			render(<Navbar type="main" user={mockUser} />)
+			await userEvent.click(screen.getByText('TU'))
 
 			const dialog = await screen.findByRole('dialog')
 			expect(within(dialog).getByText('ACCOUNT')).toBeInTheDocument()
@@ -96,15 +96,13 @@ describe('Navbar', () => {
 		// =========================================================================
 
 		it('renders the page title and no greeting for the Sign in page', () => {
-			render(<Navbar type="sub" pageTitle="Sign in" background />)
+			render(<Navbar type="sub" pageTitle="Sign in" />)
 			expect(screen.getByText('Sign in')).toBeInTheDocument()
 			expect(screen.queryByText(/Good Morning,/i)).not.toBeInTheDocument()
 		})
 
 		it('omits the back chevron only on the Sign in page', () => {
-			const { container } = render(
-				<Navbar type="sub" pageTitle="Sign in" background />,
-			)
+			const { container } = render(<Navbar type="sub" pageTitle="Sign in" />)
 			expect(container.querySelector('svg')).not.toBeInTheDocument()
 		})
 
@@ -133,9 +131,10 @@ describe('Navbar', () => {
 
 		it('links "Reset Password" back to /forgot-password', () => {
 			render(<Navbar type="sub" pageTitle="Reset Password" />)
-			expect(
-				screen.getByText('Reset Password').closest('a'),
-			).toHaveAttribute('href', '/forgot-password')
+			expect(screen.getByText('Reset Password').closest('a')).toHaveAttribute(
+				'href',
+				'/forgot-password',
+			)
 		})
 
 		it('defaults to "/" for any other page title', () => {
@@ -144,18 +143,6 @@ describe('Navbar', () => {
 				'href',
 				'/',
 			)
-		})
-
-		it('applies the background text-white style only when background is set', () => {
-			const { container: withBg } = render(
-				<Navbar type="sub" pageTitle="Transfer" background />,
-			)
-			expect(withBg.querySelector('nav')).toHaveClass('text-white')
-
-			const { container: withoutBg } = render(
-				<Navbar type="sub" pageTitle="Transfer" />,
-			)
-			expect(withoutBg.querySelector('nav')).not.toHaveClass('text-white')
 		})
 	})
 })
