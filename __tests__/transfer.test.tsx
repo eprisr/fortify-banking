@@ -587,4 +587,31 @@ describe('Payment Transfer Flow', () => {
 			)
 		})
 	})
+
+	// ===========================================================================
+	// NOT YET BUILT — spec for a pre-submit confirmation/review step. Decided
+	// 2026-08-26: clicking "Transfer Funds" today calls transferFunds
+	// immediately (see `submit` in PaymentTransferForm.tsx); the intended
+	// behavior is a review screen (amount, sender account, recipient, note)
+	// that the user must explicitly confirm before the server action fires,
+	// with a way back to the form to edit without submitting.
+	// it.todo() rather than real assertions — none of this exists yet, only
+	// a spec to track. See component_fixes_deferred memory for where this is
+	// queued.
+	// ===========================================================================
+	describe('PaymentTransferForm — confirmation step (not yet built)', () => {
+		it.todo(
+			'does not call transferFunds immediately on submit — shows a review screen first',
+		)
+		it.todo(
+			'review screen displays the amount, sender account, recipient, and note exactly as entered',
+		)
+		it.todo(
+			'calls transferFunds only after the user explicitly confirms on the review screen',
+		)
+		it.todo(
+			'returns to the editable form without calling transferFunds when the user backs out of the review screen',
+		)
+		it.todo('preserves the entered values when backing out of the review screen')
+	})
 })
