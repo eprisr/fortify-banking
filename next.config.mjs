@@ -1,6 +1,22 @@
 import { withSentryConfig } from '@sentry/nextjs'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+	// next/jest derives its Jest transformIgnorePatterns from this list, so
+	// it doubles as the fix for MSW's ESM-only dependency tree (until-async,
+	// @mswjs/interceptors, etc.) failing to parse under Jest. Nothing in the
+	// app imports these — they're test-only — so this has no effect on the
+	// production bundle. See __tests__/msw/README.md.
+	transpilePackages: [
+		'msw',
+		'@mswjs/interceptors',
+		'until-async',
+		'@bundled-es-modules',
+		'@open-draft',
+		'outvariant',
+		'strict-event-emitter',
+		'headers-polyfill',
+		'is-node-process',
+	],
 	experimental: {
 		turbo: {
 			rules: {
