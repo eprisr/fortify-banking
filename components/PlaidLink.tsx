@@ -33,6 +33,7 @@ const PlaidLink = ({
 	useEffect(() => {
 		const getLinkToken = async () => {
 			const data = await createLinkToken(user, update)
+			sessionStorage.setItem('link_token', data?.linkToken ?? '')
 			setToken(data?.linkToken ?? '')
 		}
 

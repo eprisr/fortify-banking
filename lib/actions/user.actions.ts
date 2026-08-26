@@ -402,7 +402,7 @@ export const exchangePublicToken = async ({
 
 		revalidatePath('/')
 
-		return { success: true }
+		return { success: true, data: null }
 	} catch (error) {
 		return handleError(error, 'Bank connection failed')
 	}
