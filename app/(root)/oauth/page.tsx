@@ -32,6 +32,11 @@ const OAuthLink = () => {
 
 	const onSuccess = useCallback<PlaidLinkOnSuccess>(
 		async (public_token: string) => {
+			if (!user) {
+				setError('Something went wrong. Please try again.')
+				return
+			}
+
 			const result = await exchangePublicToken({
 				publicToken: public_token,
 				user,

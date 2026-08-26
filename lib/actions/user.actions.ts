@@ -352,7 +352,7 @@ const waitForInitialTransactions = async (accessToken: string) => {
 export const exchangePublicToken = async ({
 	publicToken,
 	user,
-}: exchangePublicTokenProps) => {
+}: exchangePublicTokenProps): Promise<ActionResponse<null>> => {
 	try {
 		// Exchange public token for access token and item ID
 		const res = await plaidClient.itemPublicTokenExchange({

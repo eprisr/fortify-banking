@@ -44,12 +44,20 @@ const PlaidLink = ({
 
 	const onSuccess = useCallback<PlaidLinkOnSuccess>(
 		async (public_token: string) => {
-			await exchangePublicToken({
+			const result = await exchangePublicToken({
 				publicToken: public_token,
 				user,
 			})
 
 			sessionStorage.removeItem('link_token')
+
+			if (!result?.success) {
+				setError(
+					result?.error ??
+						'We connected to your bank, but saving the account failed. Please try again.',
+				)
+				return
+			}
 
 			router.refresh()
 			router.push(redirectTo)
