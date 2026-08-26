@@ -18,10 +18,12 @@ import { Progress } from '@/components/ui/progress'
 import StepOne from './StepOne'
 import StepTwo from './StepTwo'
 import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 const STEP_ONE_FIELDS = Object.keys(signupSchema.shape) as Path<SignUpValues>[]
 
 const SignUpForm = () => {
+	const router = useRouter()
 	const [step, setStep] = useState<number>(1)
 	const [user, setUser] = useState<User | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
@@ -72,9 +74,11 @@ const SignUpForm = () => {
 		<section className="auth-form">
 			<header className="flex flex-col gap-5 md:gap-8">
 				<div className="flex items-center justify-between">
-					<div className="flex flex-center h-8 w-8 bg-cloud rounded-full">
-						<ChevronLeft size={12} />
-					</div>
+					<button onClick={() => router.back()}>
+						<div className="flex flex-center h-8 w-8 bg-cloud rounded-full cursor-pointer">
+							<ChevronLeft size={12} />
+						</div>
+					</button>
 					<Field orientation="horizontal" className="w-fit">
 						<FieldLabel htmlFor="progress-upload">
 							<span>Step {step} of 2</span>

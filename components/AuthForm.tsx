@@ -91,9 +91,11 @@ const AuthForm = ({
 			{config.heading && (
 				<header className="flex flex-col gap-5 md:gap-8">
 					{type !== 'signin' && (
-						<div className="flex flex-center h-8 w-8 bg-cloud rounded-full">
-							<ChevronLeft size={12} />
-						</div>
+						<button onClick={() => router.back()}>
+							<div className="flex flex-center h-8 w-8 bg-cloud rounded-full cursor-pointer">
+								<ChevronLeft size={12} />
+							</div>
+						</button>
 					)}
 					<div className="flex flex-col gap-1 md:gap-3">
 						<h1 className="text-3xl font-bold">{config.heading}</h1>

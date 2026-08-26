@@ -1,13 +1,17 @@
 import { ChevronLeft } from 'lucide-react'
-import React from 'react'
+import { useRouter } from 'next/navigation'
 
 const Terms = () => {
+	const router = useRouter()
+
 	return (
 		<section className="size-full text-sm bg-white">
 			<header className="flex items-center gap-4">
-				<div className="flex flex-center h-8 w-8 bg-cloud rounded-full">
-					<ChevronLeft size={12} />
-				</div>
+				<button onClick={() => router.back()}>
+					<div className="flex flex-center h-8 w-8 bg-cloud rounded-full cursor-pointer">
+						<ChevronLeft size={12} />
+					</div>
+				</button>
 				<div>
 					<h1 className="text-xl font-bold">Terms & Conditions</h1>
 				</div>
