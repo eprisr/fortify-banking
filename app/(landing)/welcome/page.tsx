@@ -35,8 +35,8 @@ import { redirect } from 'next/navigation'
 
 const navLinks = [
 	{ href: '#features', label: 'Features' },
-	{ href: '#works', label: 'How it works' },
 	{ href: '#security', label: 'Security' },
+	{ href: '#works', label: 'How it works' },
 ]
 
 const productLinks = [
@@ -220,39 +220,9 @@ const Landing = () => {
 					</div>
 				</section>
 				<section
-					id="works"
-					aria-labelledby="works-heading"
-					className="flex flex-col items-center justify-center gap-10 px-5 sm:px-10 lg:px-20 xl:px-40 py-16 lg:py-24 bg-plum-tint border border-gray-200">
-					<div className="text-center">
-						<p className="text-primary font-semibold">How It Works</p>
-						<h2 id="works-heading">Up and running in three steps</h2>
-					</div>
-					<img
-						src="/landing/fortify-how-it-works.png"
-						alt="How it works feature image"
-						className="max-w-200 w-[90%] h-auto"
-					/>
-					<div className="grid grid-cols-1 sm:grid-cols-3 text-center gap-10 sm:gap-16 relative w-full max-w-4xl">
-						<hr className="hidden sm:block absolute top-1/8 left-1/8 z-0 w-3/4 border-t-2 border-primary-400" />
-						{works.map((w, i) => (
-							<div key={i} className="relative">
-								<div className="flex items-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-auto">
-									<span className="font-sora font-semibold">{i + 1}</span>
-								</div>
-								<h3 className="font-sora font-bold text-lg text-black-1 my-4">
-									{w.title}
-								</h3>
-								<p className="max-w-[28ch] text-sm text-ink leading-6 mx-auto">
-									{w.content}
-								</p>
-							</div>
-						))}
-					</div>
-				</section>
-				<section
 					id="security"
 					aria-labelledby="security-heading"
-					className="flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-6 px-5 sm:px-10 lg:px-20 xl:px-50 py-16 lg:py-20">
+					className="flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-6 bg-plum-tint px-5 sm:px-10 lg:px-20 xl:px-50 py-16 lg:py-20">
 					<div className="w-full lg:w-1/2 text-center lg:text-left">
 						<p className="text-primary font-semibold">Security</p>
 						<h2 className="lg:max-w-[12ch] text-3xl lg:text-4xl my-4">
@@ -280,6 +250,36 @@ const Landing = () => {
 									{s.title}
 								</p>
 								<p className="text-xs font-light leading-5">{s.content}</p>
+							</div>
+						))}
+					</div>
+				</section>
+				<section
+					id="works"
+					aria-labelledby="works-heading"
+					className="flex flex-col items-center justify-center gap-10 px-5 sm:px-10 lg:px-20 xl:px-40 py-16 lg:py-24 border border-gray-200">
+					<div className="text-center">
+						<p className="text-primary font-semibold">How It Works</p>
+						<h2 id="works-heading">Up and running in three steps</h2>
+					</div>
+					<img
+						src="/landing/fortify-how-it-works.png"
+						alt="How it works feature image"
+						className="max-w-200 w-[90%] h-auto"
+					/>
+					<div className="grid grid-cols-1 sm:grid-cols-3 text-center gap-10 sm:gap-16 relative w-full max-w-4xl">
+						<hr className="hidden sm:block absolute top-1/8 left-1/8 z-0 w-3/4 border-t-2 border-primary-400" />
+						{works.map((w, i) => (
+							<div key={i} className="relative">
+								<div className="flex items-center justify-center w-10 h-10 p-2 bg-primary-700 text-white rounded-xl m-auto">
+									<span className="font-sora font-semibold">{i + 1}</span>
+								</div>
+								<h3 className="font-sora font-bold text-lg text-black-1 my-4">
+									{w.title}
+								</h3>
+								<p className="max-w-[28ch] text-sm text-ink leading-6 mx-auto">
+									{w.content}
+								</p>
 							</div>
 						))}
 					</div>
