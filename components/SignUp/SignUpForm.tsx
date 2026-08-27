@@ -17,7 +17,6 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Progress } from '@/components/ui/progress'
 import StepOne from './StepOne'
 import StepTwo from './StepTwo'
-import { redirect } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 
 const STEP_ONE_FIELDS = Object.keys(signupSchema.shape) as Path<SignUpValues>[]

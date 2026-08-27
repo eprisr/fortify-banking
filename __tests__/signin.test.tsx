@@ -192,7 +192,7 @@ describe('Sign In Flow', () => {
 			expect(signIn).not.toHaveBeenCalled()
 		})
 
-		it('marks the email input as invalid after a failed submission', async () => {
+		it('does not mark the email/password fields invalid after a rejected (but well-formed) sign-in', async () => {
 			;(signIn as jest.Mock).mockResolvedValueOnce({
 				success: false,
 				error: 'Invalid credentials. Please check the email and password.',
@@ -203,9 +203,17 @@ describe('Sign In Flow', () => {
 			)
 			await userEvent.type(screen.getByLabelText('Password*'), 'ValidPW1!')
 			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
-			expect(await screen.findByLabelText(/email/i)).toHaveAttribute(
+
+			await screen.findByText(
+				'Invalid credentials. Please check the email and password.',
+			)
+			expect(screen.getByLabelText('Email*')).toHaveAttribute(
 				'aria-invalid',
-				'true',
+				'false',
+			)
+			expect(screen.getByLabelText('Password*')).toHaveAttribute(
+				'aria-invalid',
+				'false',
 			)
 		})
 

@@ -1,6 +1,5 @@
 import { connection } from 'next/server'
 import SignUpForm from '@/components/SignUp/SignUpForm'
-import Navbar from '@/components/Navbar'
 
 const SignUp = async () => {
 	await connection()
