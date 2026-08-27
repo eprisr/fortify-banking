@@ -10,28 +10,28 @@
 
 ## Context
 
-Fortify needed a payment processing layer to handle bank-to-bank fund transfers between users. Stripe is the default answer for almost any payment problem on the web; it's well-documented, universally understood, and capable of ACH transfers. The question was whether "capable of ACH" was the same as "built for ACH."
+Dwolla came with the tutorial I used to get Fortify off the ground. Everyone defaults to Stripe. I almost did too, so I went looking for the actual reasoning behind the choice.
 
-The use case here is specific: account-to-account transfers, not card charges. A user links their bank account and sends money to another user's linked account. There are no cards involved at any point. That distinction shaped the decision.
+The use case is specific: bank-to-bank transfers. Every transfer in Fortify is the product, not a secondary capability. That distinction is what makes the tutorial's choice hold up.
 
-It's worth noting upfront that the developer-accessible options for bank-to-bank transfers are narrower than most people expect. Consumer apps like Zelle, Venmo, and Cash App are familiar reference points for this kind of money movement, but none of them offer a public API that developers can integrate. Zelle, for example, is a real-time payment network operated by a consortium of major US banks (Chase, Bank of America, Wells Fargo, and others). Accessing it requires a direct partnership with Early Warning Services, the entity that runs the network, which is only available to licensed financial institutions. Venmo and Cash App have the same limitation from the other direction, they're closed consumer platforms, not developer infrastructure. The realistic choices for a project like Fortify are effectively Dwolla, Stripe ACH, and a small number of newer fintech infrastructure providers like Moov.io or Modern Treasury.
+It's also worth understanding upfront that the developer-accessible options for bank-to-bank ACH are narrower than most people expect. Services most people associate with this kind of money movement, Zelle, Venmo, and Cash App, aren't developer platforms. Zelle is a payment network operated by a consortium of major US banks, accessible only to licensed financial institutions through a proprietary partnership. Venmo and Cash App are closed consumer products with no public API. The realistic choices for a project like Fortify are Dwolla, Stripe ACH, and a small number of newer infrastructure providers like Moov.io or Modern Treasury.
 
 ---
 
 ## Decision
 
-Use **Dwolla** for ACH payment processing rather than Stripe.
+Keep Dwolla for ACH payment processing.
 
 ---
 
 ## Alternatives Considered
 
-| Option                       | Pros                                                                                                                                | Cons                                                                                                                                                                                                                                                                    |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Dwolla** _(chosen)_        | Purpose-built for ACH bank-to-bank transfers; clean separation of concerns with Plaid; mirrors real fintech infrastructure patterns | Smaller developer community; more complex initial setup; less name recognition                                                                                                                                                                                          |
-| **Stripe**                   | Industry-leading DX; enormous community; excellent documentation; ACH support available                                             | Card-first by design; ACH is a secondary capability, not the primary use case; fee structure less favorable for high-volume bank transfers                                                                                                                              |
-| **PayPal / Braintree**       | Familiar to end users; handles ACH                                                                                                  | Even more card-focused than Stripe; lower developer experience quality; adds PayPal brand friction                                                                                                                                                                      |
-| **Zelle / Venmo / Cash App** | Widely recognized by end users; purpose-built for bank-to-bank transfers                                                            | **Not accessible to developers.** These are closed consumer platforms, not developer APIs. Zelle requires a direct partnership with Early Warning Services and is only available to licensed financial institutions. Venmo and Cash App have no public integration API. |
+| Option                       | Pros                                                                                             | Cons                                                                                                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dwolla** _(chosen)_        | Purpose-built for ACH bank-to-bank transfers, clean data model, designed to work alongside Plaid | Smaller developer community, more complex setup, less name recognition                                                                                      |
+| **Stripe**                   | Industry-leading DX, enormous community, ACH support available                                   | Card-first by design, ACH is a secondary capability built onto card rails                                                                                   |
+| **PayPal / Braintree**       | Familiar to end users                                                                            | Even more card-focused than Stripe, lower developer experience                                                                                              |
+| **Zelle / Venmo / Cash App** | Widely recognized, purpose-built for bank-to-bank movement                                       | Not accessible to developers. These are closed consumer platforms, not APIs. Zelle requires a direct institutional partnership with Early Warning Services. |
 
 ---
 
@@ -39,19 +39,15 @@ Use **Dwolla** for ACH payment processing rather than Stripe.
 
 **Good:**
 
-- Dwolla is designed from the ground up for ACH transfers. Its data model (funding sources, transfers, customers) maps naturally to a banking application's mental model rather than being adapted from a card-payment model.
-- Dwolla and Plaid are designed to work together. Plaid verifies and links the bank account; Dwolla processes the transfer using those verified credentials. This pairing is a standard pattern in production fintech systems, not a workaround.
-- Building on Dwolla provides a more realistic picture of how fintech payment infrastructure actually works, which was a primary goal of the project.
-
-**Bad / Trade-offs:**
-
-- Dwolla's developer community is significantly smaller than Stripe's. Debugging unfamiliar behavior means leaning on official documentation rather than community resources.
-- The initial setup is more involved — creating Dwolla customers, funding sources, and managing the verification workflow requires more steps than Stripe's streamlined integration.
-- If the project's payment needs ever expand to include card charging, subscriptions, or international payments, Stripe would need to be added alongside Dwolla anyway.
-
-**Risks:**
-
-- Dwolla's Sandbox environment closely mirrors production behavior, but the gap between sandbox and production (identity verification, bank account micro-deposits) is steeper than Stripe's. Real-world deployment would require additional compliance and verification work.
+- Dwolla is built from the ground up for ACH. Its data model, customers, funding sources, transfers, maps directly to a banking application rather than being adapted from a card-payment framework.
+- Dwolla and Plaid are designed to work together. Plaid verifies the bank account, Dwolla processes the transfer using those verified credentials. This is a standard pattern in production fintech, not a workaround.
+- Building on Dwolla gives a more realistic picture of how fintech payment infrastructure actually works.
+  **Bad / Trade-offs:**
+- Dwolla's developer community is significantly smaller than Stripe's. Debugging means leaning heavily on official documentation.
+- The initial setup is more involved than Stripe's streamlined integration.
+- Card payments, subscriptions, or international transfers would require adding Stripe alongside Dwolla anyway.
+  **Risks:**
+- The gap between Dwolla's sandbox and production is steep: identity verification, bank account micro-deposits, and compliance requirements that sandbox skips entirely.
 
 ---
 
