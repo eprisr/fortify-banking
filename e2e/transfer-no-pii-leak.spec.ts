@@ -1,42 +1,23 @@
 import { expect, test } from '@playwright/test'
-import {
-	deleteTestUser,
-	getTestBankRow,
-	getTestUserRow,
-} from './support/appwrite-admin'
-import { createSandboxPublicToken } from './support/plaid-sandbox'
-import { exchangePublicToken } from '@/lib/actions/user.actions'
+import { deleteTestUser } from './support/appwrite-admin'
+import { signUpAndLinkBank } from './support/test-user'
 
-async function signUpAndLinkBank(page: import('@playwright/test').Page) {
-	const email = `e2e-${Date.now()}-${Math.random().toString(36).slice(2)}@fortifybank.test`
-
-	await page.goto('/signup')
-	await page.getByLabel('First Name*').fill('Jane')
-	await page.getByLabel('Last Name*').fill('Doe')
-	await page.getByLabel('Email*').fill(email)
-	await page.getByLabel('Password*').fill('E2eTest123!')
-	await page.getByRole('checkbox').check()
-	await page.getByRole('button', { name: 'Continue' }).click()
-	await expect(page.getByText('Step 2 of 2')).toBeVisible()
-
-	const user = await getTestUserRow(email)
-	if (!user) throw new Error(`Test user row not found for ${email}`)
-
-	const publicToken = await createSandboxPublicToken()
-	const result = await exchangePublicToken({ publicToken, user })
-	// See connect-bank.spec.ts — revalidatePath throws when the action is
-	// called directly from Node (no request-scoped context), after the
-	// real work is already done. Tolerate only that specific error.
-	if (!result.success) {
-		expect(result.error).toMatch(/static generation store missing/)
-	}
-
-	const bank = await getTestBankRow(user.$id)
-	if (!bank) throw new Error(`Test bank row not found for ${email}`)
-
-	return { email, user, bank }
-}
-
+// Security regression for the fix documented in security_hardening_backlog
+// item 2: PaymentTransferForm used to call getBank/getBankByAccountId
+// directly, which — because Bank.userId is a relationship Appwrite
+// auto-expands — put both parties' Plaid accessToken, Dwolla
+// fundingSourceUrl, and the receiver's full User document straight into
+// the browser's network response for every transfer. transferFunds now
+// does that lookup server-side and returns only {success, error}. This
+// asserts the real network response of a real transfer never contains
+// those values again.
+//
+// Currently failing on purpose: PaymentTransferForm's amount field sends a
+// number to a schema that requires a string, so react-hook-form's
+// validation blocks every real submit — confirmed via this test itself, not
+// a guess. See component_fixes_deferred memory item 8. Once that's fixed,
+// this test starts actually exercising the PII-leak assertions below rather
+// than failing on the submit step.
 test("a transfer never puts either party's Plaid/Dwolla credentials on the wire", async ({
 	page,
 }) => {
@@ -67,7 +48,7 @@ test("a transfer never puts either party's Plaid/Dwolla credentials on the wire"
 			(res) =>
 				res.request().method() === 'POST' &&
 				res.url().includes('/payment-transfer'),
-			{ timeout: 8000 }, // fail fast — known-bug
+			{ timeout: 8000 }, // fail fast — known-bug, see comment above
 		)
 		await page.getByRole('button', { name: /transfer funds/i }).click()
 		const response = await responsePromise
