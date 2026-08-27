@@ -31,7 +31,7 @@ import './styles.css'
 import { Badge } from '@/components/ui/badge'
 import Marquee from '@/components/Marquee'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 const navLinks = [
 	{ href: '#features', label: 'Features' },
@@ -54,6 +54,7 @@ const companyLinks = [
 ]
 
 const Landing = () => {
+	const router = useRouter()
 	const [menuOpen, setMenuOpen] = useState(false)
 
 	const form = useForm<WaitlistValues>({
@@ -86,7 +87,7 @@ const Landing = () => {
 					</ul>
 					<div className="hidden md:flex items-center">
 						<Button
-							onClick={() => redirect('/signin')}
+							onClick={() => router.push('/signin')}
 							variant="ghost"
 							className="text-sm font-semibold mr-4">
 							Sign in
