@@ -8,7 +8,10 @@ import { exchangePublicToken } from '@/lib/actions/user.actions'
  * sandbox bank to it (bypassing Plaid Link's UI — see plaid-sandbox.ts).
  * Leaves the browser authenticated as this user. Caller is responsible for
  * `deleteTestUser(result.email)` in a `finally`. */
-export async function signUpAndLinkBank(page: Page) {
+export async function signUpAndLinkBank(
+	page: Page,
+	{ distinctAccount = false }: { distinctAccount?: boolean } = {},
+) {
 	const email = `e2e-${Date.now()}-${Math.random().toString(36).slice(2)}@fortifybank.test`
 
 	await page.goto('/signup')
@@ -23,7 +26,7 @@ export async function signUpAndLinkBank(page: Page) {
 	const user = await getTestUserRow(email)
 	if (!user) throw new Error(`Test user row not found for ${email}`)
 
-	const publicToken = await createSandboxPublicToken()
+	const publicToken = await createSandboxPublicToken(undefined, { distinctAccount })
 	const result = await exchangePublicToken({ publicToken, user })
 	// exchangePublicToken's real work (Plaid exchange, Dwolla funding
 	// source, Appwrite bank row) is already done by the time it calls

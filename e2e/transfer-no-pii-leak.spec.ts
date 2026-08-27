@@ -14,16 +14,27 @@ import { signUpAndLinkBank } from './support/test-user'
 //
 // component_fixes_deferred item 8 (amount sent as a number instead of a
 // string, blocking every real submit) is fixed — this test now reaches the
-// real transferFunds/Dwolla call. Still failing as of 2026-08-27, but for an
-// unrelated reason: both signUpAndLinkBank() calls default to the same
-// Plaid Sandbox institution (ins_109508), which returns identical fixed
-// account/routing numbers every time — so sender and receiver collide on
-// the same underlying bank account, and Dwolla correctly rejects the
-// transfer ("Receiver cannot receive from sender"). Two real people always
-// have distinct bank accounts, so this can't happen outside this test's own
-// fixture reuse. Fix: give the two calls different
-// options.override_username values (Plaid Sandbox yields distinct fixture
-// data per username) — not yet applied.
+// real transferFunds/Dwolla call.
+//
+// Both signUpAndLinkBank() calls pass distinctAccount: true (see
+// plaid-sandbox.ts) so sender and receiver each get their own randomized
+// sandbox checking account rather than colliding on the same fixed
+// user_good fixture data. Worth keeping regardless, but it turned out NOT
+// to be what was blocking this test: verified via a throwaway probe that
+// the two accounts' Plaid account_ids and Dwolla funding-source URLs were
+// already distinct even before this change, and the exact same Dwolla
+// "Receiver cannot receive from sender" rejection persisted after it too.
+//
+// Still failing — real root cause found via Dwolla's docs, not a guess:
+// every Dwolla customer this app creates is permanently `type: 'unverified'`
+// (lib/actions/user.actions.ts) and Dwolla requires at least one party in
+// any transfer to be a *verified* customer (or the Master Account) —
+// unverified-to-unverified transfers are rejected outright, which is
+// exactly this error. dwollaSchema (lib/utils.ts) exists for collecting
+// the KYC fields a verify-upgrade would need, but nothing in the app ever
+// calls it or upgrades a customer — there is currently no way for two
+// organically signed-up users to ever transfer to each other, in Sandbox
+// or real production. Tracked as its own item, separate from component_fixes_deferred item 8.
 test("a transfer never puts either party's Plaid/Dwolla credentials on the wire", async ({
 	page,
 }) => {
@@ -33,8 +44,8 @@ test("a transfer never puts either party's Plaid/Dwolla credentials on the wire"
 	// default under normal sandbox latency, not evidence of a hang.
 	test.setTimeout(90000)
 
-	const receiver = await signUpAndLinkBank(page)
-	const sender = await signUpAndLinkBank(page) // overwrites the browser session — fine, receiver's part is done
+	const receiver = await signUpAndLinkBank(page, { distinctAccount: true })
+	const sender = await signUpAndLinkBank(page, { distinctAccount: true }) // overwrites the browser session — fine, receiver's part is done
 
 	try {
 		await page.goto('/payment-transfer')
@@ -54,7 +65,7 @@ test("a transfer never puts either party's Plaid/Dwolla credentials on the wire"
 			(res) =>
 				res.request().method() === 'POST' &&
 				res.url().includes('/payment-transfer'),
-			{ timeout: 8000 }, // fail fast — known-bug, see comment above
+			{ timeout: 8000 }, // real Dwolla round-trip; generous margin over observed latency
 		)
 		await page.getByRole('button', { name: /transfer funds/i }).click()
 		const response = await responsePromise
