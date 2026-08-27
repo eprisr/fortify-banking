@@ -159,6 +159,7 @@ const Landing = () => {
 								Get early access
 							</Button>
 							<Button
+								onClick={() => router.push('#works')}
 								variant="outline"
 								size="lg"
 								className="font-semibold px-7 text-ink">
