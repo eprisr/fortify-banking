@@ -32,6 +32,7 @@ import {
 	createTransfer as createDwollaTransfer,
 } from './dwolla.actions'
 import { createTransaction } from './transaction.actions'
+import { DEMO_MODE_COOKIE, DEMO_USER } from '../demo-data'
 
 const {
 	APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -77,6 +78,7 @@ export const signIn = async ({
 			sameSite: 'strict',
 			secure: true,
 		})
+		cookieStore.delete(DEMO_MODE_COOKIE)
 
 		const user = await getUserInfo({ userId: session.userId })
 
@@ -223,6 +225,7 @@ export const signUp = async (
 			sameSite: 'strict',
 			secure: true,
 		})
+		cookieStore.delete(DEMO_MODE_COOKIE)
 
 		return { success: true, data: parseStringify(newUser) }
 	} catch (error: any) {
@@ -243,6 +246,11 @@ export const signUp = async (
 }
 
 export async function getLoggedInUser() {
+	const cookieStore = await cookies()
+	if (cookieStore.get(DEMO_MODE_COOKIE)) {
+		return parseStringify(DEMO_USER)
+	}
+
 	try {
 		const { account } = await createSessionClient()
 		const res = await account.get()
@@ -256,9 +264,15 @@ export async function getLoggedInUser() {
 }
 
 export const logoutAccount = async () => {
+	const cookieStore = await cookies()
+
+	if (cookieStore.get(DEMO_MODE_COOKIE)) {
+		cookieStore.delete(DEMO_MODE_COOKIE)
+		return true
+	}
+
 	try {
 		const { account } = await createSessionClient()
-		const cookieStore = await cookies()
 		cookieStore.delete('appwrite-session')
 		await account.deleteSession({ sessionId: 'current' })
 		return true

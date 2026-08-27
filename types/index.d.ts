@@ -271,6 +271,7 @@ declare interface DoughnutChartProps {
 
 declare interface PaymentTransferFormProps {
 	accounts: Account[]
+	isDemo?: boolean
 }
 
 // Actions

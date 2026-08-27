@@ -196,14 +196,25 @@ const AuthForm = ({
 				</form>
 			</Form>
 
-			<footer className="flex justify-center gap-1">
-				<p className="text-sm font-normal text-ink/70">
-					{config.footer.prompt}
-				</p>
-				{config.footer.linkHref && (
-					<Link href={config.footer.linkHref} className="form-link">
-						{config.footer.linkLabel}
-					</Link>
+			<footer>
+				<div className="flex justify-center gap-1">
+					<p className="text-sm font-normal text-ink/70">
+						{config.footer.prompt}
+					</p>
+					{config.footer.linkHref && (
+						<Link href={config.footer.linkHref} className="form-link">
+							{config.footer.linkLabel}
+						</Link>
+					)}
+				</div>
+
+				{type === 'signin' && (
+					<div className="flex justify-center gap-1 mt-2">
+						<p className="text-xs font-normal text-ink/60">Just exploring?</p>
+						<Link href="/demo" className="form-link text-xs">
+							View the demo
+						</Link>
+					</div>
 				)}
 			</footer>
 		</section>

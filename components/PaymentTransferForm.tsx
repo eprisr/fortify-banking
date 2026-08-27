@@ -34,7 +34,10 @@ import {
 import Contacts from './Contacts'
 import { consoleIntegration } from '@sentry/nextjs'
 
-const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
+const PaymentTransferForm = ({
+	accounts,
+	isDemo = false,
+}: PaymentTransferFormProps) => {
 	const router = useRouter()
 	const [isLoading, setIsLoading] = useState(false)
 	const [contact, setContact] = useState()
@@ -70,6 +73,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 	})
 
 	const submit = async (data: z.infer<typeof formSchema>) => {
+		if (isDemo) return
 		setIsLoading(true)
 
 		try {
@@ -264,7 +268,10 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 						/>
 
 						<div className="payment-transfer_btn-box">
-							<Button type="submit" disabled={isLoading} className="w-full">
+							<Button
+								type="submit"
+								disabled={isDemo || isLoading}
+								className="w-full">
 								{isLoading ? (
 									<>
 										<Loader2 size={20} className="animate-spin" /> &nbsp;
@@ -274,6 +281,11 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 									'Transfer Funds'
 								)}
 							</Button>
+							{isDemo && (
+								<p className="form-message mt-1 text-center">
+									Transfers aren&apos;t available in demo mode.
+								</p>
+							)}
 						</div>
 					</CardContent>
 				</Card>

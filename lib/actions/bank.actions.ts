@@ -19,11 +19,11 @@ import {
 	createLinkToken,
 	getLoggedInUser,
 } from './user.actions'
-import { DEMO_ACCOUNTS, getDemoTransactions } from '../demo-data'
+import { DEMO_ACCOUNTS, getDemoTransactions, isDemoUserId } from '../demo-data'
 
 // Get multiple bank accounts
 export const getAccounts = async ({ userId }: getAccountsProps) => {
-	if (!userId) {
+	if (!userId || isDemoUserId(userId)) {
 		const totalCurrentBalance = DEMO_ACCOUNTS.reduce(
 			(total, account) => total + account.currentBalance,
 			0,

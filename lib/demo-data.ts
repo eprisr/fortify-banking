@@ -1,6 +1,29 @@
 // Sample data shown in place of a real Plaid connection when a signed-up
 // user chooses "I'll do this later" instead of linking a bank at signup.
 // Swapped out automatically the moment they connect a real bank.
+//
+// DEMO_USER doubles as the identity for the unauthenticated "view the demo"
+// mode (see DEMO_MODE_COOKIE below) — same sample data, just reached
+// without a real signup/login.
+
+export const DEMO_MODE_COOKIE = 'fortify-demo-mode'
+
+export const DEMO_USER: User = {
+	$id: 'demo-user',
+	email: 'jane@example.com',
+	userId: 'demo-user',
+	dwollaCustomerUrl: 'https://api-sandbox.dwolla.com/customers/customer-1',
+	dwollaCustomerId: 'customer-1',
+	firstName: 'Jane',
+	lastName: 'Doe',
+	name: 'Jane Doe',
+	address1: '',
+	city: '',
+	state: '',
+	postalCode: '',
+	dateOfBirth: '',
+	ssn: '',
+}
 
 export const DEMO_ACCOUNTS: Account[] = [
 	{
@@ -180,6 +203,11 @@ const DEMO_APPWRITE_ITEM_IDS = new Set(
 
 export const isDemoAppwriteItemId = (appwriteItemId?: string) =>
 	Boolean(appwriteItemId && DEMO_APPWRITE_ITEM_IDS.has(appwriteItemId))
+
+// Lets callers short-circuit before hitting Appwrite/Plaid for the demo
+// user, the same way isDemoAppwriteItemId does for demo accounts.
+export const isDemoUserId = (userId?: string) =>
+	Boolean(userId && userId === DEMO_USER.$id)
 
 // Deterministic jitter so amounts vary month to month without using Math.random
 // (keeps the demo dataset stable across page reloads).

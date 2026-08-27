@@ -19,6 +19,7 @@ import {
 	exchangePublicToken,
 } from '@/lib/actions/user.actions'
 import { cn } from '@/lib/utils'
+import { isDemoUserId } from '@/lib/demo-data'
 
 const PlaidLink = ({
 	user,
@@ -32,8 +33,13 @@ const PlaidLink = ({
 	const router = useRouter()
 	const [token, setToken] = useState('')
 	const [error, setError] = useState<string | null>(null)
+	const isDemo = isDemoUserId(user?.$id)
 
 	useEffect(() => {
+		// Demo mode is read-only — don't burn a real Plaid link token on a
+		// user that can never actually complete the connection.
+		if (isDemo) return
+
 		const getLinkToken = async () => {
 			const data = await createLinkToken(user, update, appwriteItemId)
 			sessionStorage.setItem('link_token', data?.linkToken ?? '')
@@ -41,7 +47,7 @@ const PlaidLink = ({
 		}
 
 		getLinkToken()
-	}, [user, update, appwriteItemId])
+	}, [isDemo, user, update, appwriteItemId])
 
 	const onSuccess = useCallback<PlaidLinkOnSuccess>(
 		async (public_token: string) => {
@@ -88,6 +94,7 @@ const PlaidLink = ({
 	const { open, ready } = usePlaidLink(config)
 
 	const handleOpen = () => {
+		if (isDemo) return
 		setError(null)
 		open()
 	}
@@ -98,13 +105,14 @@ const PlaidLink = ({
 				<Button
 					type="button"
 					onClick={handleOpen}
-					disabled={!ready}
+					disabled={isDemo || !ready}
 					className={cn(className)}>
 					{text ? text : 'Connect bank'}
 				</Button>
 			) : variant === 'ghost' ? (
 				<Button
 					onClick={handleOpen}
+					disabled={isDemo}
 					variant="ghost"
 					className={cn('plaidlink-ghost', className)}>
 					<p className="hidden text-base font-semibold text-neutral-800 xl:block">
@@ -116,13 +124,14 @@ const PlaidLink = ({
 			) : variant === 'reconnect' ? (
 				<Button
 					onClick={handleOpen}
-					disabled={!ready}
+					disabled={isDemo || !ready}
 					className={cn(className)}>
 					Connect
 				</Button>
 			) : variant === 'relink' ? (
 				<Button
 					onClick={handleOpen}
+					disabled={isDemo}
 					className={cn(
 						'plaidlink-ghost gap-1 bg-primary text-primary-foreground px-3',
 						className,
@@ -133,6 +142,7 @@ const PlaidLink = ({
 			) : (
 				<Button
 					onClick={handleOpen}
+					disabled={isDemo}
 					className={cn('plaidlink-default px-1', className)}>
 					<MdOutlineAddCard className="text-2xl" />
 					<p className="text-base font-semibold text-neutral-800">
@@ -140,7 +150,13 @@ const PlaidLink = ({
 					</p>
 				</Button>
 			)}
-			{error && <p className="form-message mt-1">{error}</p>}
+			{isDemo ? (
+				<p className="form-message mt-1">
+					Bank connections aren&apos;t available in demo mode.
+				</p>
+			) : (
+				error && <p className="form-message mt-1">{error}</p>
+			)}
 		</>
 	)
 }
