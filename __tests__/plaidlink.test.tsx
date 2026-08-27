@@ -93,14 +93,26 @@ describe('link token fetch on mount', () => {
 	it('requests a link token for the user and stores it in sessionStorage', async () => {
 		render(<PlaidLink user={testUser} variant="primary" />)
 
-		expect(createLinkToken).toHaveBeenCalledWith(testUser, undefined)
+		expect(createLinkToken).toHaveBeenCalledWith(testUser, undefined, undefined)
 		expect(await screen.findByRole('button')).toBeEnabled()
 		expect(sessionStorage.getItem('link_token')).toBe('link-sandbox-test-token')
 	})
 
 	it('passes update through to createLinkToken for a reconnect flow', () => {
 		render(<PlaidLink user={testUser} variant="reconnect" update />)
-		expect(createLinkToken).toHaveBeenCalledWith(testUser, true)
+		expect(createLinkToken).toHaveBeenCalledWith(testUser, true, undefined)
+	})
+
+	it('passes appwriteItemId through to createLinkToken when reconnecting a specific bank', () => {
+		render(
+			<PlaidLink
+				user={testUser}
+				variant="reconnect"
+				update
+				appwriteItemId="bank-doc-1"
+			/>,
+		)
+		expect(createLinkToken).toHaveBeenCalledWith(testUser, true, 'bank-doc-1')
 	})
 
 	it('stores an empty string when createLinkToken returns no token', async () => {
