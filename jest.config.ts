@@ -179,9 +179,10 @@ const config: Config = {
 	// ],
 
 	// An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
-	// testPathIgnorePatterns: [
-	//   "/node_modules/"
-	// ],
+	// e2e/*.spec.ts matches Jest's default testMatch too (the same
+	// +(spec|test) pattern Playwright's own naming happens to satisfy) —
+	// exclude the whole directory so Playwright specs never run under Jest.
+	testPathIgnorePatterns: ['/node_modules/', '<rootDir>/e2e/'],
 
 	// The regexp pattern or array of patterns that Jest uses to detect test files
 	// testRegex: [],
