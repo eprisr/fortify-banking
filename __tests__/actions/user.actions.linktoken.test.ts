@@ -130,3 +130,63 @@ describe('createLinkToken', () => {
 		})
 	})
 })
+
+describe('createLinkToken — redirect_uri construction', () => {
+	const ORIGINAL_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL
+
+	afterEach(() => {
+		if (ORIGINAL_SITE_URL === undefined) {
+			delete process.env.NEXT_PUBLIC_SITE_URL
+		} else {
+			process.env.NEXT_PUBLIC_SITE_URL = ORIGINAL_SITE_URL
+		}
+	})
+
+	it('matches the actual registered Plaid Dashboard redirect URI for production', async () => {
+		process.env.NEXT_PUBLIC_SITE_URL =
+			'https://fortify-banking-eight.vercel.app'
+
+		let capturedBody: any
+		server.use(
+			http.post(`${PLAID_BASE}/link/token/create`, async ({ request }) => {
+				capturedBody = await request.json()
+				return HttpResponse.json({
+					link_token: 'link-sandbox-test-token',
+					expiration: '2026-12-31T00:00:00Z',
+					request_id: 'req-link-token-create',
+				})
+			}),
+		)
+
+		await createLinkToken(testUser)
+
+		expect(capturedBody.redirect_uri).toBe(
+			'https://fortify-banking-eight.vercel.app/oauth',
+		)
+	})
+
+	it('would break silently on a trailing slash — documents the landmine, not a fix', async () => {
+		process.env.NEXT_PUBLIC_SITE_URL =
+			'https://fortify-banking-eight.vercel.app/'
+
+		let capturedBody: any
+		server.use(
+			http.post(`${PLAID_BASE}/link/token/create`, async ({ request }) => {
+				capturedBody = await request.json()
+				return HttpResponse.json({
+					link_token: 'link-sandbox-test-token',
+					expiration: '2026-12-31T00:00:00Z',
+					request_id: 'req-link-token-create',
+				})
+			}),
+		)
+
+		await createLinkToken(testUser)
+
+		// Not what's registered in the Dashboard — a real Link session built
+		// from this would be rejected by Plaid at OAuth-redirect time.
+		expect(capturedBody.redirect_uri).toBe(
+			'https://fortify-banking-eight.vercel.app//oauth',
+		)
+	})
+})
