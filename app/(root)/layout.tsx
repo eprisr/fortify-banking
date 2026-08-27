@@ -9,7 +9,7 @@ export default async function RootLayout({
 	children: React.ReactNode
 }>) {
 	const loggedIn = await getLoggedInUser()
-	if (!loggedIn) redirect('/welcome')
+	if (!loggedIn) return redirect('/welcome')
 
 	return (
 		<MobileContainer>

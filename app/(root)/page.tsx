@@ -7,11 +7,12 @@ import { RecentTransactions } from '@/components/RecentTransactions'
 import { getAccount, getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
 import { CreditCard, TriangleAlert } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
 const Home = async ({ searchParams }: SearchParamProps) => {
 	const { id } = await searchParams
 	const loggedIn = await getLoggedInUser()
-	if (!loggedIn) return null
+	if (!loggedIn) return redirect('/welcome')
 
 	const accounts = await getAccounts({ userId: loggedIn?.$id })
 
