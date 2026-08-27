@@ -8,6 +8,7 @@ import {
 	handleError,
 	parseStringify,
 	passwordField,
+	siteUrl,
 } from '../utils'
 import { encryptId, decryptId } from '../server/encryption'
 import {
@@ -97,7 +98,7 @@ export const forgotPw = async ({
 
 		await account.createRecovery({
 			email: parsedEmail.data,
-			url: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`,
+			url: siteUrl('/reset-pw'),
 		})
 
 		return { success: true, data: null }
@@ -151,7 +152,7 @@ export const resendRecoveryLink = async ({
 		// See note in forgotPw — never return the recovery secret to the client.
 		await account.createRecovery({
 			email: target.email,
-			url: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-pw`,
+			url: siteUrl('/reset-pw'),
 		})
 
 		return { success: true, data: null }
@@ -289,7 +290,7 @@ export const createLinkToken = async (
 			additional_consented_products: ['transactions', 'identity'] as Products[],
 			language: 'en',
 			country_codes: ['US'] as CountryCode[],
-			redirect_uri: `${process.env.NEXT_PUBLIC_SITE_URL}/oauth`,
+			redirect_uri: siteUrl('/oauth'),
 			...(accessToken && { access_token: accessToken }),
 		}
 

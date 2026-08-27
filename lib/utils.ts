@@ -8,6 +8,9 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs))
 }
 
+export const siteUrl = (path: string) =>
+	`${(process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/+$/, '')}${path}`
+
 export const handleError = (
 	error: any,
 	customMessage: string,
@@ -301,10 +304,7 @@ export const transferFormSchema = () =>
 // Trimmed + lowercased so a mobile keyboard's autocapitalize-first-letter
 // behavior (e.g. "Someone@gmail.com") can't turn a correct email into a
 // mismatched credential — email auth should never be case-sensitive.
-const emailField = z
-	.email('A Valid Email is Required')
-	.trim()
-	.toLowerCase()
+const emailField = z.email('A Valid Email is Required').trim().toLowerCase()
 
 // Single source of truth for both the password's Zod validation and the
 // live checklist rendered in the UI (see SignUpForm).
