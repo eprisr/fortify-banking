@@ -134,11 +134,7 @@ export const resetPw = async ({
 
 		return { success: true, data: null }
 	} catch (error: any) {
-		console.error('Reset Password Error: ', error)
-		return {
-			success: false,
-			error: error?.response?.message || 'Failed to update password',
-		}
+		return handleError(error, 'Failed to update password')
 	}
 }
 
