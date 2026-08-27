@@ -7,10 +7,11 @@
  * MSW is not used here because all external API calls go through Next.js
  * server actions mocked via jest.mock.
  *
- * Known implementation note: the amount field in PaymentTransferForm passes
- * a number to react-hook-form (via handleChange) while the schema declares
- * `z.string()`. The transferFormSchema mock below uses `z.coerce.string()`
- * to work around this type mismatch so that submission tests can run.
+ * Uses the real transferFormSchema (lib/utils.ts) — no mock/workaround for
+ * it. It used to be mocked with a z.coerce.string() amount field to paper
+ * over PaymentTransferForm's amount/schema type mismatch (see
+ * component_fixes_deferred item 8); that bug is fixed now, so the real
+ * schema runs unmodified and would catch a regression of it.
  */
 
 import { render, screen, waitFor } from '@testing-library/react'
@@ -54,28 +55,6 @@ jest.mock('@/components/BankDropdown', () => ({
 		</select>
 	),
 }))
-
-// Fix the amount type mismatch: handleChange passes a number to react-hook-form
-// but the real schema uses z.string(). z.coerce.string() accepts both.
-jest.mock('@/lib/utils', () => {
-	const actual = jest.requireActual<typeof import('@/lib/utils')>('@/lib/utils')
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	const { z } = require('zod')
-	return {
-		...actual,
-		transferFormSchema: () =>
-			z.object({
-				senderBank: z.string().min(4, 'Please select a valid bank account'),
-				recipientName: z
-					.string()
-					.min(1, 'Please enter the name of the recipient'),
-				recipientEmail: z.string().email('Invalid email address'),
-				sharableId: z.string().min(8, 'Please select a valid sharable Id'),
-				amount: z.coerce.string().min(1, 'Amount is too short'),
-				note: z.string().optional(),
-			}),
-	}
-})
 
 jest.mock('@/lib/actions/user.actions', () => ({
 	getLoggedInUser: jest.fn(),
@@ -339,7 +318,7 @@ describe('Payment Transfer Flow', () => {
 				screen.getByRole('button', { name: /transfer funds/i }),
 			)
 			expect(
-				await screen.findByText(/please enter the name of the recipient/i),
+				await screen.findByText(/recipient name is required/i),
 			).toBeInTheDocument()
 		})
 
@@ -409,6 +388,15 @@ describe('Payment Transfer Flow', () => {
 						receiverShareableId: VALID_SHARABLE_ID,
 						amount: expect.any(String),
 					}),
+				),
+			)
+		})
+
+		it('sends the amount as the formatted currency string, not a number', async () => {
+			await fillAndSubmit()
+			await waitFor(() =>
+				expect(transferFunds).toHaveBeenCalledWith(
+					expect.objectContaining({ amount: '$10.00' }),
 				),
 			)
 		})
@@ -612,6 +600,8 @@ describe('Payment Transfer Flow', () => {
 		it.todo(
 			'returns to the editable form without calling transferFunds when the user backs out of the review screen',
 		)
-		it.todo('preserves the entered values when backing out of the review screen')
+		it.todo(
+			'preserves the entered values when backing out of the review screen',
+		)
 	})
 })

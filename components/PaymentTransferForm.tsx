@@ -43,15 +43,16 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 		setContact(contact)
 	}
 
-	const [value, setValue] = useReducer((_: any, next: string) => {
-		const digits = next.replace(/\D/g, '')
-		return formatAmount(Number(digits) / 100)
-	}, '')
+	const digitsToAmount = (raw: string) =>
+		formatAmount(Number(raw.replace(/\D/g, '')) / 100)
+
+	const [value, setValue] = useReducer(
+		(_: any, next: string) => digitsToAmount(next),
+		'',
+	)
 
 	function handleChange(realChangeFn: Function, formattedValue: string) {
-		const digits = formattedValue.replace(/\D/g, '')
-		const realValue = Number(digits) / 100
-		realChangeFn(realValue)
+		realChangeFn(digitsToAmount(formattedValue))
 	}
 
 	const formSchema = transferFormSchema()

@@ -63,9 +63,8 @@ describe('getAccounts', () => {
 			currentBalance: 1000,
 			institutionId: 'ins_109508',
 			appwriteItemId: 'bank-doc-1',
+			institutionName: 'First Platypus Bank',
 		})
-
-		expect(result.data[0].institutionName).toBeUndefined()
 	})
 
 	it('skips a bank with no access token instead of calling Plaid for it', async () => {

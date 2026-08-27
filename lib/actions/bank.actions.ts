@@ -89,7 +89,7 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 					currentBalance: accountData.balances.current!,
 					creditLimit: accountData.balances.limit,
 					institutionId: institution.institution_id,
-					institutionName: institution.institution_name,
+					institutionName: institution.name,
 					name: accountData.name,
 					officialName: accountData.official_name,
 					mask: accountData.mask!,

@@ -12,12 +12,18 @@ import { signUpAndLinkBank } from './support/test-user'
 // asserts the real network response of a real transfer never contains
 // those values again.
 //
-// Currently failing on purpose: PaymentTransferForm's amount field sends a
-// number to a schema that requires a string, so react-hook-form's
-// validation blocks every real submit — confirmed via this test itself, not
-// a guess. See component_fixes_deferred memory item 8. Once that's fixed,
-// this test starts actually exercising the PII-leak assertions below rather
-// than failing on the submit step.
+// component_fixes_deferred item 8 (amount sent as a number instead of a
+// string, blocking every real submit) is fixed — this test now reaches the
+// real transferFunds/Dwolla call. Still failing as of 2026-08-27, but for an
+// unrelated reason: both signUpAndLinkBank() calls default to the same
+// Plaid Sandbox institution (ins_109508), which returns identical fixed
+// account/routing numbers every time — so sender and receiver collide on
+// the same underlying bank account, and Dwolla correctly rejects the
+// transfer ("Receiver cannot receive from sender"). Two real people always
+// have distinct bank accounts, so this can't happen outside this test's own
+// fixture reuse. Fix: give the two calls different
+// options.override_username values (Plaid Sandbox yields distinct fixture
+// data per username) — not yet applied.
 test("a transfer never puts either party's Plaid/Dwolla credentials on the wire", async ({
 	page,
 }) => {
