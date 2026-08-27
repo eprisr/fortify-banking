@@ -130,3 +130,61 @@ describe('createLinkToken', () => {
 		})
 	})
 })
+
+describe('createLinkToken — redirect_uri construction', () => {
+	const ORIGINAL_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL
+
+	afterEach(() => {
+		if (ORIGINAL_SITE_URL === undefined) {
+			delete process.env.NEXT_PUBLIC_SITE_URL
+		} else {
+			process.env.NEXT_PUBLIC_SITE_URL = ORIGINAL_SITE_URL
+		}
+	})
+
+	it('matches the actual registered Plaid Dashboard redirect URI for production', async () => {
+		process.env.NEXT_PUBLIC_SITE_URL =
+			'https://fortify-banking-eight.vercel.app'
+
+		let capturedBody: any
+		server.use(
+			http.post(`${PLAID_BASE}/link/token/create`, async ({ request }) => {
+				capturedBody = await request.json()
+				return HttpResponse.json({
+					link_token: 'link-sandbox-test-token',
+					expiration: '2026-12-31T00:00:00Z',
+					request_id: 'req-link-token-create',
+				})
+			}),
+		)
+
+		await createLinkToken(testUser)
+
+		expect(capturedBody.redirect_uri).toBe(
+			'https://fortify-banking-eight.vercel.app/oauth',
+		)
+	})
+
+	it('normalizes a trailing slash on NEXT_PUBLIC_SITE_URL instead of producing a double slash', async () => {
+		process.env.NEXT_PUBLIC_SITE_URL =
+			'https://fortify-banking-eight.vercel.app/'
+
+		let capturedBody: any
+		server.use(
+			http.post(`${PLAID_BASE}/link/token/create`, async ({ request }) => {
+				capturedBody = await request.json()
+				return HttpResponse.json({
+					link_token: 'link-sandbox-test-token',
+					expiration: '2026-12-31T00:00:00Z',
+					request_id: 'req-link-token-create',
+				})
+			}),
+		)
+
+		await createLinkToken(testUser)
+
+		expect(capturedBody.redirect_uri).toBe(
+			'https://fortify-banking-eight.vercel.app/oauth',
+		)
+	})
+})
