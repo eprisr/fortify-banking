@@ -25,6 +25,7 @@ const PlaidLink = ({
 	variant,
 	text,
 	update,
+	appwriteItemId,
 	redirectTo = '/',
 	className,
 }: PlaidLinkProps) => {
@@ -34,13 +35,13 @@ const PlaidLink = ({
 
 	useEffect(() => {
 		const getLinkToken = async () => {
-			const data = await createLinkToken(user, update)
+			const data = await createLinkToken(user, update, appwriteItemId)
 			sessionStorage.setItem('link_token', data?.linkToken ?? '')
 			setToken(data?.linkToken ?? '')
 		}
 
 		getLinkToken()
-	}, [user])
+	}, [user, update, appwriteItemId])
 
 	const onSuccess = useCallback<PlaidLinkOnSuccess>(
 		async (public_token: string) => {

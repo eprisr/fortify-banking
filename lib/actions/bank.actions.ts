@@ -32,6 +32,7 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 			data: DEMO_ACCOUNTS,
 			totalBanks: DEMO_ACCOUNTS.length,
 			totalCurrentBalance,
+			needsReconnect: [],
 		})
 	}
 
@@ -49,6 +50,7 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 				data: DEMO_ACCOUNTS,
 				totalBanks: DEMO_ACCOUNTS.length,
 				totalCurrentBalance,
+				needsReconnect: [],
 			})
 		}
 
@@ -96,25 +98,38 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 					JSON.stringify(error.response?.data, null, 2),
 				)
 				if (error.response?.data?.error_code === 'ITEM_LOGIN_REQUIRED') {
-					return 'UPDATE_MODE'
+					return { updateMode: true as const, appwriteItemId: bank.$id }
 				}
 				return null
 			}
 		})
 
-		// 3. Wait for all, then filter out the nulls and per-bank UPDATE_MODE
-		// sentinels (failed banks) so they don't pollute totals or downstream
+		// 3. Wait for all, then split into real accounts vs. banks that need
+		// reconnecting, so neither pollutes the other's totals or downstream
 		// array indexing.
-		const accounts = (await Promise.all(accountsPromises || [])).filter(
-			(account) => account !== null && account !== 'UPDATE_MODE',
-		)
+		const results = await Promise.all(accountsPromises || [])
+		const accounts: any[] = []
+		const needsReconnect: string[] = []
+		for (const result of results) {
+			if (!result) continue
+			if (typeof result === 'object' && 'updateMode' in result) {
+				needsReconnect.push(result.appwriteItemId)
+			} else {
+				accounts.push(result)
+			}
+		}
 
 		const totalBanks = accounts.length
 		const totalCurrentBalance = accounts.reduce((total, account) => {
 			return total + account.currentBalance
 		}, 0)
 
-		return parseStringify({ data: accounts, totalBanks, totalCurrentBalance })
+		return parseStringify({
+			data: accounts,
+			totalBanks,
+			totalCurrentBalance,
+			needsReconnect,
+		})
 	} catch (error: any) {
 		console.error('An error occurred while getting the accounts:', error)
 		if (error.response?.data?.error_code === 'ITEM_LOGIN_REQUIRED') {

@@ -271,9 +271,15 @@ export const logoutAccount = async () => {
 export const createLinkToken = async (
 	user: User,
 	update?: boolean,
-	accessToken?: string,
+	appwriteItemId?: string,
 ) => {
 	try {
+		let accessToken: string | undefined
+		if (update && appwriteItemId) {
+			const bank = await getBank({ documentId: appwriteItemId })
+			accessToken = bank.accessToken
+		}
+
 		const tokenParams = {
 			user: {
 				client_user_id: user.$id,
@@ -284,7 +290,7 @@ export const createLinkToken = async (
 			language: 'en',
 			country_codes: ['US'] as CountryCode[],
 			redirect_uri: `${process.env.NEXT_PUBLIC_SITE_URL}/oauth`,
-			...(update && { access_token: accessToken }),
+			...(accessToken && { access_token: accessToken }),
 		}
 
 		const res = await plaidClient.linkTokenCreate(tokenParams)

@@ -188,6 +188,7 @@ declare interface PlaidLinkProps {
 	text?: string
 	dwollaCustomerId?: string
 	update?: boolean
+	appwriteItemId?: string
 	redirectTo?: string
 	className?: string
 }
