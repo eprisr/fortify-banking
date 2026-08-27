@@ -5,10 +5,12 @@
  * and AuthForm in 'reset-pw' mode. This flow previously had no test
  * coverage.
  *
- * Unlike the email/password fields (see signin.test.tsx's note on the
- * CustomInput FormMessage bug), confirmPassword is the one field name that
- * bug doesn't affect, so "Passwords must match" is expected to actually
- * render here.
+ * Currently failing: CustomInput imports FormMessage but never renders it
+ * for any field, confirmPassword included, so "Passwords must match" (from
+ * resetPwSchema's superRefine) never reaches the DOM — see
+ * component_fixes_deferred memory, queued for a separate branch. Left
+ * asserting the intended behavior rather than the current gap so the
+ * failure keeps tracking the issue.
  */
 
 import { act, render, screen } from '@testing-library/react'

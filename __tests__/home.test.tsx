@@ -122,6 +122,7 @@ const mockAccount: Account = {
 	officialName: 'Chase Total Checking',
 	mask: '0001',
 	institutionId: 'ins_1',
+	institutionName: 'ins',
 	name: 'Chase Checking',
 	type: 'depository',
 	subtype: 'checking',
@@ -138,6 +139,7 @@ const demoAccount: Account = {
 	officialName: 'Fortify Everyday Checking',
 	mask: '4821',
 	institutionId: 'demo_institution',
+	institutionName: 'ins',
 	name: 'Everyday Checking',
 	type: 'depository',
 	subtype: 'checking',
@@ -302,9 +304,14 @@ describe('Home Page', () => {
 	describe('Unauthenticated user (getLoggedInUser returns null)', () => {
 		// =========================================================================
 
-		// Mirrors the real getAccounts fallback: an unauthenticated/unlinked
-		// user gets demo data (never an empty array — see demo account
-		// scenario above for why an empty array crashes this component).
+		// Currently failing: Home is `if (!loggedIn) return null`
+		// (app/(root)/page.tsx) — it bails out before ever reaching
+		// getAccounts, and there's no middleware.ts redirecting
+		// unauthenticated visitors elsewhere, so an unauthenticated hit on
+		// "/" renders a fully blank page instead of the demo-data view these
+		// tests expect. See component_fixes_deferred memory, queued for a
+		// separate branch. Left asserting the intended behavior rather than
+		// the current gap so the failure keeps tracking the issue.
 		beforeEach(() => {
 			;(getLoggedInUser as jest.Mock).mockResolvedValue(null)
 			;(getAccounts as jest.Mock).mockResolvedValue({
