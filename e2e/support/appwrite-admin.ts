@@ -11,15 +11,25 @@ import { createAdminClient } from '@/lib/server/appwrite'
 const {
 	APPWRITE_DATABASE_ID: DATABASE_ID,
 	APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID,
+	APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID,
 } = process.env
 
-/** Deletes the Appwrite auth user and user-collection row for `email`, if
- * they exist. No-ops if not found.
- *
- * Sandbox-only cleanup — the matching Dwolla customer is left behind.
- * Dwolla sandbox customers can't be hard-deleted (only deactivated), and a
- * handful accumulating in sandbox is harmless, unlike stale Appwrite
- * accounts which could collide with a future signup on the same email. */
+export async function getTestUserRow(email: string): Promise<User | null> {
+	const { table } = await createAdminClient()
+	const rows = await table.listRows({
+		databaseId: DATABASE_ID!,
+		tableId: USER_COLLECTION_ID!,
+		queries: [Query.equal('email', [email])],
+	})
+	return (rows.rows[0] as unknown as User) ?? null
+}
+
+/**
+ * Sandbox-only cleanup — the matching Dwolla customer/funding source are
+ * left behind. Dwolla sandbox resources can't be hard-deleted (only
+ * deactivated), and a handful accumulating in sandbox is harmless, unlike
+ * stale Appwrite accounts which could collide with a future signup on the
+ * same email. */
 export async function deleteTestUser(email: string) {
 	const { user, table } = await createAdminClient()
 
@@ -33,6 +43,19 @@ export async function deleteTestUser(email: string) {
 		queries: [Query.equal('userId', [authUser.$id])],
 	})
 	for (const row of rows.rows) {
+		const bankRows = await table.listRows({
+			databaseId: DATABASE_ID!,
+			tableId: BANK_COLLECTION_ID!,
+			queries: [Query.equal('userId', [row.$id])],
+		})
+		for (const bankRow of bankRows.rows) {
+			await table.deleteRow({
+				databaseId: DATABASE_ID!,
+				tableId: BANK_COLLECTION_ID!,
+				rowId: bankRow.$id,
+			})
+		}
+
 		await table.deleteRow({
 			databaseId: DATABASE_ID!,
 			tableId: USER_COLLECTION_ID!,
