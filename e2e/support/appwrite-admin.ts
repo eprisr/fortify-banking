@@ -14,6 +14,16 @@ const {
 	APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID,
 } = process.env
 
+export async function getTestBankRow(userRowId: string): Promise<Bank | null> {
+	const { table } = await createAdminClient()
+	const rows = await table.listRows({
+		databaseId: DATABASE_ID!,
+		tableId: BANK_COLLECTION_ID!,
+		queries: [Query.equal('userId', [userRowId])],
+	})
+	return (rows.rows[0] as unknown as Bank) ?? null
+}
+
 export async function getTestUserRow(email: string): Promise<User | null> {
 	const { table } = await createAdminClient()
 	const rows = await table.listRows({

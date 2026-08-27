@@ -20,8 +20,13 @@ export default defineConfig({
 			dependencies: ['setup'],
 		},
 	],
+	// Production build, not `npm run dev` — confirmed dev mode's React
+	// StrictMode double-invocation causes real, observable duplicate-render
+	// artifacts here (Plaid Link's script embedding itself twice; a form
+	// rendering two of the same field with different ids). Run `npm run
+	// build` before `npm run test:e2e`.
 	webServer: {
-		command: 'npm run dev',
+		command: 'npm run start',
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		timeout: 120_000,
