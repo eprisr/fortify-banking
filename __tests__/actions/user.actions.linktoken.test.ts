@@ -3,18 +3,29 @@
  *
  * The rest of lib/actions/user.actions.ts is almost entirely Appwrite calls
  * (node-appwrite, undici-based — not interceptable by MSW; see
- * test/msw/README.md), so it isn't covered here. createLinkToken is the
- * one export with no Appwrite dependency at all — it only talks to Plaid —
- * so it's a real MSW target.
+ * test/msw/README.md), so it isn't covered here. createLinkToken's non-update
+ * path has no Appwrite dependency at all — real Plaid via MSW is enough.
+ * The update-mode path does need one Appwrite lookup (resolving the bank's
+ * access token server-side from its appwriteItemId — see
+ * component_fixes_deferred / the update-mode fix), so that's mocked at
+ * createAdminClient, same pattern as user.actions.transfer.test.ts.
  */
 import '../../test/msw/setup'
 import { HttpResponse, http } from 'msw'
 import { server } from '../../test/msw/server'
 import { PLAID_BASE } from '../../test/msw/handlers/plaid'
 
+jest.mock('@/lib/server/appwrite', () => ({
+	createAdminClient: jest.fn(),
+	createSessionClient: jest.fn(),
+}))
+
 jest.unmock('@/lib/actions/user.actions')
 
 import { createLinkToken } from '@/lib/actions/user.actions'
+import { createAdminClient } from '@/lib/server/appwrite'
+
+const mockCreateAdminClient = createAdminClient as jest.Mock
 
 const testUser: User = {
 	$id: 'user-123',
@@ -42,7 +53,13 @@ describe('createLinkToken', () => {
 		})
 	})
 
-	it('requests an update-mode link token when update + accessToken are given', async () => {
+	it('requests an update-mode link token, resolving the access token server-side from appwriteItemId', async () => {
+		const listRows = jest.fn().mockResolvedValue({
+			rows: [{ $id: 'bank-doc-1', accessToken: 'access-sandbox-1' }],
+			total: 1,
+		})
+		mockCreateAdminClient.mockResolvedValue({ table: { listRows } })
+
 		let capturedBody: any
 		server.use(
 			http.post(`${PLAID_BASE}/link/token/create`, async ({ request }) => {
@@ -55,13 +72,47 @@ describe('createLinkToken', () => {
 			}),
 		)
 
-		const result = await createLinkToken(testUser, true, 'access-sandbox-1')
+		const result = await createLinkToken(testUser, true, 'bank-doc-1')
 
 		expect(result).toEqual({
 			success: true,
 			linkToken: 'link-sandbox-update-token',
 		})
 		expect(capturedBody.access_token).toBe('access-sandbox-1')
+	})
+
+	it('falls back to a plain (non-update) session when update is true but no appwriteItemId is given', async () => {
+		let capturedBody: any
+		server.use(
+			http.post(`${PLAID_BASE}/link/token/create`, async ({ request }) => {
+				capturedBody = await request.json()
+				return HttpResponse.json({
+					link_token: 'link-sandbox-test-token',
+					expiration: '2026-12-31T00:00:00Z',
+					request_id: 'req-link-token-create',
+				})
+			}),
+		)
+
+		const result = await createLinkToken(testUser, true)
+
+		expect(result).toEqual({
+			success: true,
+			linkToken: 'link-sandbox-test-token',
+		})
+		expect(capturedBody.access_token).toBeUndefined()
+	})
+
+	it('returns a friendly error and does not throw when the bank document is not found', async () => {
+		const listRows = jest.fn().mockResolvedValue({ rows: [], total: 0 })
+		mockCreateAdminClient.mockResolvedValue({ table: { listRows } })
+
+		const result = await createLinkToken(testUser, true, 'missing-bank-doc')
+
+		expect(result).toEqual({
+			success: false,
+			error: 'Could not initialize bank connection',
+		})
 	})
 
 	it('returns a friendly error and does not throw when Plaid rejects the request', async () => {

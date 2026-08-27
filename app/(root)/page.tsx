@@ -19,6 +19,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 	const emptyAccount = accounts === 'UPDATE_MODE' || accounts?.totalBanks === 0
 	const demoAccount = accountsData?.[0]?.id?.includes('demo') ?? false
 	const appwriteItemId = (id as string) || accountsData?.[0]?.appwriteItemId
+	const reconnectItemId = accounts?.needsReconnect?.[0]
 
 	// No bank to look up (e.g. every linked bank needs re-authing at Plaid) —
 	// skip the fetch instead of letting it round-trip to Appwrite/Plaid just
@@ -58,7 +59,8 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 							<PlaidLink
 								user={loggedIn}
 								variant="reconnect"
-								update
+								update={!!reconnectItemId}
+								appwriteItemId={reconnectItemId}
 								className="font-bold px-4"
 							/>
 						</div>
