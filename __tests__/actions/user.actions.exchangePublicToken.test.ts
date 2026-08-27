@@ -116,6 +116,43 @@ describe('exchangePublicToken — happy path', () => {
 		expect(revalidatePath).toHaveBeenCalledWith('/')
 	})
 
+	it('picks the depository account even when it is not accounts[0]', async () => {
+		server.use(
+			http.post(`${PLAID_BASE}/accounts/get`, () =>
+				HttpResponse.json({
+					accounts: [
+						{
+							account_id: 'plaid-account-credit',
+							balances: { available: null, current: 500, limit: 2000 },
+							mask: '1111',
+							name: 'Plaid Credit Card',
+							official_name: 'Plaid Diamond Credit Card',
+							subtype: 'credit card',
+							type: 'credit',
+						},
+						{
+							account_id: 'plaid-account-checking',
+							balances: { available: 950.5, current: 1000, limit: null },
+							mask: '0000',
+							name: 'Plaid Checking',
+							official_name: 'Plaid Gold Standard 0% Interest Checking',
+							subtype: 'checking',
+							type: 'depository',
+						},
+					],
+					item: { institution_id: 'ins_109508' },
+					request_id: 'req-accounts-get',
+				}),
+			),
+		)
+		const createRow = mockCreateRow()
+
+		const result = await exchangePublicToken(validParams())
+
+		expect(result).toEqual({ success: true, data: null })
+		const savedRow = createRow.mock.calls[0][0].data
+		expect(savedRow.accountId).toBe('plaid-account-checking')
+	})
 })
 
 describe('exchangePublicToken — failures', () => {
@@ -161,6 +198,59 @@ describe('exchangePublicToken — failures', () => {
 			success: false,
 			error: 'Failed to save bank account',
 		})
+	})
+
+	it('fails with a clear message when Plaid returns no accounts at all', async () => {
+		server.use(
+			http.post(`${PLAID_BASE}/accounts/get`, () =>
+				HttpResponse.json({
+					accounts: [],
+					item: { institution_id: 'ins_109508' },
+					request_id: 'req-accounts-get',
+				}),
+			),
+		)
+		const createRow = mockCreateRow()
+
+		const result = await exchangePublicToken(validParams())
+
+		expect(result).toEqual({
+			success: false,
+			error: 'No accounts were returned for this bank connection',
+		})
+		expect(createRow).not.toHaveBeenCalled()
+	})
+
+	it('fails with a clear message when none of the returned accounts are depository', async () => {
+		server.use(
+			http.post(`${PLAID_BASE}/accounts/get`, () =>
+				HttpResponse.json({
+					accounts: [
+						{
+							account_id: 'plaid-account-credit',
+							balances: { available: null, current: 500, limit: 2000 },
+							mask: '1111',
+							name: 'Plaid Credit Card',
+							official_name: 'Plaid Diamond Credit Card',
+							subtype: 'credit card',
+							type: 'credit',
+						},
+					],
+					item: { institution_id: 'ins_109508' },
+					request_id: 'req-accounts-get',
+				}),
+			),
+		)
+		const createRow = mockCreateRow()
+
+		const result = await exchangePublicToken(validParams())
+
+		expect(result).toEqual({
+			success: false,
+			error:
+				'No eligible checking or savings account was found for this bank connection',
+		})
+		expect(createRow).not.toHaveBeenCalled()
 	})
 })
 

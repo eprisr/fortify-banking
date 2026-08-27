@@ -18,6 +18,7 @@ import {
 	transferServerSchema,
 } from '../server/validation'
 import {
+	AccountType,
 	CountryCode,
 	ProcessorTokenCreateRequest,
 	ProcessorTokenCreateRequestProcessorEnum,
@@ -373,7 +374,17 @@ export const exchangePublicToken = async ({
 			access_token: accessToken,
 		})
 
-		const accountData = accountsResponse.data.accounts[0]
+		const accountData = accountsResponse.data.accounts.find(
+			(account) => account.type === AccountType.Depository,
+		)
+
+		if (!accountData) {
+			throw new Error(
+				accountsResponse.data.accounts.length === 0
+					? 'No accounts were returned for this bank connection'
+					: 'No eligible checking or savings account was found for this bank connection',
+			)
+		}
 
 		// Create a processor token for Dwolla using the access token and account ID
 		const req: ProcessorTokenCreateRequest = {

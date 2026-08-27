@@ -67,7 +67,16 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 					access_token: bank.accessToken,
 				})
 
-				const accountData = accountsResponse.data.accounts[0]
+				const accountData = accountsResponse.data.accounts.find(
+					(account) => account.account_id === bank.accountId,
+				)
+
+				if (!accountData) {
+					console.warn(
+						`Bank ${bank.$id}'s linked account (${bank.accountId}) was not found in this item's current accounts. Skipping.`,
+					)
+					return null
+				}
 
 				// get institution info from plaid
 				const institution = await getInstitution({
@@ -158,7 +167,15 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
 		const accountsResponse = await plaidClient.accountsGet({
 			access_token: bank.accessToken,
 		})
-		const accountData = accountsResponse.data.accounts[0]
+		const accountData = accountsResponse.data.accounts.find(
+			(account) => account.account_id === bank.accountId,
+		)
+
+		if (!accountData) {
+			throw new Error(
+				`Linked account ${bank.accountId} was not found in this item's current accounts`,
+			)
+		}
 
 		// get transfer transactions from appwrite
 		const transferTransactionsData = await getTransactionsByBankId({

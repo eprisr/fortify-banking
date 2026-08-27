@@ -135,6 +135,58 @@ describe('getAccounts', () => {
 		expect(result.totalBanks).toBe(1)
 		expect(result.data).toHaveLength(1)
 	})
+
+	it("matches the bank's linked accountId instead of assuming accounts[0]", async () => {
+		mockGetBanks.mockResolvedValue({ success: true, data: [testBank] })
+
+		server.use(
+			http.post(`${PLAID_BASE}/accounts/get`, () =>
+				HttpResponse.json({
+					accounts: [
+						{
+							account_id: 'plaid-account-other',
+							balances: { available: 100, current: 200, limit: null },
+							mask: '9999',
+							name: 'Plaid Savings',
+							official_name: 'Plaid Silver Standard Savings',
+							subtype: 'savings',
+							type: 'depository',
+						},
+						{
+							// testBank.accountId — the account actually linked — is
+							// second in the array, not first.
+							account_id: 'plaid-account-1',
+							balances: { available: 950.5, current: 1000, limit: null },
+							mask: '0000',
+							name: 'Plaid Checking',
+							official_name: 'Plaid Gold Standard 0% Interest Checking',
+							subtype: 'checking',
+							type: 'depository',
+						},
+					],
+					item: { institution_id: 'ins_109508' },
+					request_id: 'req-accounts-get',
+				}),
+			),
+		)
+
+		const result = await getAccounts({ userId: 'user-1' })
+
+		expect(result.data[0].id).toBe('plaid-account-1')
+		expect(result.data[0].currentBalance).toBe(1000)
+	})
+
+	it("skips a bank whose linked accountId is no longer among the item's accounts", async () => {
+		mockGetBanks.mockResolvedValue({
+			success: true,
+			data: [{ ...testBank, accountId: 'plaid-account-removed' }],
+		})
+
+		const result = await getAccounts({ userId: 'user-1' })
+
+		expect(result.totalBanks).toBe(0)
+		expect(result.data).toEqual([])
+	})
 })
 
 describe('getAccount', () => {
@@ -167,6 +219,57 @@ describe('getAccount', () => {
 		// transfer transaction from Appwrite.
 		expect(result.transactions).toHaveLength(1)
 		expect(result.transactions[0].type).toBe('debit')
+	})
+
+	it("matches the bank's linked accountId instead of assuming accounts[0]", async () => {
+		mockGetBank.mockResolvedValue(testBank)
+		mockGetTransactionsByBankId.mockResolvedValue({ total: 0, documents: [] })
+
+		server.use(
+			http.post(`${PLAID_BASE}/accounts/get`, () =>
+				HttpResponse.json({
+					accounts: [
+						{
+							account_id: 'plaid-account-other',
+							balances: { available: 100, current: 200, limit: null },
+							mask: '9999',
+							name: 'Plaid Savings',
+							official_name: 'Plaid Silver Standard Savings',
+							subtype: 'savings',
+							type: 'depository',
+						},
+						{
+							account_id: 'plaid-account-1',
+							balances: { available: 950.5, current: 1000, limit: null },
+							mask: '0000',
+							name: 'Plaid Checking',
+							official_name: 'Plaid Gold Standard 0% Interest Checking',
+							subtype: 'checking',
+							type: 'depository',
+						},
+					],
+					item: { institution_id: 'ins_109508' },
+					request_id: 'req-accounts-get',
+				}),
+			),
+		)
+
+		const result = await getAccount({ appwriteItemId: 'bank-doc-1' })
+
+		expect(result.data.id).toBe('plaid-account-1')
+		expect(result.data.currentBalance).toBe(1000)
+	})
+
+	it("returns undefined instead of throwing when the linked accountId is no longer among the item's accounts", async () => {
+		mockGetBank.mockResolvedValue({
+			...testBank,
+			accountId: 'plaid-account-removed',
+		})
+		mockGetTransactionsByBankId.mockResolvedValue({ total: 0, documents: [] })
+
+		const result = await getAccount({ appwriteItemId: 'bank-doc-1' })
+
+		expect(result).toBeUndefined()
 	})
 })
 
