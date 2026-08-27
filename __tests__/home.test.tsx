@@ -24,6 +24,7 @@
 
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
+import { redirect } from 'next/navigation'
 import Home from '@/app/(root)/page'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
 import { getAccounts, getAccount } from '@/lib/actions/bank.actions'
@@ -304,35 +305,18 @@ describe('Home Page', () => {
 	describe('Unauthenticated user (getLoggedInUser returns null)', () => {
 		// =========================================================================
 
-		// Currently failing: Home is `if (!loggedIn) return null`
-		// (app/(root)/page.tsx) — it bails out before ever reaching
-		// getAccounts, and there's no middleware.ts redirecting
-		// unauthenticated visitors elsewhere, so an unauthenticated hit on
-		// "/" renders a fully blank page instead of the demo-data view these
-		// tests expect. See component_fixes_deferred memory, queued for a
-		// separate branch. Left asserting the intended behavior rather than
-		// the current gap so the failure keeps tracking the issue.
 		beforeEach(() => {
 			;(getLoggedInUser as jest.Mock).mockResolvedValue(null)
-			;(getAccounts as jest.Mock).mockResolvedValue({
-				data: [demoAccount],
-				totalBanks: 1,
-				totalCurrentBalance: demoAccount.currentBalance,
-			})
 		})
 
-		it('renders without crashing', async () => {
-			await expect(renderHome()).resolves.not.toThrow()
-		})
-
-		it('renders the Navbar', async () => {
+		it('redirects to /welcome instead of rendering', async () => {
 			await renderHome()
-			expect(screen.getByTestId('navbar')).toBeInTheDocument()
+			expect(redirect).toHaveBeenCalledWith('/welcome')
 		})
 
-		it('calls getAccounts with an undefined userId', async () => {
+		it('does not fetch accounts for a request that is just going to redirect', async () => {
 			await renderHome()
-			expect(getAccounts).toHaveBeenCalledWith({ userId: undefined })
+			expect(getAccounts).not.toHaveBeenCalled()
 		})
 	})
 

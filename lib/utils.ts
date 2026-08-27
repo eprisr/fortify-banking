@@ -11,11 +11,38 @@ export function cn(...inputs: ClassValue[]) {
 export const siteUrl = (path: string) =>
 	`${(process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/+$/, '')}${path}`
 
+const APPWRITE_ERROR_MESSAGES: Record<string, string> = {
+	user_invalid_credentials: 'Incorrect email or password',
+	user_password_mismatch: 'Passwords do not match',
+	user_blocked: 'This account has been blocked. Please contact support.',
+	user_not_found: 'No account found with that information',
+	user_already_exists: 'An account with that email already exists',
+	user_invalid_token: 'This link is invalid or has expired',
+	password_recently_used: "Please choose a password you haven't used recently",
+	password_personal_data:
+		"Your password can't contain your name, email, or phone number",
+	general_argument_invalid:
+		"That value doesn't meet the required format. Please check your entry and try again.",
+	general_rate_limit_exceeded:
+		'Too many attempts. Please wait a moment and try again.',
+}
+
 export const handleError = (
 	error: any,
 	customMessage: string,
+	typeOverrides?: Partial<Record<string, string>>,
 ): ActionResponse<any> => {
 	console.error(`${customMessage}:`, error)
+
+	if (typeof error?.type === 'string') {
+		return {
+			success: false,
+			error:
+				typeOverrides?.[error.type] ??
+				APPWRITE_ERROR_MESSAGES[error.type] ??
+				customMessage,
+		}
+	}
 
 	// Appwrite-specific error extraction
 	const message = error?.response?.message || error?.message || customMessage

@@ -34,7 +34,7 @@ function CustomInput<T extends FieldValues>({
 		<FormField
 			control={control}
 			name={name}
-			render={({ field }) => (
+			render={({ field, fieldState }) => (
 				<FormItem className="form-item">
 					<VisuallyHiddenPrimative.Root>
 						<FormLabel className="form-label">
@@ -75,6 +75,9 @@ function CustomInput<T extends FieldValues>({
 							</button>
 						)}
 					</div>
+					{name !== 'password' && fieldState.isTouched && (
+						<FormMessage className="form-message" />
+					)}
 				</FormItem>
 			)}
 		/>

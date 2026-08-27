@@ -4,13 +4,6 @@
  * Covers: ResetPassword page (RSC — expired link, success, and form states)
  * and AuthForm in 'reset-pw' mode. This flow previously had no test
  * coverage.
- *
- * Currently failing: CustomInput imports FormMessage but never renders it
- * for any field, confirmPassword included, so "Passwords must match" (from
- * resetPwSchema's superRefine) never reaches the DOM — see
- * component_fixes_deferred memory, queued for a separate branch. Left
- * asserting the intended behavior rather than the current gap so the
- * failure keeps tracking the issue.
  */
 
 import { act, render, screen } from '@testing-library/react'
@@ -20,8 +13,6 @@ import { useRouter } from 'next/navigation'
 import AuthForm from '@/components/AuthForm'
 import ResetPasswordPage from '@/app/(auth)/reset-pw/page'
 import { resetPw } from '@/lib/actions/user.actions'
-
-jest.mock('@/components/Navbar', () => () => <nav data-testid="navbar" />)
 
 jest.mock('next/server', () => ({
 	...jest.requireActual('next/server'),
@@ -91,6 +82,19 @@ describe('Reset Password Flow', () => {
 				screen.getByRole('button', { name: /reset password/i }),
 			).toBeInTheDocument()
 		})
+
+		// Regression for component_fixes_deferred item 2: this page used to
+		// import (and, at some point in its history, render) Navbar's own
+		// Link-based sub-nav *alongside* AuthForm's router.back() button,
+		// stacking two back-navigation elements. The page no longer renders
+		// Navbar at all — pinning that here so it can't silently come back.
+		it('renders exactly one back-navigation control, not a duplicate', async () => {
+			await renderResetPage({ userId: 'user-123', secret: 'secret-abc' })
+			expect(screen.getAllByRole('button', { name: /go back/i })).toHaveLength(
+				1,
+			)
+			expect(screen.queryByTestId('navbar')).not.toBeInTheDocument()
+		})
 	})
 
 	// =========================================================================
@@ -123,7 +127,7 @@ describe('Reset Password Flow', () => {
 	describe('AuthForm — reset-pw mode validation', () => {
 		// =========================================================================
 
-		it('shows "Passwords must match" when confirmPassword differs from password', async () => {
+		it('shows "Passwords must match" once confirmPassword is blurred, not while still typing', async () => {
 			render(
 				<AuthForm
 					type="reset-pw"
@@ -136,6 +140,8 @@ describe('Reset Password Flow', () => {
 				screen.getByLabelText(/confirm password/i),
 				'Mismatch1!',
 			)
+			expect(screen.queryByText('Passwords must match')).not.toBeInTheDocument()
+
 			await userEvent.click(
 				screen.getByRole('button', { name: /reset password/i }),
 			)
@@ -144,6 +150,23 @@ describe('Reset Password Flow', () => {
 				await screen.findByText('Passwords must match'),
 			).toBeInTheDocument()
 			expect(resetPw).not.toHaveBeenCalled()
+		})
+
+		it('never shows a validation message on the password field itself', async () => {
+			render(
+				<AuthForm
+					type="reset-pw"
+					resetParams={{ userId: 'user-123', secret: 'secret-abc' }}
+				/>,
+			)
+
+			const passwordInput = screen.getByLabelText(/^password/i)
+			await userEvent.type(passwordInput, 'weak')
+			await userEvent.tab()
+
+			expect(
+				screen.queryByText(/password/i, { selector: 'p' }),
+			).not.toBeInTheDocument()
 		})
 	})
 

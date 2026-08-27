@@ -91,7 +91,7 @@ const AuthForm = ({
 			{config.heading && (
 				<header className="flex flex-col gap-5 md:gap-8">
 					{type !== 'signin' && (
-						<button onClick={() => router.back()}>
+						<button aria-label="Go back" onClick={() => router.back()}>
 							<div className="flex flex-center h-8 w-8 bg-cloud rounded-full cursor-pointer">
 								<ChevronLeft size={12} />
 							</div>

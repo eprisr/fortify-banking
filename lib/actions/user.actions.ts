@@ -82,7 +82,9 @@ export const signIn = async ({
 
 		return { success: true, data: parseStringify(user) }
 	} catch (error: any) {
-		return handleError(error, 'An error occurred while signing in')
+		return handleError(error, 'An error occurred while signing in', {
+			general_argument_invalid: 'Incorrect email or password',
+		})
 	}
 }
 
@@ -134,11 +136,7 @@ export const resetPw = async ({
 
 		return { success: true, data: null }
 	} catch (error: any) {
-		console.error('Reset Password Error: ', error)
-		return {
-			success: false,
-			error: error?.response?.message || 'Failed to update password',
-		}
+		return handleError(error, 'Failed to update password')
 	}
 }
 

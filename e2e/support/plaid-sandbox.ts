@@ -8,11 +8,30 @@ import { plaidClient } from '@/lib/plaid'
  * https://plaid.com/docs/sandbox/
  *
  * Verified ins_109508 is really "First Platypus Bank" via a real
- * institutionsGetById call before relying on it here. */
-export async function createSandboxPublicToken(institutionId = 'ins_109508') {
+ * institutionsGetById call before relying on it here.
+ **/
+export async function createSandboxPublicToken(
+	institutionId = 'ins_109508',
+	{ distinctAccount = false }: { distinctAccount?: boolean } = {},
+) {
 	const res = await plaidClient.sandboxPublicTokenCreate({
 		institution_id: institutionId,
 		initial_products: ['auth'] as Products[],
+		options: distinctAccount
+			? {
+					override_username: 'user_custom',
+					override_password: JSON.stringify({
+						override_accounts: [
+							{
+								type: 'depository',
+								subtype: 'checking',
+								starting_balance: 1000,
+								meta: { name: 'Plaid Checking' },
+							},
+						],
+					}),
+				}
+			: undefined,
 	})
 	return res.data.public_token
 }

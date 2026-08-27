@@ -89,7 +89,9 @@ describe('SignUp Page component', () => {
 	it('renders the SignUpForm (step 1 fields)', async () => {
 		render(await SignUpPage())
 		expect(screen.getByLabelText('First Name*')).toBeInTheDocument()
-		expect(screen.getByRole('button', { name: /continue/i })).toBeInTheDocument()
+		expect(
+			screen.getByRole('button', { name: /continue/i }),
+		).toBeInTheDocument()
 	})
 
 	it('renders no Navbar/back-link/page-title chrome', async () => {
@@ -144,6 +146,33 @@ describe('SignUpForm — Step 1 rendering', () => {
 		const [backButton] = screen.getAllByRole('button')
 		await userEvent.click(backButton)
 		expect(mockBack).toHaveBeenCalled()
+	})
+})
+
+describe('SignUpForm — Step 1 validation message UX', () => {
+	beforeEach(() => render(<SignUpForm />))
+
+	it('shows a validation message for an empty required field only after it is blurred', async () => {
+		const firstName = screen.getByLabelText('First Name*')
+
+		await userEvent.type(firstName, 'J')
+		await userEvent.clear(firstName)
+		expect(screen.queryByText('First name is Required')).not.toBeInTheDocument()
+
+		await userEvent.tab() // blur firstName, focus moves to lastName
+		expect(
+			await screen.findByText('First name is Required'),
+		).toBeInTheDocument()
+	})
+
+	it('never shows a validation message on the password field', async () => {
+		const passwordInput = screen.getByLabelText('Password*')
+		await userEvent.type(passwordInput, 'weak')
+		await userEvent.tab()
+
+		expect(
+			screen.queryByText(/password/i, { selector: 'p' }),
+		).not.toBeInTheDocument()
 	})
 })
 

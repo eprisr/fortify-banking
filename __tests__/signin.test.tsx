@@ -24,8 +24,6 @@ import { signIn } from '@/lib/actions/user.actions'
 // Module mocks
 // ---------------------------------------------------------------------------
 
-jest.mock('@/components/Navbar', () => () => <nav data-testid="navbar" />)
-
 // connection() requires a real Next.js request-scoped AsyncLocalStorage
 // context that only exists inside an actual request lifecycle; it throws
 // when invoked directly from a Jest test.
@@ -93,6 +91,20 @@ describe('Sign In Flow', () => {
 			expect(
 				screen.queryByPlaceholderText('First Name'),
 			).not.toBeInTheDocument()
+		})
+
+		// Regression for component_fixes_deferred item 2: this page used to
+		// import (and, at some point in its history, render) Navbar, which
+		// would add its own Link-based back-nav here too. Sign-in is the
+		// entry point of the auth flow — there's nothing to go "back" to,
+		// so it should have no back-navigation control at all (AuthForm
+		// itself already suppresses its own chevron for type="signin").
+		it('renders no back-navigation control', async () => {
+			await renderSignInPage()
+			expect(
+				screen.queryByRole('button', { name: /go back/i }),
+			).not.toBeInTheDocument()
+			expect(screen.queryByTestId('navbar')).not.toBeInTheDocument()
 		})
 	})
 
@@ -180,7 +192,7 @@ describe('Sign In Flow', () => {
 			expect(signIn).not.toHaveBeenCalled()
 		})
 
-		it('marks the email input as invalid after a failed submission', async () => {
+		it('does not mark the email/password fields invalid after a rejected (but well-formed) sign-in', async () => {
 			;(signIn as jest.Mock).mockResolvedValueOnce({
 				success: false,
 				error: 'Invalid credentials. Please check the email and password.',
@@ -191,17 +203,38 @@ describe('Sign In Flow', () => {
 			)
 			await userEvent.type(screen.getByLabelText('Password*'), 'ValidPW1!')
 			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
-			expect(await screen.findByLabelText(/email/i)).toHaveAttribute(
+
+			await screen.findByText(
+				'Invalid credentials. Please check the email and password.',
+			)
+			expect(screen.getByLabelText('Email*')).toHaveAttribute(
 				'aria-invalid',
-				'true',
+				'false',
+			)
+			expect(screen.getByLabelText('Password*')).toHaveAttribute(
+				'aria-invalid',
+				'false',
 			)
 		})
 
-		it('does not display validation error text for email or password (known bug)', async () => {
-			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
-			await new Promise((resolve) => setTimeout(resolve, 0))
-			expect(screen.queryByText(/required/i)).not.toBeInTheDocument()
-			expect(screen.queryByText(/valid email/i)).not.toBeInTheDocument()
+		it('shows a validation message for an invalid email address, but only after it loses focus', async () => {
+			await userEvent.type(screen.getByLabelText('Email*'), 'not-an-email')
+			expect(
+				screen.queryByText('A Valid Email is Required'),
+			).not.toBeInTheDocument()
+
+			await userEvent.tab() // blur email, focus moves to password
+			expect(
+				await screen.findByText('A Valid Email is Required'),
+			).toBeInTheDocument()
+		})
+
+		it('never shows a validation message on the password field, even when cleared and blurred', async () => {
+			const passwordInput = screen.getByLabelText('Password*')
+			await userEvent.type(passwordInput, 'temp')
+			await userEvent.clear(passwordInput)
+			await userEvent.tab()
+			expect(screen.queryByText('Password is Required')).not.toBeInTheDocument()
 		})
 
 		it('does not call signIn for an invalid email format', async () => {
