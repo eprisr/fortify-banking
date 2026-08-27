@@ -30,13 +30,17 @@ const APPWRITE_ERROR_MESSAGES: Record<string, string> = {
 export const handleError = (
 	error: any,
 	customMessage: string,
+	typeOverrides?: Partial<Record<string, string>>,
 ): ActionResponse<any> => {
 	console.error(`${customMessage}:`, error)
 
 	if (typeof error?.type === 'string') {
 		return {
 			success: false,
-			error: APPWRITE_ERROR_MESSAGES[error.type] ?? customMessage,
+			error:
+				typeOverrides?.[error.type] ??
+				APPWRITE_ERROR_MESSAGES[error.type] ??
+				customMessage,
 		}
 	}
 

@@ -82,7 +82,9 @@ export const signIn = async ({
 
 		return { success: true, data: parseStringify(user) }
 	} catch (error: any) {
-		return handleError(error, 'An error occurred while signing in')
+		return handleError(error, 'An error occurred while signing in', {
+			general_argument_invalid: 'Incorrect email or password',
+		})
 	}
 }
 

@@ -209,11 +209,24 @@ describe('Sign In Flow', () => {
 			)
 		})
 
-		it('does not display validation error text for email or password (known bug)', async () => {
-			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
-			await new Promise((resolve) => setTimeout(resolve, 0))
-			expect(screen.queryByText(/required/i)).not.toBeInTheDocument()
-			expect(screen.queryByText(/valid email/i)).not.toBeInTheDocument()
+		it('shows a validation message for an invalid email address, but only after it loses focus', async () => {
+			await userEvent.type(screen.getByLabelText('Email*'), 'not-an-email')
+			expect(
+				screen.queryByText('A Valid Email is Required'),
+			).not.toBeInTheDocument()
+
+			await userEvent.tab() // blur email, focus moves to password
+			expect(
+				await screen.findByText('A Valid Email is Required'),
+			).toBeInTheDocument()
+		})
+
+		it('never shows a validation message on the password field, even when cleared and blurred', async () => {
+			const passwordInput = screen.getByLabelText('Password*')
+			await userEvent.type(passwordInput, 'temp')
+			await userEvent.clear(passwordInput)
+			await userEvent.tab()
+			expect(screen.queryByText('Password is Required')).not.toBeInTheDocument()
 		})
 
 		it('does not call signIn for an invalid email format', async () => {

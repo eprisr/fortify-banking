@@ -85,4 +85,32 @@ describe('handleError', () => {
 		const result = handleError({}, 'Something went wrong')
 		expect(result).toEqual({ success: false, error: 'Something went wrong' })
 	})
+
+	describe('typeOverrides', () => {
+		it('overrides the default message for a type it names', () => {
+			const result = handleError(
+				{ type: 'general_argument_invalid', message: 'raw appwrite text' },
+				'An error occurred while signing in',
+				{ general_argument_invalid: 'Incorrect email or password' },
+			)
+
+			expect(result).toEqual({
+				success: false,
+				error: 'Incorrect email or password',
+			})
+		})
+
+		it('leaves types not named in the override map on the default table', () => {
+			const result = handleError(
+				{ type: 'user_not_found', message: 'raw appwrite text' },
+				'An error occurred while signing in',
+				{ general_argument_invalid: 'Incorrect email or password' },
+			)
+
+			expect(result).toEqual({
+				success: false,
+				error: 'No account found with that information',
+			})
+		})
+	})
 })
