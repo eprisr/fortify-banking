@@ -139,7 +139,7 @@ const SignUpForm = () => {
 									/>
 									<Button
 										type="button"
-										onClick={() => redirect('/confirmation')}
+										onClick={() => router.push('/confirmation')}
 										disabled={isLoading}
 										variant="secondary"
 										className="py-4 text-base shadow-xl">
