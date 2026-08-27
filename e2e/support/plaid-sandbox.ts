@@ -16,3 +16,11 @@ export async function createSandboxPublicToken(institutionId = 'ins_109508') {
 	})
 	return res.data.public_token
 }
+
+/** Plaid's documented way to test the update-mode Link flow in Sandbox:
+ * forces a real Item into ITEM_LOGIN_REQUIRED, the same state a real
+ * expired/revoked login would leave it in.
+ * https://plaid.com/docs/sandbox/ */
+export async function forceItemLoginRequired(accessToken: string) {
+	await plaidClient.sandboxItemResetLogin({ access_token: accessToken })
+}
