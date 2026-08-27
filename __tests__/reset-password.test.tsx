@@ -21,8 +21,6 @@ import AuthForm from '@/components/AuthForm'
 import ResetPasswordPage from '@/app/(auth)/reset-pw/page'
 import { resetPw } from '@/lib/actions/user.actions'
 
-jest.mock('@/components/Navbar', () => () => <nav data-testid="navbar" />)
-
 jest.mock('next/server', () => ({
 	...jest.requireActual('next/server'),
 	connection: jest.fn().mockResolvedValue(undefined),
@@ -90,6 +88,19 @@ describe('Reset Password Flow', () => {
 			expect(
 				screen.getByRole('button', { name: /reset password/i }),
 			).toBeInTheDocument()
+		})
+
+		// Regression for component_fixes_deferred item 2: this page used to
+		// import (and, at some point in its history, render) Navbar's own
+		// Link-based sub-nav *alongside* AuthForm's router.back() button,
+		// stacking two back-navigation elements. The page no longer renders
+		// Navbar at all — pinning that here so it can't silently come back.
+		it('renders exactly one back-navigation control, not a duplicate', async () => {
+			await renderResetPage({ userId: 'user-123', secret: 'secret-abc' })
+			expect(
+				screen.getAllByRole('button', { name: /go back/i }),
+			).toHaveLength(1)
+			expect(screen.queryByTestId('navbar')).not.toBeInTheDocument()
 		})
 	})
 

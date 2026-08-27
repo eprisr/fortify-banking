@@ -1,6 +1,5 @@
 import { connection } from 'next/server'
 import AuthForm from '@/components/AuthForm'
-import Navbar from '@/components/Navbar'
 import ResendRecoveryButton from '@/components/ResendRecoveryButton'
 import Image from 'next/image'
 import Link from 'next/link'

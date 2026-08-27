@@ -24,8 +24,6 @@ import { signIn } from '@/lib/actions/user.actions'
 // Module mocks
 // ---------------------------------------------------------------------------
 
-jest.mock('@/components/Navbar', () => () => <nav data-testid="navbar" />)
-
 // connection() requires a real Next.js request-scoped AsyncLocalStorage
 // context that only exists inside an actual request lifecycle; it throws
 // when invoked directly from a Jest test.
@@ -93,6 +91,20 @@ describe('Sign In Flow', () => {
 			expect(
 				screen.queryByPlaceholderText('First Name'),
 			).not.toBeInTheDocument()
+		})
+
+		// Regression for component_fixes_deferred item 2: this page used to
+		// import (and, at some point in its history, render) Navbar, which
+		// would add its own Link-based back-nav here too. Sign-in is the
+		// entry point of the auth flow — there's nothing to go "back" to,
+		// so it should have no back-navigation control at all (AuthForm
+		// itself already suppresses its own chevron for type="signin").
+		it('renders no back-navigation control', async () => {
+			await renderSignInPage()
+			expect(
+				screen.queryByRole('button', { name: /go back/i }),
+			).not.toBeInTheDocument()
+			expect(screen.queryByTestId('navbar')).not.toBeInTheDocument()
 		})
 	})
 
