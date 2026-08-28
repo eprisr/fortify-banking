@@ -101,6 +101,47 @@ const PlaidLink = ({
 
 	return (
 		<>
+			{isDemo ? (
+				<p className="form-message mt-1">
+					Bank connections aren&apos;t available in demo mode.
+				</p>
+			) : isDemo === false ? (
+				<PlaidButton
+					variant={variant}
+					text={text}
+					handleOpen={handleOpen}
+					isDemo={isDemo}
+					ready={ready}
+					className={className}
+				/>
+			) : (
+				error && <p className="form-message mt-1">{error}</p>
+			)}
+		</>
+	)
+}
+
+export default PlaidLink
+
+interface PlaidButtonProps {
+	variant: string | undefined
+	text: string | undefined
+	handleOpen: () => void
+	isDemo: boolean
+	ready: boolean
+	className: string | undefined
+}
+
+const PlaidButton = ({
+	variant,
+	text,
+	handleOpen,
+	isDemo,
+	ready,
+	className,
+}: PlaidButtonProps) => {
+	return (
+		<>
 			{variant === 'primary' ? (
 				<Button
 					type="button"
@@ -150,15 +191,6 @@ const PlaidLink = ({
 					</p>
 				</Button>
 			)}
-			{isDemo ? (
-				<p className="form-message mt-1">
-					Bank connections aren&apos;t available in demo mode.
-				</p>
-			) : (
-				error && <p className="form-message mt-1">{error}</p>
-			)}
 		</>
 	)
 }
-
-export default PlaidLink

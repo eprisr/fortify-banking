@@ -6,6 +6,7 @@ import QuickLinks from '@/components/QuickLinks'
 import { RecentTransactions } from '@/components/RecentTransactions'
 import { getAccount, getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
+import { isDemoUserId } from '@/lib/demo-data'
 import { CreditCard, TriangleAlert } from 'lucide-react'
 import { redirect } from 'next/navigation'
 
@@ -13,6 +14,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 	const { id } = await searchParams
 	const loggedIn = await getLoggedInUser()
 	if (!loggedIn) return redirect('/welcome')
+	const isDemoUser = isDemoUserId(loggedIn?.$id)
 
 	const accounts = await getAccounts({ userId: loggedIn?.$id })
 
@@ -45,18 +47,20 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 									<TriangleAlert size={16} className="text-semantic-error" />
 								)}
 							</div>
-							<div className="">
-								<p className="text-sm font-semibold">
-									{demoAccount
-										? "You're viewing sample data"
-										: 'Bank connection needs attention'}
-								</p>
-								<p className="text-xs text-ink/70">
-									{demoAccount
-										? 'Connect your bank to see your real accounts'
-										: 'Reconnect your bank to keep your data current.'}
-								</p>
-							</div>
+							{!isDemoUser && (
+								<div className="">
+									<p className="text-sm font-semibold">
+										{demoAccount
+											? "You're viewing sample data"
+											: 'Bank connection needs attention'}
+									</p>
+									<p className="text-xs text-ink/70">
+										{demoAccount
+											? 'Connect your bank to see your real accounts'
+											: 'Reconnect your bank to keep your data current.'}
+									</p>
+								</div>
+							)}
 							<PlaidLink
 								user={loggedIn}
 								variant="reconnect"
