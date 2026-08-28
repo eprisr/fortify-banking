@@ -73,18 +73,24 @@ export const navLinks = [
 export const quickLinks = [
 	{
 		Icon: BiTransferAlt,
-		route: '/payment-transfer',
+		route: '#',
 		label: 'Transfer',
+		toastText: "Transfers aren't available yet.",
+		demoToast: 'Transfers are not available in demo mode.',
 	},
 	{
 		Icon: BiSolidReceipt,
 		route: '#',
 		label: 'Pay bill',
+		toastText: "Bill pay isn't available yet.",
+		demoToast: 'Bill pay is not available in demo mode.',
 	},
 	{
 		Icon: BiMoneyWithdraw,
 		route: '#',
 		label: 'Withdraw',
+		toastText: "Withdraws aren't available yet.",
+		demoToast: 'Withdraws are not available in demo mode.',
 	},
 	{
 		Icon: BiDotsHorizontalRounded,

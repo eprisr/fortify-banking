@@ -10,6 +10,7 @@ import {
 } from 'next/font/google'
 import './globals.css'
 import { cn } from '@/lib/utils'
+import { Toaster } from '@/components/ui/sonner'
 
 export const viewport: Viewport = {
 	width: 'device-width',
@@ -62,6 +63,7 @@ export default function RootLayout({
 			<body
 				className={`${poppins.variable} ${firaSans.variable} ${ibmPlexSerif.variable} ${inter.variable} ${dmSans.variable} ${dmMono.variable} ${sora.variable}`}>
 				<div>{children}</div>
+				<Toaster position="bottom-center" richColors />
 			</body>
 		</html>
 	)

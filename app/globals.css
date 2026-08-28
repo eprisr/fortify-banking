@@ -284,6 +284,11 @@
 	.connect-box {
 		@apply flex flex-center gap-4 p-5 rounded-xl mb-3;
 	}
+
+	.quicklink {
+		@apply grid grid-rows-[minmax(0,1fr)_auto] gap-3 items-center justify-items-center text-center p-2;
+	}
+
 	.view-all-btn {
 		@apply text-sm rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-700;
 	}
