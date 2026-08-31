@@ -32,6 +32,7 @@ import { Badge } from '@/components/ui/badge'
 import Marquee from '@/components/Marquee'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import StatusBadge from '@/components/StatusBadge'
 
 const navLinks = [
 	{ href: '#features', label: 'Features' },
@@ -161,7 +162,7 @@ const Landing = () => {
 								variant="default"
 								size="lg"
 								className="font-semibold px-7">
-								Get early access
+								Explore as Guest
 							</Button>
 							<Button
 								onClick={() => router.push('#works')}
@@ -220,7 +221,10 @@ const Landing = () => {
 									alt={feat.imgAlt ?? ''}
 									className="w-full h-full object-contain rounded-lg"
 								/>
-								<h3>{feat.title}</h3>
+								<h3>
+									{feat.title}{' '}
+									{feat.status && <StatusBadge status={feat.status} />}
+								</h3>
 								<p className="mt-2">{feat.content}</p>
 							</div>
 						))}

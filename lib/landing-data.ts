@@ -1,3 +1,5 @@
+import { FeatureStatus } from '@/lib/feature-status'
+
 export const primaryShadeMap: Record<number, string> = {
 	0: 'bg-primary-700',
 	1: 'bg-primary-600',
@@ -24,6 +26,7 @@ interface Card {
 	content: string
 	image?: string
 	imgAlt?: string
+	status?: FeatureStatus
 }
 
 export const features: Card[] = [
@@ -33,6 +36,7 @@ export const features: Card[] = [
 			'Every transaction categorized automatically. See your top spending categories, month-over-month trends, and where your money actually goes — no spreadsheets.',
 		image: '/landing/fortify-feature-clarity.png',
 		imgAlt: 'Snippet of "where your money went" and "monthly spending"',
+		status: 'in-progress',
 	},
 	{
 		title: 'All accounts, one place',
@@ -40,6 +44,7 @@ export const features: Card[] = [
 			' Connect checking, savings, and credit in seconds via Plaid. Your full financial picture — balances, net worth, available credit — updated in real time. ',
 		image: '/landing/fortify-feature-accounts.png',
 		imgAlt: 'Snippet of card imagery',
+		status: 'live',
 	},
 	{
 		title: 'Smart alerts',
@@ -47,6 +52,7 @@ export const features: Card[] = [
 			'Get notified the moment unusual activity hits your account. Large transactions, low balance warnings, and spending nudges — before they become problems.',
 		image: '/landing/fortify-feature-alerts.png',
 		imgAlt: 'Snippet of alert items',
+		status: 'planned',
 	},
 	{
 		title: 'Transfers & bill pay',
@@ -54,6 +60,7 @@ export const features: Card[] = [
 			"Move money between accounts or pay bills directly from Fortify — powered by Dwolla's ACH network. Fast, secure, a few taps away.",
 		image: '/landing/fortify-feature-transfer.png',
 		imgAlt: 'Snippet of transfer being completed to recipient',
+		status: 'in-progress',
 	},
 	{
 		title: 'Cash flow tracking',
@@ -61,6 +68,7 @@ export const features: Card[] = [
 			'Month-by-month income vs. expenses. Spot surplus months at a glance, catch deficits early, understand your trend line before it becomes a problem.',
 		image: '/landing/fortify-feature-cashflow.png',
 		imgAlt: 'Snippet of a cash flow line chart',
+		status: 'in-progress',
 	},
 	{
 		title: 'Built to protect you',
@@ -68,6 +76,7 @@ export const features: Card[] = [
 			"Every transfer runs through Dwolla's regulated ACH network, and your bank login is handled by Plaid, never stored on our servers. All data encrypted at rest and in transit.",
 		image: '/landing/fortify-feature-security.png',
 		imgAlt: 'Snippet of security features',
+		status: 'live',
 	},
 ]
 
