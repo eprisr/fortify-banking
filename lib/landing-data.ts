@@ -51,7 +51,7 @@ export const features: Card[] = [
 	{
 		title: 'Transfers & bill pay',
 		content:
-			"Move money between accounts or pay bills directly from Vaultly — powered by Dwolla's ACH network. Fast, secure, a few taps away.",
+			"Move money between accounts or pay bills directly from Fortify — powered by Dwolla's ACH network. Fast, secure, a few taps away.",
 		image: '/landing/fortify-feature-transfer.png',
 		imgAlt: 'Snippet of transfer being completed to recipient',
 	},
@@ -65,7 +65,7 @@ export const features: Card[] = [
 	{
 		title: 'Built to protect you',
 		content:
-			'Read-only access means we can see your data, never touch your money. All data encrypted at rest and in transit. Your credentials never touch our servers.',
+			"Every transfer runs through Dwolla's regulated ACH network, and your bank login is handled by Plaid, never stored on our servers. All data encrypted at rest and in transit.",
 		image: '/landing/fortify-feature-security.png',
 		imgAlt: 'Snippet of security features',
 	},
@@ -75,17 +75,17 @@ export const works: Card[] = [
 	{
 		title: 'Create your account',
 		content:
-			' Sign up with your name and email in under a minute. No credit card, no commitments.',
+			'Sign up with your name and email in under a minute. No credit card, no commitments.',
 	},
 	{
 		title: 'Connect your bank',
 		content:
-			' Link your bank securely via Plaid. Read-only access — we can see your data, never touch your money.',
+			'Link your bank securely via Plaid. We can see your data; moving money always requires your explicit action.',
 	},
 	{
 		title: 'See your full picture',
 		content:
-			' Your dashboard comes to life instantly — balances, spending trends, and transactions in one clean view.',
+			'Your dashboard comes to life instantly — balances, spending trends, and transactions in one clean view.',
 	},
 ]
 
@@ -96,7 +96,8 @@ export const security: Card[] = [
 	},
 	{
 		title: 'Read-only bank access',
-		content: 'We can view transactions. We can never move money.',
+		content:
+			"Secure by design. Money only moves with your explicit action, routed through Dwolla's regulated ACH network.",
 	},
 	{
 		title: 'Zero data selling',

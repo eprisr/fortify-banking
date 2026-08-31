@@ -50,7 +50,7 @@ const companyLinks = [
 	{ href: '#', label: 'About' },
 	{ href: '#', label: 'Blog' },
 	{ href: '#', label: 'Privacy' },
-	{ href: '#', label: 'Terms' },
+	{ href: '/terms', label: 'Terms' },
 ]
 
 const Landing = () => {
@@ -93,9 +93,10 @@ const Landing = () => {
 							Sign in
 						</Button>
 						<Button
+							onClick={() => router.push('/demo')}
 							variant="default"
 							className="text-sm font-semibold px-4 py-3">
-							Get early access
+							Explore as Guest
 						</Button>
 					</div>
 					<Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -130,8 +131,11 @@ const Landing = () => {
 									</Button>
 								</SheetClose>
 								<SheetClose asChild>
-									<Button variant="default" className="w-full">
-										Get early access
+									<Button
+										onClick={() => router.push('/demo')}
+										variant="default"
+										className="w-full">
+										Explore as Guest
 									</Button>
 								</SheetClose>
 							</div>
@@ -143,8 +147,8 @@ const Landing = () => {
 				<section className="flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-6 bg-paper px-5 sm:px-10 lg:px-20 xl:px-32 pt-28 lg:pt-32">
 					<div className="text-center lg:text-left">
 						<h1>
-							Your money, <br />
-							<span className="text-primary-700">finally clear.</span>
+							Know before <br />
+							<span className="text-primary-700">payday.</span>
 						</h1>
 						<p className="text-black-1 leading-7 my-4 max-w-[32ch] mx-auto lg:mx-0">
 							Fortify connects to your bank and turns raw transactions into a
@@ -153,6 +157,7 @@ const Landing = () => {
 						</p>
 						<div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
 							<Button
+								onClick={() => router.push('/demo')}
 								variant="default"
 								size="lg"
 								className="font-semibold px-7">
@@ -341,7 +346,7 @@ const Landing = () => {
 							</p>
 						</div>
 						<p className="text-sm max-w-[24ch] mx-auto md:mx-0 mt-4">
-							Your money, finally clear. Built with Next.js, Plaid, and Dwolla.
+							Know before payday. Built with Next.js, Plaid, and Dwolla.
 						</p>
 					</div>
 					<div className="grid grid-cols-2 gap-8 sm:gap-12 lg:gap-18 text-sm text-center md:text-left">
