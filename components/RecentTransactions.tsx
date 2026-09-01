@@ -1,5 +1,3 @@
-import Image from 'next/image'
-
 import {
 	Item,
 	ItemContent,
@@ -23,7 +21,7 @@ export const RecentTransactions = ({
 
 	return (
 		<div className="flex w-full max-w-md flex-col gap-5">
-			<div className="flex justify-between">
+			<div className="flex justify-between items-center">
 				<h4 className="text-base font-heading font-semibold">
 					Recent activity
 				</h4>
