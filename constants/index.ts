@@ -23,34 +23,27 @@ import {
 } from 'react-icons/bi'
 
 export const navLinks = [
-	{
-		Icon: UserRound,
-		route: '/',
-		category: 'account',
-		label: 'My Information',
-		subText: 'Name ⋅ Email ⋅ Phone',
-	},
-	{
-		Icon: CreditCard,
+  {
+    Icon: CreditCard,
 		route: '/',
 		category: 'account',
 		label: 'Linked Accounts',
 		subText: '',
 	},
 	{
-		Icon: Settings,
-		route: '/',
+    Icon: Shield,
+		route: '/settings',
 		category: 'account',
-		label: 'Settings',
-		subText: 'Security ⋅ Privacy ⋅ App',
+		label: 'Security & Privacy',
+    subText: 'Face ID ⋅ Pin ⋅ Data',
 	},
-	// {
-	// 	Icon: Shield,
-	// 	route: '/',
-	// 	category: 'account',
-	// 	label: 'Security & Privacy',
-	// 	subText: 'Face ID ⋅ Pin ⋅ Data',
-	// },
+  {
+    Icon: UserRound,
+    route: '/',
+    category: 'account',
+    label: 'My Information',
+    subText: 'Name ⋅ Email ⋅ Phone',
+  },
 	// {
 	// 	Icon: Bell,
 	// 	route: '/',

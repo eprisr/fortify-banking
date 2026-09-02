@@ -71,7 +71,7 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 						<SheetContent
 							side="left"
 							container={container}
-							className="flex flex-col p-6 w-4/5! font-sans">
+							className="flex flex-col p-6 w-4/5! font-sans bg-paper">
 							<SheetHeader className="px-0 mb-4">
 								<SheetTitle className="sr-only">
 									Welcome, {user?.firstName}
@@ -100,7 +100,7 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 							{Object.entries(links).map(([key, value], i) => {
 								return (
 									<Fragment key={i}>
-										<h3 className="text-xxs text-ink/70">
+										<h3 className="text-xxs text-ink/70 font-semibold">
 											{key.toUpperCase()}
 										</h3>
 										{value?.map((item) => {
@@ -111,14 +111,14 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 														href={route}
 														key={label}
 														className="flex items-center justify-between my-3">
-														<div className="flex items-center gap-3 text-base">
+														<div className="flex items-center gap-3 text-sm font-semibold">
 															<Icon size={16} />
 															<div>
 																<p>{label}</p>
-																<p className="text-xs text-ink/70">{subText}</p>
+																<p className="text-xs text-ink/70 font-normal mt-1">{subText}</p>
 															</div>
 														</div>
-														<ChevronRight size={14} className="ink/20" />
+														<ChevronRight size={14} className="text-ink/20" />
 													</Link>
 												</SheetClose>
 											)
