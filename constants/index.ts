@@ -1,7 +1,10 @@
 import {
 	Bell,
+	CircleCheck,
 	CircleQuestionMark,
 	CreditCard,
+	Eye,
+	Lock,
 	MessageSquare,
 	Moon,
 	Shield,
@@ -119,6 +122,45 @@ export const mobileLinks = [
 		Icon: BiCog,
 		route: '#',
 		label: 'Settings',
+	},
+]
+
+export const settings = [
+	{
+		Icon: CircleCheck,
+		route: '/',
+		category: 'sign-in',
+		label: 'Face ID',
+		subText: 'Use Face ID to sign in instead of your password',
+		toggle: true,
+    bool: false,
+	},
+	{
+		Icon: Lock,
+		route: '/',
+		category: 'sign-in',
+		label: 'App pin',
+		subText: 'Not set',
+    toggle: false,
+    bool: false,
+	},
+	{
+		Icon: Shield,
+		route: '/',
+		category: 'account protection',
+		label: 'Two-factor authentication',
+		subText: 'Required for transfers and other sensitive actions',
+		toggle: false,
+    bool: true,
+	},
+	{
+		Icon: Eye,
+		route: '/',
+		category: 'privacy',
+		label: 'Data & Permissions',
+		subText: 'Manage what Fortify can access',
+		toggle: false,
+    bool: false,
 	},
 ]
 
