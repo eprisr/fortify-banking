@@ -3,15 +3,16 @@ import {
 	CircleCheck,
 	CircleQuestionMark,
 	CreditCard,
+	Landmark,
 	Eye,
 	Lock,
 	MessageSquare,
-	Moon,
-	Shield,
+	Settings,
 	UserRound,
+  Shield,
 } from 'lucide-react'
 import {
-	BiCog,
+	BiCreditCard,
 	BiDotsHorizontalRounded,
 	BiEnvelope,
 	BiMoneyWithdraw,
@@ -23,6 +24,13 @@ import {
 
 export const navLinks = [
 	{
+		Icon: UserRound,
+		route: '/',
+		category: 'account',
+		label: 'My Information',
+		subText: 'Name ⋅ Email ⋅ Phone',
+	},
+	{
 		Icon: CreditCard,
 		route: '/',
 		category: 'account',
@@ -30,33 +38,33 @@ export const navLinks = [
 		subText: '',
 	},
 	{
-		Icon: Shield,
+		Icon: Settings,
 		route: '/',
 		category: 'account',
-		label: 'Security & Privacy',
-		subText: 'Face ID ⋅ Pin ⋅ Data',
+		label: 'Settings',
+		subText: 'Security ⋅ Privacy ⋅ App',
 	},
-	{
-		Icon: UserRound,
-		route: '/',
-		category: 'account',
-		label: 'Edit Profile',
-		subText: 'Name ⋅ Email ⋅ Phone',
-	},
-	{
-		Icon: Bell,
-		route: '/',
-		category: 'preferences',
-		label: 'Notifcations',
-		subText: '',
-	},
-	{
-		Icon: Moon,
-		route: '/',
-		category: 'preferences',
-		label: 'Dark Mode',
-		subText: '',
-	},
+	// {
+	// 	Icon: Shield,
+	// 	route: '/',
+	// 	category: 'account',
+	// 	label: 'Security & Privacy',
+	// 	subText: 'Face ID ⋅ Pin ⋅ Data',
+	// },
+	// {
+	// 	Icon: Bell,
+	// 	route: '/',
+	// 	category: 'preferences',
+	// 	label: 'Notifcations',
+	// 	subText: '',
+	// },
+	// {
+	// 	Icon: Moon,
+	// 	route: '/',
+	// 	category: 'preferences',
+	// 	label: 'Dark Mode',
+	// 	subText: '',
+	// },
 	{
 		Icon: CircleQuestionMark,
 		route: '/',
@@ -69,6 +77,13 @@ export const navLinks = [
 		route: '/',
 		category: 'support',
 		label: 'Send Feedback',
+		subText: '',
+	},
+	{
+		Icon: Landmark,
+		route: '/',
+		category: 'Other',
+		label: 'ATMs',
 		subText: '',
 	},
 ]
@@ -119,9 +134,9 @@ export const mobileLinks = [
 		label: 'Inbox',
 	},
 	{
-		Icon: BiCog,
+		Icon: BiCreditCard,
 		route: '#',
-		label: 'Settings',
+		label: 'Accounts',
 	},
 ]
 
