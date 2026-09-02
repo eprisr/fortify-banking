@@ -14,7 +14,7 @@ import {
 import { BiBell, BiChevronLeft } from 'react-icons/bi'
 import { navLinks } from '@/constants'
 import Footer from './Footer'
-import HeaderBox from './HeaderBox'
+import HeaderBox from './shared/HeaderBox'
 import PlaidLink from './PlaidLink'
 import { cn } from '@/lib/utils'
 import { useMobileContainer } from './mobile-container'
