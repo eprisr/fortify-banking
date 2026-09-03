@@ -210,6 +210,8 @@ export const signUp = async (
 				userId: newUserAccount.$id,
 				dwollaCustomerId,
 				dwollaCustomerUrl,
+        verifiedEmail: newUserAccount.emailVerification,
+        mfa: newUserAccount.mfa,
 			},
 		})
 
@@ -243,6 +245,16 @@ export const signUp = async (
 
 		return handleError(error, 'An error occurred during sign up')
 	}
+}
+
+export const verifyEmail = async () => {
+  const { account } = await createAdminClient()
+
+  const res = await account.createEmailVerification({
+    url: '/verify-email'
+  })
+
+  console.log(res)
 }
 
 export async function getLoggedInUser() {
@@ -555,4 +567,11 @@ export const transferFunds = async (
 			error: error?.message || 'Failed to complete transfer',
 		}
 	}
+}
+
+export const generateRecoveryCodes = async () => {
+  const { account } = await createAdminClient()
+
+  const response = await account.createMFARecoveryCodes()
+	console.log(response.recoveryCodes)
 }
