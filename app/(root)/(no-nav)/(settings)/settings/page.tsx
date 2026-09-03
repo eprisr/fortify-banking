@@ -5,7 +5,7 @@ import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 
-const Settings = () => {
+const Settings = async () => {
   const links = Object.groupBy(settings, ({ category }) => category)
 
   return (
