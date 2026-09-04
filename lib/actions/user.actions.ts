@@ -261,6 +261,22 @@ export const verifyEmail = async (): Promise<ActionResponse<null>> => {
   }
 }
 
+export const completeEmailVerification = async ({ userId, secret}: {userId: string, secret: string}) => {
+  try {
+    const { account } = await createSessionClient()
+
+		await account.updateEmailVerification({
+			userId: userId,
+			secret: secret,
+    })
+
+    return {success: true, data: null}
+  } catch(error: any) {
+    console.error('An Error Occurred while Verifying Email: ', error)
+		return { success: false, error: error }
+  }
+}
+
 export async function getLoggedInUser() {
 	const cookieStore = await cookies()
 	if (cookieStore.get(DEMO_MODE_COOKIE)) {
