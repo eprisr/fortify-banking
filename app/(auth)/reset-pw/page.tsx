@@ -52,7 +52,7 @@ const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 					{expired && !successful && (
 						<div className="w-full mt-5">
 							<ResendButton
-								onResend={() => resendRecoveryLink({ userId: userIdString! })}
+								onResend={resendRecoveryLink.bind(null, { userId: userIdString! })}
 								sentLabel="New link sent — check your email."
 								disabled={!userIdString}
 							/>
