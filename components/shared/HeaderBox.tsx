@@ -36,7 +36,8 @@ const HeaderBox = ({
 						</div>
 					</button>
 					<div className="flex flex-col gap-1 md:gap-3">
-						<h1 className="text-xl font-bold">{title}</h1>
+              <h1 className="text-xl font-bold">{title}</h1>
+              <p className="text-sm font-serif italic leading-2">{subtext}</p>
 					</div>
 				</header>
 			)}
