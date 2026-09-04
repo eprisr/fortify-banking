@@ -154,7 +154,7 @@ export const settings = [
 	},
 	{
 		Icon: Shield,
-		route: '/',
+		route: '/recovery-codes',
 		category: 'account protection',
 		label: 'Two-factor authentication',
 		subText: 'Required for transfers and other sensitive actions',
