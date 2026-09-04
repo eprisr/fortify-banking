@@ -247,14 +247,18 @@ export const signUp = async (
 	}
 }
 
-export const verifyEmail = async () => {
-  const { account } = await createAdminClient()
-
-  const res = await account.createEmailVerification({
-    url: '/verify-email'
-  })
-
-  console.log(res)
+export const verifyEmail = async (): Promise<ActionResponse<null>> => {
+  try {
+    const { account } = await createSessionClient()
+  
+    await account.createEmailVerification({
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/verify-email`
+    })
+  
+    return {success: true, data: null}
+  } catch (error: any) {
+    return handleError(error, 'Failed to verify email')
+  }
 }
 
 export async function getLoggedInUser() {
