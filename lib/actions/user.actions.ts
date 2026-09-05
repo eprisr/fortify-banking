@@ -270,6 +270,19 @@ export const completeEmailVerification = async ({ userId, secret}: {userId: stri
 			secret: secret,
     })
 
+    const { table } = await createAdminClient()
+
+    const user = await getUserInfo({ userId })
+
+    await table.updateRow({
+      databaseId: DATABASE_ID!,
+      tableId: USER_COLLECTION_ID!,
+      rowId: user.$id,
+      data: {
+        verifiedEmail: true
+      }
+    })
+
     return {success: true, data: null}
   } catch(error: any) {
     console.error('An Error Occurred while Verifying Email: ', error)
