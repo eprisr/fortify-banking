@@ -1,5 +1,5 @@
 import { connection } from 'next/server'
-import { completeEmailVerification, getLoggedInUser, verifyEmail } from '@/lib/actions/user.actions'
+import { completeEmailVerification, getLoggedInUser, getUserInfo, verifyEmail } from '@/lib/actions/user.actions'
 import { Check, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { obscureEmail } from '@/lib/utils'
@@ -11,9 +11,9 @@ const Verification = async ({ searchParams }: SearchParamProps) => {
   if (!loggedIn) return null
   const email = obscureEmail(loggedIn.email)
 
-	const { userId, secret, expire, success } = await searchParams
+	const { userId, secret, expire } = await searchParams
 
-	let successful = success === 'true'
+	let successful = loggedIn.verifiedEmail
 
 	const expireToTime = expire?.toString().replace('\\', '')
 
@@ -25,11 +25,16 @@ const Verification = async ({ searchParams }: SearchParamProps) => {
 	const userIdString = userId?.toString()
   const secretString = secret?.toString()
 
-  if (!expired && !successful) {
-    await completeEmailVerification({ userId: userIdString!, secret: secretString! })
-    if (!successful) successful = true
+  if (!successful && !expired && userIdString && secretString) {
+    const result = await completeEmailVerification({ userId: userIdString, secret: secretString })
+    successful = result.success
+
+    if (!successful) {
+      const refreshed = await getUserInfo({ userId: userIdString })
+      successful = !!refreshed?.verifiedEmail
+    }
   }
-  
+
 	return (
 		<section className="flex-center w-full h-[calc(100vh-72px)] bg-white">
 			{(expired || successful) && (
@@ -54,18 +59,20 @@ const Verification = async ({ searchParams }: SearchParamProps) => {
 							? "Your email is confirmed. Let's finish setting up your account."
 							: `The verification link we sent to ${email} is no longer valid.`}
 					</p>
-					<p className="text-sm text-ink/70">
-						Verification links expire after 24 hours for your security. Request
-						a new one to finish setting up your account.
-					</p>
-					{success && (
+          {!successful && (
+            <p className="text-sm text-ink/70">
+              Verification links expire after 24 hours for your security. Request
+              a new one to finish setting up your account.
+            </p>
+          )}
+					{successful && (
 						<Link
 							href="/"
 							className="font-semibold w-full inline-flex items-center justify-center  rounded-xl px-4 py-4 bg-primary text-white shadow-xl mt-2">
 							Continue
 						</Link>
 					)}
-					{expired && (
+					{expired && !successful && (
 						<>
 							<div className="w-full">
 								<ResendButton
