@@ -1,6 +1,6 @@
 'use server'
 
-import { ID, Query } from 'node-appwrite'
+import { ID, Query, type Models } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../server/appwrite'
 import { cookies } from 'next/headers'
 import {
@@ -602,9 +602,20 @@ export const transferFunds = async (
 	}
 }
 
-export const generateRecoveryCodes = async () => {
-  const { account } = await createAdminClient()
+export const generateRecoveryCodes = async (): Promise<
+  ActionResponse<Models.MfaRecoveryCodes>
+> => {
+  try {
+    const { account } = await createSessionClient()
 
-  const response = await account.createMFARecoveryCodes()
-	console.log(response.recoveryCodes)
+    const res = await account.createMFARecoveryCodes()
+
+    return {success: true, data: res}
+  } catch (error: any) {
+		const message =
+			error.type === 'user_recovery_codes_already_exists'
+				? 'The current user already generated recovery codes and they can only be read once for security reasons.'
+				: 'An Error Occurred while generating recovery codes:'
+		return { success: false, error: message }
+  }
 }
