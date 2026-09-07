@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -19,7 +20,11 @@ const TwoFactorDisableControl = ({ userId }: { userId: string }) => {
 
 	const handleConfirm = () => {
 		disableMFA(userId).then((result) => {
-			if (result.success) router.refresh()
+			if (result.success) {
+				router.refresh()
+			} else {
+				toast.error(result.error)
+			}
 		})
 	}
 
