@@ -210,8 +210,8 @@ export const signUp = async (
 				userId: newUserAccount.$id,
 				dwollaCustomerId,
 				dwollaCustomerUrl,
-        verifiedEmail: newUserAccount.emailVerification,
-        mfa: newUserAccount.mfa,
+				verifiedEmail: newUserAccount.emailVerification,
+				mfa: newUserAccount.mfa,
 			},
 		})
 
@@ -248,46 +248,52 @@ export const signUp = async (
 }
 
 export const verifyEmail = async (): Promise<ActionResponse<null>> => {
-  try {
-    const { account } = await createSessionClient()
-  
-    await account.createEmailVerification({
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/verify-email`
-    })
-  
-    return {success: true, data: null}
-  } catch (error: any) {
-    return handleError(error, 'Failed to verify email')
-  }
+	try {
+		const { account } = await createSessionClient()
+
+		await account.createEmailVerification({
+			url: siteUrl('/verify-email'),
+		})
+
+		return { success: true, data: null }
+	} catch (error: any) {
+		return handleError(error, 'Failed to verify email')
+	}
 }
 
-export const completeEmailVerification = async ({ userId, secret}: {userId: string, secret: string}) => {
-  try {
-    const { account } = await createSessionClient()
+export const completeEmailVerification = async ({
+	userId,
+	secret,
+}: {
+	userId: string
+	secret: string
+}) => {
+	try {
+		const { account } = await createSessionClient()
 
 		await account.updateEmailVerification({
 			userId: userId,
 			secret: secret,
-    })
+		})
 
-    const { table } = await createAdminClient()
+		const { table } = await createAdminClient()
 
-    const user = await getUserInfo({ userId })
+		const user = await getUserInfo({ userId })
 
-    await table.updateRow({
-      databaseId: DATABASE_ID!,
-      tableId: USER_COLLECTION_ID!,
-      rowId: user.$id,
-      data: {
-        verifiedEmail: true
-      }
-    })
+		await table.updateRow({
+			databaseId: DATABASE_ID!,
+			tableId: USER_COLLECTION_ID!,
+			rowId: user.$id,
+			data: {
+				verifiedEmail: true,
+			},
+		})
 
-    return {success: true, data: null}
-  } catch(error: any) {
-    console.error('An Error Occurred while Verifying Email: ', error)
+		return { success: true, data: null }
+	} catch (error: any) {
+		console.error('An Error Occurred while Verifying Email: ', error)
 		return { success: false, error: error }
-  }
+	}
 }
 
 export async function getLoggedInUser() {
@@ -603,19 +609,102 @@ export const transferFunds = async (
 }
 
 export const generateRecoveryCodes = async (): Promise<
-  ActionResponse<Models.MfaRecoveryCodes>
+	ActionResponse<Models.MfaRecoveryCodes>
 > => {
-  try {
-    const { account } = await createSessionClient()
+	try {
+		const { account } = await createSessionClient()
 
-    const res = await account.createMFARecoveryCodes()
+		const res = await account.createMFARecoveryCodes()
 
-    return {success: true, data: res}
-  } catch (error: any) {
-		const message =
-			error.type === 'user_recovery_codes_already_exists'
-				? 'The current user already generated recovery codes and they can only be read once for security reasons.'
-				: 'An Error Occurred while generating recovery codes:'
-		return { success: false, error: message }
-  }
+		return { success: true, data: res }
+	} catch (error: any) {
+		if (error.type === 'user_recovery_codes_already_exists') {
+			// Codes can only ever be *created* once — every later visit (a
+			// mid-setup refresh, or coming back after disabling 2FA to set it
+			// up again) has to regenerate instead, or this dead-ends forever.
+			try {
+				const { account } = await createSessionClient()
+				const res = await account.updateMFARecoveryCodes()
+
+				return { success: true, data: res }
+			} catch (regenerateError: any) {
+				console.error(
+					'An Error Occurred while regenerating recovery codes: ',
+					regenerateError,
+				)
+				return { success: false, error: 'Failed to generate recovery codes' }
+			}
+		}
+
+		console.error('An Error Occurred while generating recovery codes: ', error)
+		return { success: false, error: 'Failed to generate recovery codes' }
+	}
+}
+
+export const enableMFA = async (
+	userId: string,
+): Promise<ActionResponse<null>> => {
+	try {
+		const { account } = await createSessionClient()
+
+		await account.updateMFA({ mfa: true })
+		const updated = await account.get()
+
+		if (updated.mfa) {
+			const { table } = await createAdminClient()
+
+			const user = await getUserInfo({ userId })
+
+			await table.updateRow({
+				databaseId: DATABASE_ID!,
+				tableId: USER_COLLECTION_ID!,
+				rowId: user.$id,
+				data: {
+					mfa: true,
+				},
+			})
+		}
+
+		return { success: true, data: null }
+	} catch (error: any) {
+		console.error('An Error Occurred while Enabling MFA: ', error)
+		return {
+			success: false,
+			error: 'Failed to enable multi-factor authentication',
+		}
+	}
+}
+
+export const disableMFA = async (
+	userId: string,
+): Promise<ActionResponse<null>> => {
+	try {
+		const { account } = await createSessionClient()
+
+		await account.updateMFA({ mfa: false })
+		const updated = await account.get()
+
+		if (!updated.mfa) {
+			const { table } = await createAdminClient()
+
+			const user = await getUserInfo({ userId })
+
+			await table.updateRow({
+				databaseId: DATABASE_ID!,
+				tableId: USER_COLLECTION_ID!,
+				rowId: user.$id,
+				data: {
+					mfa: false,
+				},
+			})
+		}
+
+		return { success: true, data: null }
+	} catch (error: any) {
+		console.error('An Error Occurred while Disabling MFA: ', error)
+		return {
+			success: false,
+			error: 'Failed to disable multi-factor authentication',
+		}
+	}
 }

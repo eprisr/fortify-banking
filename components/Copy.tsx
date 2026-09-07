@@ -5,28 +5,25 @@ import { Button } from './ui/button'
 const Copy = ({ text, classNames }: { text: string; classNames?: string }) => {
 	const [hasCopied, setHasCopied] = useState(false)
 
-	const copyToClipboard = () => {
+	const copyToClipboard = async () => {
 		if (navigator.clipboard) {
-			navigator.clipboard
-				.writeText(text)
-				.then((res) => {
-					return { success: true }
-				})
-				.catch((err) => console.error('Failed to copy text:', err))
-
+			try {
+				await navigator.clipboard.writeText(text)
+			} catch (err) {
+				console.error('Failed to copy text:', err)
+				return
+			}
+		} else {
 			const textarea = document.createElement('textarea')
 			textarea.value = text
 			textarea.style.cssText = 'position: absolute; left: -9999px;'
 			document.body.appendChild(textarea)
 			textarea.select()
-
-			const success = document.execCommand('copy')
+			document.execCommand('copy')
 			document.body.removeChild(textarea)
-
-			setHasCopied(true)
-			return { success }
 		}
 
+		setHasCopied(true)
 		setTimeout(() => {
 			setHasCopied(false)
 		}, 2000)
