@@ -312,7 +312,21 @@ export const nameField = (label: string, maxLength = 50) =>
 		})
 
 export const freeTextField = (maxLength: number) =>
-	z.string().trim().max(maxLength).transform(stripControlChars)
+  z.string().trim().max(maxLength).transform(stripControlChars)
+
+export const obscureEmail = (email: string) => {
+  const atIndex = email.indexOf('@')
+  if (atIndex <= 0) return email // no local part to obscure
+
+  const local = email.slice(0, atIndex)
+  const domain = email.slice(atIndex)
+
+  // Too short to show a distinct first + middle + last char — mask it whole
+  // rather than reveal the entire local part.
+  if (local.length <= 2) return '•••••' + domain
+
+  return local[0] + '•••••' + local[local.length - 1] + domain
+}
 
 /********************************
  ************ SCHEMA ************

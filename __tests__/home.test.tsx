@@ -12,7 +12,7 @@
  * passed to RTL's render(), which is the correct pattern for testing RSCs
  * in a Jest environment.
  *
- * Previously, `accountsData[0].id` was read without a guard (app/(root)/page.tsx)
+ * Previously, `accountsData[0].id` was read without a guard (app/(root)/(with-nav)/page.tsx)
  * to detect demo accounts, which threw whenever accountsData was empty or
  * `accounts` was the 'UPDATE_MODE' sentinel string — most commonly hit when a
  * linked bank's Plaid item enters ITEM_LOGIN_REQUIRED and getAccounts filters
@@ -25,7 +25,7 @@
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { redirect } from 'next/navigation'
-import Home from '@/app/(root)/page'
+import Home from '@/app/(root)/(with-nav)/page'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
 import { getAccounts, getAccount } from '@/lib/actions/bank.actions'
 

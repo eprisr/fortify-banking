@@ -19,7 +19,7 @@ import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import { useRouter } from 'next/navigation'
 import PaymentTransferForm from '@/components/PaymentTransferForm'
-import TransferPage from '@/app/(root)/payment-transfer/page'
+import TransferPage from '@/app/(root)/(with-nav)/payment-transfer/page'
 import { getLoggedInUser, transferFunds } from '@/lib/actions/user.actions'
 import { getAccounts } from '@/lib/actions/bank.actions'
 

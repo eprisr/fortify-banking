@@ -1,7 +1,7 @@
 /**
  * OAuth (Plaid Link resume) Page Tests
  *
- * Covers: app/(root)/oauth/page.tsx — the page Plaid redirects back to
+ * Covers: app/(root)/(with-nav)/oauth/page.tsx — the page Plaid redirects back to
  * mid-flow for an OAuth-based institution. It resumes the Link session
  * started by PlaidLink.tsx (same link_token, carried via sessionStorage)
  * using the redirect URI's oauth_state_id, then auto-reopens Link. No
@@ -17,7 +17,7 @@ import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import { useRouter } from 'next/navigation'
 import { usePlaidLink } from 'react-plaid-link'
-import OAuthLink from '@/app/(root)/oauth/page'
+import OAuthLink from '@/app/(root)/(with-nav)/oauth/page'
 import {
 	exchangePublicToken,
 	getLoggedInUser,

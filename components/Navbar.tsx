@@ -14,7 +14,7 @@ import {
 import { BiBell, BiChevronLeft } from 'react-icons/bi'
 import { navLinks } from '@/constants'
 import Footer from './Footer'
-import HeaderBox from './HeaderBox'
+import HeaderBox from './shared/HeaderBox'
 import PlaidLink from './PlaidLink'
 import { cn } from '@/lib/utils'
 import { useMobileContainer } from './mobile-container'
@@ -56,7 +56,7 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 	return (
 		<section>
 			{type === 'main' && user ? (
-				<nav className="flex w-full items-center gap-4 py-4">
+				<nav className="flex w-full items-center gap-4 font-sans py-4">
 					<Sheet modal={false}>
 						<SheetTrigger>
 							<div className="profile">
@@ -71,7 +71,7 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 						<SheetContent
 							side="left"
 							container={container}
-							className="flex flex-col p-6 w-4/5!">
+							className="flex flex-col p-6 w-4/5! font-sans bg-paper">
 							<SheetHeader className="px-0 mb-4">
 								<SheetTitle className="sr-only">
 									Welcome, {user?.firstName}
@@ -81,8 +81,9 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 								</SheetDescription>
 								<div className="profile">
 									<div className="profile-img">
-										<span className="text-xl font-bold text-primary">
+										<span className="text-base font-bold text-white">
 											{user?.firstName[0]}
+											{user?.lastName[0]}
 										</span>
 									</div>
 									<div className="profile-details">
@@ -99,7 +100,7 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 							{Object.entries(links).map(([key, value], i) => {
 								return (
 									<Fragment key={i}>
-										<h3 className="text-xxs text-gray-400">
+										<h3 className="text-xxs text-ink/70 font-semibold">
 											{key.toUpperCase()}
 										</h3>
 										{value?.map((item) => {
@@ -109,22 +110,20 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 													<Link
 														href={route}
 														key={label}
-														className="flex items-center justify-between my-2">
-														<div className="flex items-center gap-2">
-															<Icon size={12} />
+														className="flex items-center justify-between my-3">
+														<div className="flex items-center gap-3 text-sm font-semibold">
+															<Icon size={16} />
 															<div>
 																<p>{label}</p>
-																<p className="text-xxs text-gray-400">
-																	{subText}
-																</p>
+																<p className="text-xs text-ink/70 font-normal mt-1">{subText}</p>
 															</div>
 														</div>
-														<ChevronRight size={16} color="#e0e0e0" />
+														<ChevronRight size={14} className="text-ink/20" />
 													</Link>
 												</SheetClose>
 											)
 										})}
-										<div className="border-b border-gray-200 mb-4" />
+										<div className="border-b border-ink/10 mb-4" />
 									</Fragment>
 								)
 							})}

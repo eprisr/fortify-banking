@@ -1,10 +1,11 @@
 import { connection } from 'next/server'
 import AuthForm from '@/components/AuthForm'
-import ResendRecoveryButton from '@/components/ResendRecoveryButton'
+import ResendButton from '@/components/ResendButton'
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 import { Check, Clock } from 'lucide-react'
+import { resendRecoveryLink } from '@/lib/actions/user.actions'
 
 const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 	await connection()
@@ -25,7 +26,8 @@ const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 
 	return (
 		<section className="flex flex-col justify-center w-full h-[calc(100vh-72px)] bg-white">
-			{(expired || successful) && (
+      {(expired || successful) && (
+        // TODO: Turn into a component!!! Shared w/ verify email
 				<div className="flex-center flex-col gap-5 text-center">
 					<div
 						className={`flex items-center justify-center h-13 w-13 rounded-full ${successful ? 'bg-semantic-success/10' : 'bg-semantic-danger/10'}`}>
@@ -49,7 +51,11 @@ const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 					</p>
 					{expired && !successful && (
 						<div className="w-full mt-5">
-							<ResendRecoveryButton userId={userIdString} />
+							<ResendButton
+								onResend={resendRecoveryLink.bind(null, { userId: userIdString! })}
+								sentLabel="New link sent — check your email."
+								disabled={!userIdString}
+							/>
 						</div>
 					)}
 					<Link

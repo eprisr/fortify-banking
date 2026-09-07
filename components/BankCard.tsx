@@ -32,7 +32,7 @@ const BankCard = ({
 				{stackNumber === 1 && (
 					<div className="bank-card_content">
 						<div>
-							<h1 className="text-md font-semibold">{userName}</h1>
+							<h1 className="text-base font-semibold">{userName}</h1>
 							<p className="text-xxs text-paper/70 font-light">
 								{account?.name || ''}
 							</p>
@@ -78,7 +78,7 @@ const BankCard = ({
 				)}
 			</Link>
 
-			{showBalance && <Copy title={account?.shareableId} />}
+			{showBalance && <Copy text={account?.shareableId} />}
 		</div>
 	)
 }

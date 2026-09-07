@@ -1,15 +1,29 @@
 'use client'
 import { useState } from 'react'
-
 import { Button } from './ui/button'
 
-const Copy = ({ title }: { title: string }) => {
+const Copy = ({ text, classNames }: { text: string; classNames?: string }) => {
 	const [hasCopied, setHasCopied] = useState(false)
 
-	const copyToClipboard = () => {
-		navigator.clipboard.writeText(title)
-		setHasCopied(true)
+	const copyToClipboard = async () => {
+		if (navigator.clipboard) {
+			try {
+				await navigator.clipboard.writeText(text)
+			} catch (err) {
+				console.error('Failed to copy text:', err)
+				return
+			}
+		} else {
+			const textarea = document.createElement('textarea')
+			textarea.value = text
+			textarea.style.cssText = 'position: absolute; left: -9999px;'
+			document.body.appendChild(textarea)
+			textarea.select()
+			document.execCommand('copy')
+			document.body.removeChild(textarea)
+		}
 
+		setHasCopied(true)
 		setTimeout(() => {
 			setHasCopied(false)
 		}, 2000)
@@ -18,11 +32,11 @@ const Copy = ({ title }: { title: string }) => {
 	return (
 		<Button
 			data-state="closed"
-			className="mt-3 flex max-w-[320px] gap-4"
+			className={`mt-3 flex max-w-[320px] gap-4 ${classNames}`}
 			variant="secondary"
 			onClick={copyToClipboard}>
-			<p className="line-clamp-1 w-full max-w-full text-xs font-medium text-neutral-800">
-				{title}
+			<p className="line-clamp-1 max-w-full text-xs font-medium text-neutral-800">
+				Copy all
 			</p>
 
 			{!hasCopied ? (
@@ -48,9 +62,9 @@ const Copy = ({ title }: { title: string }) => {
 					viewBox="0 0 24 24"
 					fill="none"
 					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
+					strokeWidth="2"
+					strokeLinecap="round"
+					strokeLinejoin="round"
 					className="mr-2 size-4">
 					<polyline points="20 6 9 17 4 12"></polyline>
 				</svg>

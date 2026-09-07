@@ -9,6 +9,28 @@ declare type ActionResponse<T> =
 	| { success: true; data: T; error?: never }
 	| { success: false; data?: never; error: string }
 
+declare type SettingKey = 'faceId' | 'twoFactor'
+
+declare type SettingItemBase = {
+	Icon: import('lucide-react').LucideIcon
+	route: string
+	category: string
+	label: string
+	subText: string
+}
+
+// `deps` names the field on `User` this row's state is read from — omit it
+// on rows with nothing to reflect (a plain link, or a toggle with no
+// backing state yet, e.g. Face ID before it's wired up).
+//
+// `key` on a status row opts it into special click behavior beyond "navigate
+// to `route`" (e.g. two-factor, which confirms + disables in place instead
+// of navigating once it's already on) — a status row without one just links.
+declare type SettingItem =
+	| (SettingItemBase & { kind: 'link' })
+	| (SettingItemBase & { kind: 'status'; deps: string; key?: SettingKey })
+	| (SettingItemBase & { kind: 'toggle'; key: SettingKey; deps?: string })
+
 // ========================================
 
 declare type SignUpParams = {
@@ -162,7 +184,7 @@ declare interface HeaderBoxProps {
 	type?: 'title' | 'greeting'
 	title: string
 	subtext: string
-	user?: string
+  user?: string
 }
 
 declare interface MobileNavProps {

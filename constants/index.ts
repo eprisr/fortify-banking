@@ -1,14 +1,18 @@
 import {
 	Bell,
+	CircleCheck,
 	CircleQuestionMark,
 	CreditCard,
+	Landmark,
+	Eye,
+	Lock,
 	MessageSquare,
-	Moon,
-	Shield,
+	Settings,
 	UserRound,
+	Shield,
 } from 'lucide-react'
 import {
-	BiCog,
+	BiCreditCard,
 	BiDotsHorizontalRounded,
 	BiEnvelope,
 	BiMoneyWithdraw,
@@ -28,7 +32,7 @@ export const navLinks = [
 	},
 	{
 		Icon: Shield,
-		route: '/',
+		route: '/settings',
 		category: 'account',
 		label: 'Security & Privacy',
 		subText: 'Face ID ⋅ Pin ⋅ Data',
@@ -37,23 +41,23 @@ export const navLinks = [
 		Icon: UserRound,
 		route: '/',
 		category: 'account',
-		label: 'Edit Profile',
+		label: 'My Information',
 		subText: 'Name ⋅ Email ⋅ Phone',
 	},
-	{
-		Icon: Bell,
-		route: '/',
-		category: 'preferences',
-		label: 'Notifcations',
-		subText: '',
-	},
-	{
-		Icon: Moon,
-		route: '/',
-		category: 'preferences',
-		label: 'Dark Mode',
-		subText: '',
-	},
+	// {
+	// 	Icon: Bell,
+	// 	route: '/',
+	// 	category: 'preferences',
+	// 	label: 'Notifcations',
+	// 	subText: '',
+	// },
+	// {
+	// 	Icon: Moon,
+	// 	route: '/',
+	// 	category: 'preferences',
+	// 	label: 'Dark Mode',
+	// 	subText: '',
+	// },
 	{
 		Icon: CircleQuestionMark,
 		route: '/',
@@ -66,6 +70,13 @@ export const navLinks = [
 		route: '/',
 		category: 'support',
 		label: 'Send Feedback',
+		subText: '',
+	},
+	{
+		Icon: Landmark,
+		route: '/',
+		category: 'Other',
+		label: 'ATMs',
 		subText: '',
 	},
 ]
@@ -116,9 +127,48 @@ export const mobileLinks = [
 		label: 'Inbox',
 	},
 	{
-		Icon: BiCog,
+		Icon: BiCreditCard,
 		route: '#',
-		label: 'Settings',
+		label: 'Accounts',
+	},
+]
+
+export const settings: SettingItem[] = [
+	{
+		Icon: CircleCheck,
+		route: '/',
+		category: 'sign-in',
+		label: 'Face ID',
+		subText: 'Use Face ID to sign in instead of your password',
+		kind: 'toggle',
+		key: 'faceId',
+		// No `deps` yet — Face ID isn't wired to real state.
+	},
+	{
+		Icon: Lock,
+		route: '/',
+		category: 'sign-in',
+		label: 'App pin',
+		subText: 'Not set',
+		kind: 'link',
+	},
+	{
+		Icon: Shield,
+		route: '/recovery-codes',
+		category: 'account protection',
+		label: 'Two-factor authentication',
+		subText: 'Required for transfers and other sensitive actions',
+		kind: 'status',
+		key: 'twoFactor',
+		deps: 'mfa',
+	},
+	{
+		Icon: Eye,
+		route: '/',
+		category: 'privacy',
+		label: 'Data & Permissions',
+		subText: 'Manage what Fortify can access',
+		kind: 'link',
 	},
 ]
 

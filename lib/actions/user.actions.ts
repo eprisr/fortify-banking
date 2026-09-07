@@ -1,6 +1,6 @@
 'use server'
 
-import { ID, Query } from 'node-appwrite'
+import { ID, Query, type Models } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../server/appwrite'
 import { cookies } from 'next/headers'
 import {
@@ -210,6 +210,8 @@ export const signUp = async (
 				userId: newUserAccount.$id,
 				dwollaCustomerId,
 				dwollaCustomerUrl,
+				verifiedEmail: newUserAccount.emailVerification,
+				mfa: newUserAccount.mfa,
 			},
 		})
 
@@ -242,6 +244,55 @@ export const signUp = async (
 		}
 
 		return handleError(error, 'An error occurred during sign up')
+	}
+}
+
+export const verifyEmail = async (): Promise<ActionResponse<null>> => {
+	try {
+		const { account } = await createSessionClient()
+
+		await account.createEmailVerification({
+			url: siteUrl('/verify-email'),
+		})
+
+		return { success: true, data: null }
+	} catch (error: any) {
+		return handleError(error, 'Failed to verify email')
+	}
+}
+
+export const completeEmailVerification = async ({
+	userId,
+	secret,
+}: {
+	userId: string
+	secret: string
+}) => {
+	try {
+		const { account } = await createSessionClient()
+
+		await account.updateEmailVerification({
+			userId: userId,
+			secret: secret,
+		})
+
+		const { table } = await createAdminClient()
+
+		const user = await getUserInfo({ userId })
+
+		await table.updateRow({
+			databaseId: DATABASE_ID!,
+			tableId: USER_COLLECTION_ID!,
+			rowId: user.$id,
+			data: {
+				verifiedEmail: true,
+			},
+		})
+
+		return { success: true, data: null }
+	} catch (error: any) {
+		console.error('An Error Occurred while Verifying Email: ', error)
+		return { success: false, error: error }
 	}
 }
 
@@ -553,6 +604,107 @@ export const transferFunds = async (
 		return {
 			success: false,
 			error: error?.message || 'Failed to complete transfer',
+		}
+	}
+}
+
+export const generateRecoveryCodes = async (): Promise<
+	ActionResponse<Models.MfaRecoveryCodes>
+> => {
+	try {
+		const { account } = await createSessionClient()
+
+		const res = await account.createMFARecoveryCodes()
+
+		return { success: true, data: res }
+	} catch (error: any) {
+		if (error.type === 'user_recovery_codes_already_exists') {
+			// Codes can only ever be *created* once — every later visit (a
+			// mid-setup refresh, or coming back after disabling 2FA to set it
+			// up again) has to regenerate instead, or this dead-ends forever.
+			try {
+				const { account } = await createSessionClient()
+				const res = await account.updateMFARecoveryCodes()
+
+				return { success: true, data: res }
+			} catch (regenerateError: any) {
+				console.error(
+					'An Error Occurred while regenerating recovery codes: ',
+					regenerateError,
+				)
+				return { success: false, error: 'Failed to generate recovery codes' }
+			}
+		}
+
+		console.error('An Error Occurred while generating recovery codes: ', error)
+		return { success: false, error: 'Failed to generate recovery codes' }
+	}
+}
+
+export const enableMFA = async (
+	userId: string,
+): Promise<ActionResponse<null>> => {
+	try {
+		const { account } = await createSessionClient()
+
+		await account.updateMFA({ mfa: true })
+		const updated = await account.get()
+
+		if (updated.mfa) {
+			const { table } = await createAdminClient()
+
+			const user = await getUserInfo({ userId })
+
+			await table.updateRow({
+				databaseId: DATABASE_ID!,
+				tableId: USER_COLLECTION_ID!,
+				rowId: user.$id,
+				data: {
+					mfa: true,
+				},
+			})
+		}
+
+		return { success: true, data: null }
+	} catch (error: any) {
+		console.error('An Error Occurred while Enabling MFA: ', error)
+		return {
+			success: false,
+			error: 'Failed to enable multi-factor authentication',
+		}
+	}
+}
+
+export const disableMFA = async (
+	userId: string,
+): Promise<ActionResponse<null>> => {
+	try {
+		const { account } = await createSessionClient()
+
+		await account.updateMFA({ mfa: false })
+		const updated = await account.get()
+
+		if (!updated.mfa) {
+			const { table } = await createAdminClient()
+
+			const user = await getUserInfo({ userId })
+
+			await table.updateRow({
+				databaseId: DATABASE_ID!,
+				tableId: USER_COLLECTION_ID!,
+				rowId: user.$id,
+				data: {
+					mfa: false,
+				},
+			})
+		}
+
+		return { success: true, data: null }
+	} catch (error: any) {
+		console.error('An Error Occurred while Disabling MFA: ', error)
+		return {
+			success: false,
+			error: 'Failed to disable multi-factor authentication',
 		}
 	}
 }
