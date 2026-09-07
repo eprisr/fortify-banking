@@ -9,7 +9,7 @@ import {
 	MessageSquare,
 	Settings,
 	UserRound,
-  Shield,
+	Shield,
 } from 'lucide-react'
 import {
 	BiCreditCard,
@@ -23,27 +23,27 @@ import {
 } from 'react-icons/bi'
 
 export const navLinks = [
-  {
-    Icon: CreditCard,
+	{
+		Icon: CreditCard,
 		route: '/',
 		category: 'account',
 		label: 'Linked Accounts',
 		subText: '',
 	},
 	{
-    Icon: Shield,
+		Icon: Shield,
 		route: '/settings',
 		category: 'account',
 		label: 'Security & Privacy',
-    subText: 'Face ID ⋅ Pin ⋅ Data',
+		subText: 'Face ID ⋅ Pin ⋅ Data',
 	},
-  {
-    Icon: UserRound,
-    route: '/',
-    category: 'account',
-    label: 'My Information',
-    subText: 'Name ⋅ Email ⋅ Phone',
-  },
+	{
+		Icon: UserRound,
+		route: '/',
+		category: 'account',
+		label: 'My Information',
+		subText: 'Name ⋅ Email ⋅ Phone',
+	},
 	// {
 	// 	Icon: Bell,
 	// 	route: '/',
@@ -133,15 +133,16 @@ export const mobileLinks = [
 	},
 ]
 
-export const settings = [
+export const settings: SettingItem[] = [
 	{
 		Icon: CircleCheck,
 		route: '/',
 		category: 'sign-in',
 		label: 'Face ID',
 		subText: 'Use Face ID to sign in instead of your password',
-		toggle: true,
-    bool: false,
+		kind: 'toggle',
+		key: 'faceId',
+		// No `deps` yet — Face ID isn't wired to real state.
 	},
 	{
 		Icon: Lock,
@@ -149,8 +150,7 @@ export const settings = [
 		category: 'sign-in',
 		label: 'App pin',
 		subText: 'Not set',
-    toggle: false,
-    bool: false,
+		kind: 'link',
 	},
 	{
 		Icon: Shield,
@@ -158,8 +158,9 @@ export const settings = [
 		category: 'account protection',
 		label: 'Two-factor authentication',
 		subText: 'Required for transfers and other sensitive actions',
-		toggle: false,
-    bool: true,
+		kind: 'status',
+		key: 'twoFactor',
+		deps: 'mfa',
 	},
 	{
 		Icon: Eye,
@@ -167,8 +168,7 @@ export const settings = [
 		category: 'privacy',
 		label: 'Data & Permissions',
 		subText: 'Manage what Fortify can access',
-		toggle: false,
-    bool: false,
+		kind: 'link',
 	},
 ]
 
