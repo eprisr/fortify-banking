@@ -12,7 +12,6 @@ import VerifyEmail from '@/components/auth/VerifyEmail'
 import {
 	completeEmailVerification,
 	getLoggedInUser,
-	getUserInfo,
 	verifyEmail,
 } from '@/lib/actions/user.actions'
 
@@ -24,7 +23,6 @@ jest.mock('next/server', () => ({
 jest.mock('@/lib/actions/user.actions', () => ({
 	getLoggedInUser: jest.fn(),
 	completeEmailVerification: jest.fn(),
-	getUserInfo: jest.fn(),
 	verifyEmail: jest.fn().mockResolvedValue({ success: true, data: null }),
 }))
 
@@ -106,7 +104,6 @@ describe('/verify-email page', () => {
 			success: false,
 			error: 'This link is invalid or has expired',
 		})
-		;(getUserInfo as jest.Mock).mockResolvedValue({ verifiedEmail: false })
 
 		const { container } = await renderVerificationPage({
 			userId: 'user-123',

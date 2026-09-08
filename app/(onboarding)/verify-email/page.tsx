@@ -2,7 +2,6 @@ import { connection } from 'next/server'
 import {
 	completeEmailVerification,
 	getLoggedInUser,
-	getUserInfo,
 	verifyEmail,
 } from '@/lib/actions/user.actions'
 import { Check, Clock, XCircle } from 'lucide-react'
@@ -65,10 +64,9 @@ const Verification = async ({ searchParams }: SearchParamProps) => {
 		if (!successful) {
 			// Someone else may have already completed this exact link (e.g. an
 			// email client's link-scanning bot beating the real click) —
-			// Appwrite secrets are single-use, so the loser's call fails even
-			// though the link itself was good. Re-check the DB before
-			// treating this as a real failure.
-			const refreshed = await getUserInfo({ userId: userIdString })
+			// re-check the live Appwrite state before treating this as a real
+			// failure.
+			const refreshed = await getLoggedInUser()
 			successful = !!refreshed?.verifiedEmail
 		}
 	}
