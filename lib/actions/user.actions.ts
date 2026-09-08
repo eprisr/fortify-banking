@@ -267,7 +267,7 @@ export const completeEmailVerification = async ({
 }: {
 	userId: string
 	secret: string
-}) => {
+}): Promise<ActionResponse<null>> => {
 	try {
 		const { account } = await createSessionClient()
 
@@ -291,8 +291,7 @@ export const completeEmailVerification = async ({
 
 		return { success: true, data: null }
 	} catch (error: any) {
-		console.error('An Error Occurred while Verifying Email: ', error)
-		return { success: false, error: error }
+		return handleError(error, 'Failed to verify your email')
 	}
 }
 
@@ -308,7 +307,7 @@ export async function getLoggedInUser() {
 
 		const user = await getUserInfo({ userId: res.$id })
 
-		return parseStringify(user)
+		return parseStringify({ ...user, mfa: res.mfa })
 	} catch (error) {
 		return null
 	}
@@ -648,21 +647,31 @@ export const enableMFA = async (
 		const { account } = await createSessionClient()
 
 		await account.updateMFA({ mfa: true })
-		const updated = await account.get()
 
-		if (updated.mfa) {
-			const { table } = await createAdminClient()
+		// The real, security-relevant state change already happened above —
+		// don't let a failure mirroring it into our own DB turn this into a
+		// reported failure to the caller. Just log it so it isn't invisible.
+		try {
+			const updated = await account.get()
 
-			const user = await getUserInfo({ userId })
+			if (updated.mfa) {
+				const { table } = await createAdminClient()
+				const user = await getUserInfo({ userId })
 
-			await table.updateRow({
-				databaseId: DATABASE_ID!,
-				tableId: USER_COLLECTION_ID!,
-				rowId: user.$id,
-				data: {
-					mfa: true,
-				},
-			})
+				await table.updateRow({
+					databaseId: DATABASE_ID!,
+					tableId: USER_COLLECTION_ID!,
+					rowId: user.$id,
+					data: {
+						mfa: true,
+					},
+				})
+			}
+		} catch (mirrorError) {
+			console.error(
+				'MFA was enabled on the account but mirroring it to the user row failed: ',
+				mirrorError,
+			)
 		}
 
 		return { success: true, data: null }
@@ -682,21 +691,31 @@ export const disableMFA = async (
 		const { account } = await createSessionClient()
 
 		await account.updateMFA({ mfa: false })
-		const updated = await account.get()
 
-		if (!updated.mfa) {
-			const { table } = await createAdminClient()
+		// Same reasoning as enableMFA: the real state change already
+		// happened — a failure mirroring it shouldn't be reported as a
+		// failure to disable MFA. Just log it so it isn't invisible.
+		try {
+			const updated = await account.get()
 
-			const user = await getUserInfo({ userId })
+			if (!updated.mfa) {
+				const { table } = await createAdminClient()
+				const user = await getUserInfo({ userId })
 
-			await table.updateRow({
-				databaseId: DATABASE_ID!,
-				tableId: USER_COLLECTION_ID!,
-				rowId: user.$id,
-				data: {
-					mfa: false,
-				},
-			})
+				await table.updateRow({
+					databaseId: DATABASE_ID!,
+					tableId: USER_COLLECTION_ID!,
+					rowId: user.$id,
+					data: {
+						mfa: false,
+					},
+				})
+			}
+		} catch (mirrorError) {
+			console.error(
+				'MFA was disabled on the account but mirroring it to the user row failed: ',
+				mirrorError,
+			)
 		}
 
 		return { success: true, data: null }

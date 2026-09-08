@@ -121,6 +121,7 @@ describe('/verify-email page', () => {
 describe('VerifyEmail', () => {
 	beforeEach(() => {
 		jest.clearAllMocks()
+		window.sessionStorage.clear()
 	})
 
 	// Code review finding: the mount-guard only stops a second call within
