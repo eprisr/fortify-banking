@@ -33,6 +33,7 @@ import Marquee from '@/components/Marquee'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import StatusBadge from '@/components/StatusBadge'
+import { enterDemoMode } from '@/lib/actions/user.actions'
 
 const navLinks = [
 	{ href: '#features', label: 'Features' },
@@ -94,7 +95,7 @@ const Landing = () => {
 							Sign in
 						</Button>
 						<Button
-							onClick={() => router.push('/demo')}
+							onClick={() => enterDemoMode()}
 							variant="default"
 							className="text-sm font-semibold px-4 py-3">
 							Explore as Guest
@@ -133,7 +134,7 @@ const Landing = () => {
 								</SheetClose>
 								<SheetClose asChild>
 									<Button
-										onClick={() => router.push('/demo')}
+										onClick={() => enterDemoMode()}
 										variant="default"
 										className="w-full">
 										Explore as Guest
@@ -158,7 +159,7 @@ const Landing = () => {
 						</p>
 						<div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
 							<Button
-								onClick={() => router.push('/demo')}
+								onClick={() => enterDemoMode()}
 								variant="default"
 								size="lg"
 								className="font-semibold px-7">
