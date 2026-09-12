@@ -8,6 +8,7 @@ import {
 	resetPwSchema,
 	signupSchema,
 	waitlistSchema,
+	hardNavigate,
 } from '@/lib/utils'
 import { forgotPw, resetPw, signIn } from '@/lib/actions/user.actions'
 
@@ -123,16 +124,21 @@ export type SubmitContext = {
 	pathname: string
 	createQueryString: (name: string, value: string) => string
 	resetParams?: ResetParams
+	onMfaRequired?: (challengeId: string) => void
 }
 
 export const SUBMIT_HANDLERS: Record<
 	AuthFormType,
 	(data: AuthFormValues, ctx: SubmitContext) => Promise<void>
 > = {
-	signin: async (data, { router }) => {
+	signin: async (data, { onMfaRequired }) => {
 		const res = await signIn({ email: data.email, password: data.password })
 		if (!res.success) throw new Error(res.error)
-		router.push('/')
+		if (res.mfaRequired) {
+			onMfaRequired?.(res.challengeId)
+			return
+		}
+		hardNavigate('/')
 	},
 	'forgot-pw': async (data, { router }) => {
 		const res = await forgotPw({ email: data.email })

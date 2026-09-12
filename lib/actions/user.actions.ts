@@ -86,7 +86,6 @@ export const signIn = async ({
 		try {
 			await sessionAccount.get()
 		} catch (mfaError: any) {
-			console.log('in signin user action catch')
 			if (mfaError.type !== 'user_more_factors_required') throw mfaError
 
 			const challenge = await sessionAccount.createMFAChallenge({
@@ -119,6 +118,14 @@ export const completeMfaChallenge = async ({
 		const session = await account.updateMFAChallenge({
 			challengeId,
 			otp: code,
+		})
+
+		const cookieStore = await cookies()
+		cookieStore.set('appwrite-session', session.secret, {
+			path: '/',
+			httpOnly: true,
+			sameSite: 'strict',
+			secure: true,
 		})
 
 		const user = await getUserInfo({ userId: session.userId })
@@ -358,9 +365,22 @@ export async function getLoggedInUser() {
 
 		return parseStringify({
 			...user,
+			verifiedEmail: res.emailVerification,
+			mfa: res.mfa,
 		})
 	} catch (error) {
+		console.error('getLoggedInUser failed: ', error)
 		return null
+	}
+}
+
+export async function hasRealSession() {
+	try {
+		const { account } = await createSessionClient()
+		await account.get()
+		return true
+	} catch {
+		return false
 	}
 }
 

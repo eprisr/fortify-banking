@@ -11,6 +11,10 @@ export function cn(...inputs: ClassValue[]) {
 export const siteUrl = (path: string) =>
 	`${(process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/+$/, '')}${path}`
 
+export const hardNavigate = (path: string) => {
+	window.location.href = path
+}
+
 const APPWRITE_ERROR_MESSAGES: Record<string, string> = {
 	user_invalid_credentials: 'Incorrect email or password',
 	user_password_mismatch: 'Passwords do not match',
@@ -312,20 +316,20 @@ export const nameField = (label: string, maxLength = 50) =>
 		})
 
 export const freeTextField = (maxLength: number) =>
-  z.string().trim().max(maxLength).transform(stripControlChars)
+	z.string().trim().max(maxLength).transform(stripControlChars)
 
 export const obscureEmail = (email: string) => {
-  const atIndex = email.indexOf('@')
-  if (atIndex <= 0) return email // no local part to obscure
+	const atIndex = email.indexOf('@')
+	if (atIndex <= 0) return email // no local part to obscure
 
-  const local = email.slice(0, atIndex)
-  const domain = email.slice(atIndex)
+	const local = email.slice(0, atIndex)
+	const domain = email.slice(atIndex)
 
-  // Too short to show a distinct first + middle + last char — mask it whole
-  // rather than reveal the entire local part.
-  if (local.length <= 2) return '•••••' + domain
+	// Too short to show a distinct first + middle + last char — mask it whole
+	// rather than reveal the entire local part.
+	if (local.length <= 2) return '•••••' + domain
 
-  return local[0] + '•••••' + local[local.length - 1] + domain
+	return local[0] + '•••••' + local[local.length - 1] + domain
 }
 
 /********************************
@@ -374,6 +378,11 @@ export const signinSchema = z.object({
 	email: emailField,
 	password: z.string().min(1, { error: 'Password is Required' }),
 })
+
+export const mfaChallengeSchema = (length: number) =>
+	z.object({
+		code: z.string().length(length, { error: `Enter all ${length} characters` }),
+	})
 
 export const forgotPwSchema = z.object({
 	email: emailField,
