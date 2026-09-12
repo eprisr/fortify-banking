@@ -19,8 +19,10 @@ jest.mock('next/headers', () => ({
 jest.unmock('@/lib/actions/user.actions')
 
 import { AuthenticationFactor } from 'node-appwrite'
+import { cookies } from 'next/headers'
 import {
 	completeMfaChallenge,
+	hasRealSession,
 	requestMfaChallenge,
 	signIn,
 } from '@/lib/actions/user.actions'
@@ -182,7 +184,10 @@ describe('completeMfaChallenge', () => {
 	it('finishes authenticating on a valid recovery code', async () => {
 		mockCreateSessionClient.mockResolvedValue({
 			account: {
-				updateMFAChallenge: jest.fn().mockResolvedValue({ userId: 'user-123' }),
+				updateMFAChallenge: jest.fn().mockResolvedValue({
+					userId: 'user-123',
+					secret: 'upgraded-session-secret',
+				}),
 			},
 		})
 		mockCreateAdminClient.mockResolvedValue({
@@ -197,6 +202,13 @@ describe('completeMfaChallenge', () => {
 			challengeId: 'challenge-1',
 			code: 'aaaa1111',
 		})
+
+		const { set } = await cookies()
+		expect(set).toHaveBeenCalledWith(
+			'appwrite-session',
+			'upgraded-session-secret',
+			expect.objectContaining({ httpOnly: true, secure: true }),
+		)
 
 		expect(result).toEqual({
 			success: true,
@@ -262,5 +274,33 @@ describe('requestMfaChallenge', () => {
 		expect(createMFAChallenge).toHaveBeenCalledWith({
 			factor: AuthenticationFactor.Email,
 		})
+	})
+})
+
+describe('hasRealSession', () => {
+	it('returns true when account.get() succeeds', async () => {
+		mockCreateSessionClient.mockResolvedValue({
+			account: { get: jest.fn().mockResolvedValue({ $id: 'user-123' }) },
+		})
+
+		expect(await hasRealSession()).toBe(true)
+	})
+
+	it('returns false when there is no session', async () => {
+		mockCreateSessionClient.mockRejectedValue(new Error('No session'))
+
+		expect(await hasRealSession()).toBe(false)
+	})
+
+	it('returns false when MFA is still pending', async () => {
+		mockCreateSessionClient.mockResolvedValue({
+			account: {
+				get: jest
+					.fn()
+					.mockRejectedValue({ type: 'user_more_factors_required' }),
+			},
+		})
+
+		expect(await hasRealSession()).toBe(false)
 	})
 })

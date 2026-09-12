@@ -6,10 +6,11 @@ import '@testing-library/jest-dom'
 import { redirect } from 'next/navigation'
 import RootAreaLayout from '@/app/(root)/layout'
 import AuthAreaLayout from '@/app/(auth)/layout'
-import { getLoggedInUser } from '@/lib/actions/user.actions'
+import { getLoggedInUser, hasRealSession } from '@/lib/actions/user.actions'
 
 jest.mock('@/lib/actions/user.actions', () => ({
 	getLoggedInUser: jest.fn(),
+	hasRealSession: jest.fn(),
 }))
 
 const mockUser: User = {
@@ -51,13 +52,21 @@ describe('app/(root)/layout.tsx', () => {
 
 describe('app/(auth)/layout.tsx', () => {
 	it('redirects to / when already authenticated', async () => {
-		;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
+		;(hasRealSession as jest.Mock).mockResolvedValue(true)
 		await AuthAreaLayout({ children: <div data-testid="child" /> })
 		expect(redirect).toHaveBeenCalledWith('/')
 	})
 
 	it('does not redirect, and renders children, when unauthenticated', async () => {
-		;(getLoggedInUser as jest.Mock).mockResolvedValue(null)
+		;(hasRealSession as jest.Mock).mockResolvedValue(false)
+		const jsx = await AuthAreaLayout({ children: <div data-testid="child" /> })
+		render(jsx)
+		expect(redirect).not.toHaveBeenCalled()
+		expect(screen.getByTestId('child')).toBeInTheDocument()
+	})
+
+	it('does not redirect away from signin just because demo mode is active', async () => {
+		;(hasRealSession as jest.Mock).mockResolvedValue(false)
 		const jsx = await AuthAreaLayout({ children: <div data-testid="child" /> })
 		render(jsx)
 		expect(redirect).not.toHaveBeenCalled()
