@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import { useForm, useFormState, useWatch } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { ChevronLeft, CircleCheckBigIcon, CircleIcon } from 'lucide-react'
@@ -16,8 +17,23 @@ import {
 	getAuthResolver,
 } from '@/lib/auth-form-config'
 import CustomInput from './CustomInput'
-import { passwordRequirements } from '@/lib/utils'
+import OtpInput from './OtpInput'
+import {
+	hardNavigate,
+	mfaChallengeSchema,
+	obscureEmail,
+	passwordRequirements,
+} from '@/lib/utils'
 import { Item, ItemContent, ItemMedia, ItemTitle } from './ui/item'
+import {
+	completeMfaChallenge,
+	enterDemoMode,
+	requestMfaChallenge,
+} from '@/lib/actions/user.actions'
+
+type MfaChallengeValues = { code: string }
+type MfaFactor = 'email' | 'recoverycode'
+type MfaChallenge = { challengeId: string; factor: MfaFactor }
 
 const AuthForm = ({
 	type,
@@ -31,6 +47,7 @@ const AuthForm = ({
 	const searchParams = useSearchParams()
 	const [isLoading, setIsLoading] = useState(false)
 	const [serverError, setServerError] = useState('')
+	const [mfaChallenge, setMfaChallenge] = useState<MfaChallenge | null>(null)
 
 	const config = FORM_CONFIG[type]
 
@@ -52,6 +69,14 @@ const AuthForm = ({
 			password: '',
 			confirmPassword: '',
 		},
+	})
+
+	const mfaLength = mfaChallenge?.factor === 'recoverycode' ? 8 : 6
+
+	const mfaForm = useForm<MfaChallengeValues>({
+		resolver: zodResolver(mfaChallengeSchema(mfaLength)),
+		mode: 'onChange',
+		defaultValues: { code: '' },
 	})
 
 	const { control } = form
@@ -77,6 +102,8 @@ const AuthForm = ({
 				pathname,
 				createQueryString,
 				resetParams,
+				onMfaRequired: (challengeId) =>
+					setMfaChallenge({ challengeId, factor: 'email' }),
 			})
 		} catch (error: any) {
 			setServerError(error.message)
@@ -86,8 +113,107 @@ const AuthForm = ({
 		}
 	}
 
+	const onMfaSubmit = async ({ code }: MfaChallengeValues) => {
+		setIsLoading(true)
+		setServerError('')
+		try {
+			const res = await completeMfaChallenge({
+				challengeId: mfaChallenge!.challengeId,
+				code,
+			})
+			if (!res.success) throw new Error(res.error)
+			hardNavigate('/')
+		} catch (error: any) {
+			setServerError(error.message)
+			console.error('MFA Challenge Error: ', error)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	const switchMfaFactor = async (factor: MfaFactor) => {
+		setServerError('')
+		mfaForm.reset()
+		const res = await requestMfaChallenge(factor)
+		if (!res.success) {
+			setServerError(res.error)
+			return
+		}
+		setMfaChallenge({ challengeId: res.data.challengeId, factor })
+	}
+
+	if (mfaChallenge) {
+		const isEmail = mfaChallenge.factor === 'email'
+
+		return (
+			<section className="auth-form" key="mfa-challenge">
+				<header className="flex flex-col gap-5 md:gap-8">
+					<button
+						aria-label="Go back"
+						onClick={() => {
+							setMfaChallenge(null)
+							setServerError('')
+							mfaForm.reset()
+						}}>
+						<div className="flex flex-center h-8 w-8 bg-cloud rounded-full cursor-pointer">
+							<ChevronLeft size={12} />
+						</div>
+					</button>
+					<div className="flex flex-col gap-1 md:gap-3">
+						<h1 className="text-3xl font-bold">
+							{isEmail ? 'Check your email' : 'Enter a recovery code'}
+						</h1>
+						<p className="text-sm text-ink/70 font-serif italic">
+							{isEmail
+								? `We sent a 6-digit code to ${obscureEmail(form.getValues('email'))} to confirm two-factor authentication.`
+								: 'Two-factor authentication is on for this account — enter one of your recovery codes to finish signing in.'}
+						</p>
+					</div>
+				</header>
+
+				<Form {...mfaForm}>
+					<form
+						onSubmit={mfaForm.handleSubmit(onMfaSubmit)}
+						className="space-y-5">
+						<OtpInput
+							control={mfaForm.control}
+							name="code"
+							label={isEmail ? 'Code' : 'Recovery code'}
+							length={mfaLength}
+							numeric={isEmail}
+						/>
+						<div className="flex flex-col gap-4">
+							{serverError && <p className="form-message">{serverError}</p>}
+							<Button
+								type="submit"
+								disabled={isLoading || !mfaForm.formState.isValid}
+								className="py-5 text-base shadow-xl">
+								{isLoading ? <>Verifying...</> : 'Verify'}
+							</Button>
+						</div>
+					</form>
+				</Form>
+
+				<footer>
+					<div className="flex justify-center gap-1">
+						<Button
+							variant="ghost"
+							className="p-0 text-sm text-primary font-semibold"
+							onClick={() =>
+								switchMfaFactor(isEmail ? 'recoverycode' : 'email')
+							}>
+							{isEmail
+								? "Can't access your email? Use a recovery code"
+								: 'Use your email instead'}
+						</Button>
+					</div>
+				</footer>
+			</section>
+		)
+	}
+
 	return (
-		<section className="auth-form">
+		<section className="auth-form" key={type}>
 			{config.heading && (
 				<header className="flex flex-col gap-5 md:gap-8">
 					{type !== 'signin' && (
@@ -211,9 +337,11 @@ const AuthForm = ({
 				{type === 'signin' && (
 					<div className="flex justify-center gap-1 mt-2">
 						<p className="text-xs font-normal text-ink/60">Just exploring?</p>
-						<Link href="/demo" className="form-link text-xs">
-							View the demo
-						</Link>
+						<form action={enterDemoMode}>
+							<button type="submit" className="form-link text-xs">
+								View the demo
+							</button>
+						</form>
 					</div>
 				)}
 			</footer>
