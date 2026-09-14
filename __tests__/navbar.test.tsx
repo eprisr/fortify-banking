@@ -58,6 +58,13 @@ describe('Navbar', () => {
 			expect(screen.queryByTestId('plaid-link')).not.toBeInTheDocument()
 		})
 
+		it('does not crash when the user is missing a first or last name', () => {
+			const { firstName, lastName, ...rest } = mockUser
+			render(<Navbar type="main" user={rest as User} />)
+			expect(screen.getByText(/Good/i)).toBeInTheDocument()
+			expect(screen.queryByText(/!$/)).not.toBeInTheDocument()
+		})
+
 		it('opens the menu sheet and shows profile details, nav links, and Footer', async () => {
 			render(<Navbar type="main" user={mockUser} />)
 

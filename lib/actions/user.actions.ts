@@ -120,14 +120,6 @@ export const completeMfaChallenge = async ({
 			otp: code,
 		})
 
-		const cookieStore = await cookies()
-		cookieStore.set('appwrite-session', session.secret, {
-			path: '/',
-			httpOnly: true,
-			sameSite: 'strict',
-			secure: true,
-		})
-
 		const user = await getUserInfo({ userId: session.userId })
 
 		return { success: true, data: parseStringify(user) }
@@ -362,6 +354,7 @@ export async function getLoggedInUser() {
 		const res = await account.get()
 
 		const user = await getUserInfo({ userId: res.$id })
+		if (!user) return null
 
 		return parseStringify({
 			...user,
@@ -377,8 +370,8 @@ export async function getLoggedInUser() {
 export async function hasRealSession() {
 	try {
 		const { account } = await createSessionClient()
-		await account.get()
-		return true
+		const res = await account.get()
+		return Boolean(await getUserInfo({ userId: res.$id }))
 	} catch {
 		return false
 	}

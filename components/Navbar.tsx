@@ -42,6 +42,10 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 
 	const links = Object.groupBy(navLinks, ({ category }) => category)
 
+	const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`
+	const fullName =
+		[user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Guest'
+
 	const date = new Date()
 	const hours = date.getHours()
 	const timeOfDay =
@@ -62,8 +66,7 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 							<div className="profile">
 								<div className="profile-img">
 									<span className="text-lg font-bold text-white">
-										{user?.firstName[0]}
-										{user?.lastName[0]}
+										{initials}
 									</span>
 								</div>
 							</div>
@@ -74,7 +77,7 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 							className="flex flex-col p-6 w-4/5! font-sans bg-paper">
 							<SheetHeader className="px-0 mb-4">
 								<SheetTitle className="sr-only">
-									Welcome, {user?.firstName}
+									Welcome, {user?.firstName || 'Guest'}
 								</SheetTitle>
 								<SheetDescription className="sr-only">
 									Navigate the Fortify application by using the menu below.
@@ -82,13 +85,12 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 								<div className="profile">
 									<div className="profile-img">
 										<span className="text-base font-bold text-white">
-											{user?.firstName[0]}
-											{user?.lastName[0]}
+											{initials}
 										</span>
 									</div>
 									<div className="profile-details">
 										<h1 className="text-base truncate font-semibold text-primary">
-											{`${user?.firstName} ${user.lastName}`}
+											{fullName}
 										</h1>
 										<p className="text-xxs text-gray-400">{user.email}</p>
 									</div>
@@ -137,7 +139,7 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 						<HeaderBox
 							type="greeting"
 							title={'Good ' + `${timeOfDay}` + ','}
-							user={`${user?.firstName + ' ' + user?.lastName}` || 'Guest'}
+							user={fullName}
 							subtext=""
 						/>
 					</header>

@@ -22,6 +22,7 @@ import { AuthenticationFactor } from 'node-appwrite'
 import { cookies } from 'next/headers'
 import {
 	completeMfaChallenge,
+	getLoggedInUser,
 	hasRealSession,
 	requestMfaChallenge,
 	signIn,
@@ -186,7 +187,7 @@ describe('completeMfaChallenge', () => {
 			account: {
 				updateMFAChallenge: jest.fn().mockResolvedValue({
 					userId: 'user-123',
-					secret: 'upgraded-session-secret',
+					secret: '',
 				}),
 			},
 		})
@@ -204,11 +205,7 @@ describe('completeMfaChallenge', () => {
 		})
 
 		const { set } = await cookies()
-		expect(set).toHaveBeenCalledWith(
-			'appwrite-session',
-			'upgraded-session-secret',
-			expect.objectContaining({ httpOnly: true, secure: true }),
-		)
+		expect(set).not.toHaveBeenCalled()
 
 		expect(result).toEqual({
 			success: true,
@@ -278,9 +275,16 @@ describe('requestMfaChallenge', () => {
 })
 
 describe('hasRealSession', () => {
-	it('returns true when account.get() succeeds', async () => {
+	it('returns true when account.get() succeeds and a profile row exists', async () => {
 		mockCreateSessionClient.mockResolvedValue({
 			account: { get: jest.fn().mockResolvedValue({ $id: 'user-123' }) },
+		})
+		mockCreateAdminClient.mockResolvedValue({
+			table: {
+				listRows: jest
+					.fn()
+					.mockResolvedValue({ rows: [{ $id: 'row-1', userId: 'user-123' }] }),
+			},
 		})
 
 		expect(await hasRealSession()).toBe(true)
@@ -302,5 +306,68 @@ describe('hasRealSession', () => {
 		})
 
 		expect(await hasRealSession()).toBe(false)
+	})
+
+	it('returns false when the account has no matching profile row', async () => {
+		mockCreateSessionClient.mockResolvedValue({
+			account: { get: jest.fn().mockResolvedValue({ $id: 'user-123' }) },
+		})
+		mockCreateAdminClient.mockResolvedValue({
+			table: { listRows: jest.fn().mockResolvedValue({ rows: [] }) },
+		})
+
+		expect(await hasRealSession()).toBe(false)
+	})
+})
+
+describe('getLoggedInUser', () => {
+	it('overlays live verifiedEmail/mfa onto the profile row', async () => {
+		mockCreateSessionClient.mockResolvedValue({
+			account: {
+				get: jest
+					.fn()
+					.mockResolvedValue({ $id: 'user-123', emailVerification: true, mfa: true }),
+			},
+		})
+		mockCreateAdminClient.mockResolvedValue({
+			table: {
+				listRows: jest.fn().mockResolvedValue({
+					rows: [
+						{
+							$id: 'row-1',
+							userId: 'user-123',
+							firstName: 'Jane',
+							lastName: 'Doe',
+							verifiedEmail: false,
+							mfa: false,
+						},
+					],
+				}),
+			},
+		})
+
+		expect(await getLoggedInUser()).toEqual(
+			expect.objectContaining({
+				firstName: 'Jane',
+				lastName: 'Doe',
+				verifiedEmail: true,
+				mfa: true,
+			}),
+		)
+	})
+
+	it('returns null when the account has no matching profile row, instead of a partial user', async () => {
+		mockCreateSessionClient.mockResolvedValue({
+			account: {
+				get: jest
+					.fn()
+					.mockResolvedValue({ $id: 'user-123', emailVerification: true, mfa: false }),
+			},
+		})
+		mockCreateAdminClient.mockResolvedValue({
+			table: { listRows: jest.fn().mockResolvedValue({ rows: [] }) },
+		})
+
+		expect(await getLoggedInUser()).toBeNull()
 	})
 })
