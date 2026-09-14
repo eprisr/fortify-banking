@@ -16,12 +16,13 @@ import { navLinks } from '@/constants'
 import Footer from './Footer'
 import HeaderBox from './shared/HeaderBox'
 import PlaidLink from './PlaidLink'
-import { cn } from '@/lib/utils'
+import { cn, obscureEmail } from '@/lib/utils'
 import { useMobileContainer } from './mobile-container'
 import { ChevronRight } from 'lucide-react'
 import { Button } from './ui/button'
 
 const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
+	const userEmail = obscureEmail(user!.email)
 	const container = useMobileContainer()
 	let path
 
@@ -92,7 +93,7 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 										<h1 className="text-base truncate font-semibold text-primary">
 											{fullName}
 										</h1>
-										<p className="text-xxs text-gray-400">{user.email}</p>
+										<p className="text-xxs text-gray-400">{userEmail}</p>
 									</div>
 									<Button variant="outline" className="px-4 py-2">
 										Edit
@@ -117,7 +118,9 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 															<Icon size={16} />
 															<div>
 																<p>{label}</p>
-																<p className="text-xs text-ink/70 font-normal mt-1">{subText}</p>
+																<p className="text-xs text-ink/70 font-normal mt-1">
+																	{subText}
+																</p>
 															</div>
 														</div>
 														<ChevronRight size={14} className="text-ink/20" />

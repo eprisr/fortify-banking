@@ -249,7 +249,7 @@
 	}
 
 	.profile-img {
-		@apply flex-center size-12 rounded-full bg-primary p-2;
+		@apply flex-center size-12 shrink-0 rounded-full bg-primary p-2;
 	}
 
 	.profile-details {
