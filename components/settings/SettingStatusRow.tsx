@@ -16,7 +16,7 @@ const SettingStatusRow = ({
 				Icon={item.Icon}
 				label={item.label}
 				subText={item.subText}>
-				<TwoFactorDisableControl userId={user.userId} />
+				<TwoFactorDisableControl />
 			</SettingRowShell>
 		)
 	}

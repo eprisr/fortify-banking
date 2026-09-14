@@ -18,7 +18,17 @@ import '@testing-library/jest-dom'
 import { useRouter } from 'next/navigation'
 import AuthForm from '@/components/AuthForm'
 import SignInPage from '@/app/(auth)/signin/page'
-import { signIn } from '@/lib/actions/user.actions'
+import {
+	signIn,
+	completeMfaChallenge,
+	requestMfaChallenge,
+} from '@/lib/actions/user.actions'
+import { hardNavigate } from '@/lib/utils'
+
+jest.mock('@/lib/utils', () => ({
+	...jest.requireActual('@/lib/utils'),
+	hardNavigate: jest.fn(),
+}))
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -36,6 +46,9 @@ jest.mock('@/lib/actions/user.actions', () => ({
 	signIn: jest.fn(),
 	forgotPw: jest.fn(),
 	resetPw: jest.fn(),
+	completeMfaChallenge: jest.fn(),
+	requestMfaChallenge: jest.fn(),
+	enterDemoMode: jest.fn(),
 }))
 
 // ---------------------------------------------------------------------------
@@ -327,7 +340,7 @@ describe('Sign In Flow', () => {
 			await fillAndSubmit('jane@example.com', 'SecurePass1!')
 
 			await new Promise((resolve) => setTimeout(resolve, 0))
-			expect(mockPush).toHaveBeenCalledWith('/')
+			expect(hardNavigate).toHaveBeenCalledWith('/')
 		})
 
 		it('shows loading while the request is in-flight', async () => {
@@ -368,6 +381,157 @@ describe('Sign In Flow', () => {
 	})
 
 	// =========================================================================
+	describe('AuthForm — MFA challenge', () => {
+		// =========================================================================
+
+		it('lets you type into the code boxes, one digit each', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				mfaRequired: true,
+				challengeId: 'challenge-1',
+			})
+			render(<AuthForm type="signin" />)
+
+			await fillAndSubmit('jane@example.com', 'SecurePass1!')
+
+			const boxes = await screen.findAllByLabelText(/code — character/i)
+			expect(boxes).toHaveLength(6)
+
+			for (const [i, digit] of '123456'.split('').entries()) {
+				await userEvent.type(boxes[i], digit)
+			}
+
+			boxes.forEach((box, i) => expect(box).toHaveValue(String(i + 1)))
+		})
+
+		it('advances focus to the next box as each digit is typed', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				mfaRequired: true,
+				challengeId: 'challenge-1',
+			})
+			render(<AuthForm type="signin" />)
+
+			await fillAndSubmit('jane@example.com', 'SecurePass1!')
+
+			const boxes = await screen.findAllByLabelText(/code — character/i)
+			await userEvent.type(boxes[0], '1')
+
+			expect(boxes[1]).toHaveFocus()
+		})
+
+		it('supports pasting a full code across the boxes', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				mfaRequired: true,
+				challengeId: 'challenge-1',
+			})
+			render(<AuthForm type="signin" />)
+
+			await fillAndSubmit('jane@example.com', 'SecurePass1!')
+
+			const boxes = await screen.findAllByLabelText(/code — character/i)
+			await userEvent.click(boxes[0])
+			await userEvent.paste('123456')
+
+			boxes.forEach((box, i) => expect(box).toHaveValue(String(i + 1)))
+		})
+
+		it('joins the boxes into a single code on submit', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				mfaRequired: true,
+				challengeId: 'challenge-1',
+			})
+			;(completeMfaChallenge as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				data: { $id: 'user-123' },
+			})
+			render(<AuthForm type="signin" />)
+
+			await fillAndSubmit('jane@example.com', 'SecurePass1!')
+
+			const boxes = await screen.findAllByLabelText(/code — character/i)
+			await userEvent.click(boxes[0])
+			await userEvent.paste('123456')
+			await userEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+			expect(completeMfaChallenge).toHaveBeenCalledWith({
+				challengeId: 'challenge-1',
+				code: '123456',
+			})
+			expect(hardNavigate).toHaveBeenCalledWith('/')
+		})
+
+		it('uses 8 boxes for a recovery code', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				mfaRequired: true,
+				challengeId: 'challenge-1',
+			})
+			;(requestMfaChallenge as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				data: { challengeId: 'challenge-2' },
+			})
+			render(<AuthForm type="signin" />)
+
+			await fillAndSubmit('jane@example.com', 'SecurePass1!')
+
+			await userEvent.click(
+				await screen.findByRole('button', { name: /use a recovery code/i }),
+			)
+
+			const boxes = await screen.findAllByLabelText(/recovery code — character/i)
+			expect(boxes).toHaveLength(8)
+		})
+
+		it('requests a fresh challenge when the resend link is clicked', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				mfaRequired: true,
+				challengeId: 'challenge-1',
+			})
+			;(requestMfaChallenge as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				data: { challengeId: 'challenge-2' },
+			})
+			render(<AuthForm type="signin" />)
+
+			await fillAndSubmit('jane@example.com', 'SecurePass1!')
+
+			await userEvent.click(
+				await screen.findByRole('button', { name: /resend code/i }),
+			)
+
+			expect(requestMfaChallenge).toHaveBeenCalledWith('email')
+		})
+
+		it('does not show a resend link on the recovery-code screen', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				mfaRequired: true,
+				challengeId: 'challenge-1',
+			})
+			;(requestMfaChallenge as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				data: { challengeId: 'challenge-2' },
+			})
+			render(<AuthForm type="signin" />)
+
+			await fillAndSubmit('jane@example.com', 'SecurePass1!')
+
+			await userEvent.click(
+				await screen.findByRole('button', { name: /use a recovery code/i }),
+			)
+			await screen.findAllByLabelText(/recovery code — character/i)
+
+			expect(
+				screen.queryByRole('button', { name: /resend code/i }),
+			).not.toBeInTheDocument()
+		})
+	})
+
+	// =========================================================================
 	describe('AuthForm — Error handling', () => {
 		// =========================================================================
 
@@ -394,6 +558,7 @@ describe('Sign In Flow', () => {
 
 			await screen.findByText('Invalid credentials')
 			expect(mockPush).not.toHaveBeenCalled()
+			expect(hardNavigate).not.toHaveBeenCalled()
 		})
 
 		it('displays an error when signIn rejects with an unexpected exception', async () => {
@@ -435,7 +600,7 @@ describe('Sign In Flow', () => {
 
 			await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
 			await new Promise((resolve) => setTimeout(resolve, 0))
-			expect(mockPush).toHaveBeenCalledWith('/')
+			expect(hardNavigate).toHaveBeenCalledWith('/')
 		})
 
 		it('calls signIn exactly once per submit', async () => {

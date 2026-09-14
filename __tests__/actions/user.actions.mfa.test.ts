@@ -15,135 +15,61 @@ import {
 	enableMFA,
 	generateRecoveryCodes,
 } from '@/lib/actions/user.actions'
-import { createAdminClient, createSessionClient } from '@/lib/server/appwrite'
+import { createSessionClient } from '@/lib/server/appwrite'
 
 const mockCreateSessionClient = createSessionClient as jest.Mock
-const mockCreateAdminClient = createAdminClient as jest.Mock
-
-function mockAppwriteClients({
-	updateMFA,
-	get,
-	listRows,
-	updateRow,
-}: {
-	updateMFA: jest.Mock
-	get: jest.Mock
-	listRows?: jest.Mock
-	updateRow?: jest.Mock
-}) {
-	mockCreateSessionClient.mockResolvedValue({
-		account: { updateMFA, get },
-	})
-	mockCreateAdminClient.mockResolvedValue({
-		table: {
-			listRows:
-				listRows ??
-				jest.fn().mockResolvedValue({ rows: [{ $id: 'row-1' }] }),
-			updateRow: updateRow ?? jest.fn().mockResolvedValue({}),
-		},
-	})
-}
 
 describe('enableMFA', () => {
-	it('turns MFA on and mirrors it onto the user row', async () => {
-		const updateRow = jest.fn().mockResolvedValue({})
-		mockAppwriteClients({
-			updateMFA: jest.fn().mockResolvedValue({}),
-			get: jest.fn().mockResolvedValue({ mfa: true }),
-			updateRow,
-		})
+	it('turns MFA on', async () => {
+		const updateMFA = jest.fn().mockResolvedValue({})
+		mockCreateSessionClient.mockResolvedValue({ account: { updateMFA } })
 
-		const result = await enableMFA('user-123')
+		const result = await enableMFA()
 
 		expect(result).toEqual({ success: true, data: null })
-		expect(updateRow).toHaveBeenCalledWith(
-			expect.objectContaining({
-				rowId: 'row-1',
-				data: { mfa: true },
-			}),
-		)
+		expect(updateMFA).toHaveBeenCalledWith({ mfa: true })
 	})
 
-	it('reports failure and never touches the DB row when updateMFA itself rejects', async () => {
-		const updateRow = jest.fn()
-		mockAppwriteClients({
-			updateMFA: jest.fn().mockRejectedValue(new Error('network error')),
-			get: jest.fn(),
-			updateRow,
+	it('reports failure when updateMFA rejects', async () => {
+		mockCreateSessionClient.mockResolvedValue({
+			account: {
+				updateMFA: jest.fn().mockRejectedValue(new Error('network error')),
+			},
 		})
 
-		const result = await enableMFA('user-123')
+		const result = await enableMFA()
 
 		expect(result).toEqual({
 			success: false,
 			error: 'Failed to enable multi-factor authentication',
 		})
-		expect(updateRow).not.toHaveBeenCalled()
-	})
-
-	// Code review finding: enableMFA/disableMFA can desync Appwrite's real MFA
-	// flag from our cached `mfa` DB field. If account.updateMFA(...) already
-	// succeeded, the account is genuinely enrolled in MFA regardless of what
-	// happens next — a later read/mirror failure should not be reported to
-	// the caller as "failed to enable MFA".
-	it('still reports success once updateMFA succeeds, even if verifying/mirroring it afterward fails', async () => {
-		mockAppwriteClients({
-			updateMFA: jest.fn().mockResolvedValue({}),
-			get: jest.fn().mockRejectedValue(new Error('network blip')),
-		})
-
-		const result = await enableMFA('user-123')
-
-		expect(result.success).toBe(true)
 	})
 })
 
 describe('disableMFA', () => {
-	it('turns MFA off and mirrors it onto the user row', async () => {
-		const updateRow = jest.fn().mockResolvedValue({})
-		mockAppwriteClients({
-			updateMFA: jest.fn().mockResolvedValue({}),
-			get: jest.fn().mockResolvedValue({ mfa: false }),
-			updateRow,
-		})
+	it('turns MFA off', async () => {
+		const updateMFA = jest.fn().mockResolvedValue({})
+		mockCreateSessionClient.mockResolvedValue({ account: { updateMFA } })
 
-		const result = await disableMFA('user-123')
+		const result = await disableMFA()
 
 		expect(result).toEqual({ success: true, data: null })
-		expect(updateRow).toHaveBeenCalledWith(
-			expect.objectContaining({
-				rowId: 'row-1',
-				data: { mfa: false },
-			}),
-		)
+		expect(updateMFA).toHaveBeenCalledWith({ mfa: false })
 	})
 
-	it('reports failure and never touches the DB row when updateMFA itself rejects', async () => {
-		const updateRow = jest.fn()
-		mockAppwriteClients({
-			updateMFA: jest.fn().mockRejectedValue(new Error('network error')),
-			get: jest.fn(),
-			updateRow,
+	it('reports failure when updateMFA rejects', async () => {
+		mockCreateSessionClient.mockResolvedValue({
+			account: {
+				updateMFA: jest.fn().mockRejectedValue(new Error('network error')),
+			},
 		})
 
-		const result = await disableMFA('user-123')
+		const result = await disableMFA()
 
 		expect(result).toEqual({
 			success: false,
 			error: 'Failed to disable multi-factor authentication',
 		})
-		expect(updateRow).not.toHaveBeenCalled()
-	})
-
-	it('still reports success once updateMFA succeeds, even if verifying/mirroring it afterward fails', async () => {
-		mockAppwriteClients({
-			updateMFA: jest.fn().mockResolvedValue({}),
-			get: jest.fn().mockRejectedValue(new Error('network blip')),
-		})
-
-		const result = await disableMFA('user-123')
-
-		expect(result.success).toBe(true)
 	})
 })
 

@@ -14,10 +14,9 @@ import {
 	completeEmailVerification,
 	verifyEmail,
 } from '@/lib/actions/user.actions'
-import { createAdminClient, createSessionClient } from '@/lib/server/appwrite'
+import { createSessionClient } from '@/lib/server/appwrite'
 
 const mockCreateSessionClient = createSessionClient as jest.Mock
-const mockCreateAdminClient = createAdminClient as jest.Mock
 
 describe('verifyEmail', () => {
 	const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -62,33 +61,10 @@ describe('verifyEmail', () => {
 })
 
 describe('completeEmailVerification', () => {
-	function mockAppwriteClients({
-		updateEmailVerification,
-		listRows,
-		updateRow,
-	}: {
-		updateEmailVerification: jest.Mock
-		listRows?: jest.Mock
-		updateRow?: jest.Mock
-	}) {
+	it('verifies a valid secret', async () => {
+		const updateEmailVerification = jest.fn().mockResolvedValue({})
 		mockCreateSessionClient.mockResolvedValue({
 			account: { updateEmailVerification },
-		})
-		mockCreateAdminClient.mockResolvedValue({
-			table: {
-				listRows:
-					listRows ??
-					jest.fn().mockResolvedValue({ rows: [{ $id: 'row-1' }] }),
-				updateRow: updateRow ?? jest.fn().mockResolvedValue({}),
-			},
-		})
-	}
-
-	it('marks the row verified on a valid secret', async () => {
-		const updateRow = jest.fn().mockResolvedValue({})
-		mockAppwriteClients({
-			updateEmailVerification: jest.fn().mockResolvedValue({}),
-			updateRow,
 		})
 
 		const result = await completeEmailVerification({
@@ -97,22 +73,22 @@ describe('completeEmailVerification', () => {
 		})
 
 		expect(result).toEqual({ success: true, data: null })
-		expect(updateRow).toHaveBeenCalledWith(
-			expect.objectContaining({
-				rowId: 'row-1',
-				data: { verifiedEmail: true },
-			}),
-		)
+		expect(updateEmailVerification).toHaveBeenCalledWith({
+			userId: 'user-123',
+			secret: 'good-secret',
+		})
 	})
 
 	// Code review finding: the catch block returns the raw Error/exception
 	// object as `error`, violating the ActionResponse<T> contract every other
 	// action in this file honors (`error` must be a string).
 	it('returns a string error, not the raw exception, on a rejected secret', async () => {
-		mockAppwriteClients({
-			updateEmailVerification: jest
-				.fn()
-				.mockRejectedValue({ type: 'user_invalid_token' }),
+		mockCreateSessionClient.mockResolvedValue({
+			account: {
+				updateEmailVerification: jest
+					.fn()
+					.mockRejectedValue({ type: 'user_invalid_token' }),
+			},
 		})
 
 		const result = await completeEmailVerification({

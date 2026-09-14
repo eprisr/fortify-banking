@@ -1,8 +1,9 @@
 'use server'
 
-import { ID, Query, type Models } from 'node-appwrite'
+import { AuthenticationFactor, ID, Query, type Models } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../server/appwrite'
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import {
 	extractCustomerIdFromUrl,
 	handleError,
@@ -60,7 +61,7 @@ export const getUserInfo = async ({ userId }: getUserInfoProps) => {
 export const signIn = async ({
 	email,
 	password,
-}: SignInProps): Promise<ActionResponse<User>> => {
+}: SignInProps): Promise<SignInResult> => {
 	try {
 		const { account } = await createAdminClient()
 
@@ -80,13 +81,73 @@ export const signIn = async ({
 		})
 		cookieStore.delete(DEMO_MODE_COOKIE)
 
+		const { account: sessionAccount } = await createSessionClient()
+
+		try {
+			await sessionAccount.get()
+		} catch (mfaError: any) {
+			if (mfaError.type !== 'user_more_factors_required') throw mfaError
+
+			const challenge = await sessionAccount.createMFAChallenge({
+				factor: AuthenticationFactor.Email,
+			})
+
+			return { success: true, mfaRequired: true, challengeId: challenge.$id }
+		}
+
+		const user = await getUserInfo({ userId: session.userId })
+
+		return { success: true, mfaRequired: false, data: parseStringify(user) }
+	} catch (error: any) {
+		return handleError(error, 'An error occurred while signing in', {
+			general_argument_invalid: 'Incorrect email or password',
+		}) as SignInResult
+	}
+}
+
+export const completeMfaChallenge = async ({
+	challengeId,
+	code,
+}: {
+	challengeId: string
+	code: string
+}): Promise<ActionResponse<User>> => {
+	try {
+		const { account } = await createSessionClient()
+
+		const session = await account.updateMFAChallenge({
+			challengeId,
+			otp: code,
+		})
+
 		const user = await getUserInfo({ userId: session.userId })
 
 		return { success: true, data: parseStringify(user) }
 	} catch (error: any) {
-		return handleError(error, 'An error occurred while signing in', {
-			general_argument_invalid: 'Incorrect email or password',
+		return handleError(error, 'Invalid or expired code')
+	}
+}
+
+// Switches the pending mid-signin challenge to a different factor — right
+// now just "lost access to your email, use a recovery code instead" (and
+// back). Operates on the same incomplete session signIn already started;
+// no re-authentication needed.
+export const requestMfaChallenge = async (
+	factor: 'email' | 'recoverycode',
+): Promise<ActionResponse<{ challengeId: string }>> => {
+	try {
+		const { account } = await createSessionClient()
+
+		const challenge = await account.createMFAChallenge({
+			factor:
+				factor === 'email'
+					? AuthenticationFactor.Email
+					: AuthenticationFactor.Recoverycode,
 		})
+
+		return { success: true, data: { challengeId: challenge.$id } }
+	} catch (error: any) {
+		return handleError(error, 'Failed to send a new code')
 	}
 }
 
@@ -267,7 +328,7 @@ export const completeEmailVerification = async ({
 }: {
 	userId: string
 	secret: string
-}) => {
+}): Promise<ActionResponse<null>> => {
 	try {
 		const { account } = await createSessionClient()
 
@@ -276,23 +337,9 @@ export const completeEmailVerification = async ({
 			secret: secret,
 		})
 
-		const { table } = await createAdminClient()
-
-		const user = await getUserInfo({ userId })
-
-		await table.updateRow({
-			databaseId: DATABASE_ID!,
-			tableId: USER_COLLECTION_ID!,
-			rowId: user.$id,
-			data: {
-				verifiedEmail: true,
-			},
-		})
-
 		return { success: true, data: null }
 	} catch (error: any) {
-		console.error('An Error Occurred while Verifying Email: ', error)
-		return { success: false, error: error }
+		return handleError(error, 'Failed to verify your email')
 	}
 }
 
@@ -307,10 +354,26 @@ export async function getLoggedInUser() {
 		const res = await account.get()
 
 		const user = await getUserInfo({ userId: res.$id })
+		if (!user) return null
 
-		return parseStringify(user)
+		return parseStringify({
+			...user,
+			verifiedEmail: res.emailVerification,
+			mfa: res.mfa,
+		})
 	} catch (error) {
+		console.error('getLoggedInUser failed: ', error)
 		return null
+	}
+}
+
+export async function hasRealSession() {
+	try {
+		const { account } = await createSessionClient()
+		const res = await account.get()
+		return Boolean(await getUserInfo({ userId: res.$id }))
+	} catch {
+		return false
 	}
 }
 
@@ -331,6 +394,17 @@ export const logoutAccount = async () => {
 		console.error('Logout Error: ', error)
 		return false
 	}
+}
+
+export const enterDemoMode = async () => {
+	const cookieStore = await cookies()
+	cookieStore.set(DEMO_MODE_COOKIE, '1', {
+		path: '/',
+		httpOnly: true,
+		sameSite: 'strict',
+		secure: true,
+	})
+	redirect('/')
 }
 
 export const createLinkToken = async (
@@ -641,29 +715,11 @@ export const generateRecoveryCodes = async (): Promise<
 	}
 }
 
-export const enableMFA = async (
-	userId: string,
-): Promise<ActionResponse<null>> => {
+export const enableMFA = async (): Promise<ActionResponse<null>> => {
 	try {
 		const { account } = await createSessionClient()
 
 		await account.updateMFA({ mfa: true })
-		const updated = await account.get()
-
-		if (updated.mfa) {
-			const { table } = await createAdminClient()
-
-			const user = await getUserInfo({ userId })
-
-			await table.updateRow({
-				databaseId: DATABASE_ID!,
-				tableId: USER_COLLECTION_ID!,
-				rowId: user.$id,
-				data: {
-					mfa: true,
-				},
-			})
-		}
 
 		return { success: true, data: null }
 	} catch (error: any) {
@@ -675,29 +731,11 @@ export const enableMFA = async (
 	}
 }
 
-export const disableMFA = async (
-	userId: string,
-): Promise<ActionResponse<null>> => {
+export const disableMFA = async (): Promise<ActionResponse<null>> => {
 	try {
 		const { account } = await createSessionClient()
 
 		await account.updateMFA({ mfa: false })
-		const updated = await account.get()
-
-		if (!updated.mfa) {
-			const { table } = await createAdminClient()
-
-			const user = await getUserInfo({ userId })
-
-			await table.updateRow({
-				databaseId: DATABASE_ID!,
-				tableId: USER_COLLECTION_ID!,
-				rowId: user.$id,
-				data: {
-					mfa: false,
-				},
-			})
-		}
 
 		return { success: true, data: null }
 	} catch (error: any) {

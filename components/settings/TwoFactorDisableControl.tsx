@@ -15,11 +15,11 @@ import {
 } from '@/components/ui/alert-dialog'
 import { disableMFA } from '@/lib/actions/user.actions'
 
-const TwoFactorDisableControl = ({ userId }: { userId: string }) => {
+const TwoFactorDisableControl = () => {
 	const router = useRouter()
 
 	const handleConfirm = () => {
-		disableMFA(userId).then((result) => {
+		disableMFA().then((result) => {
 			if (result.success) {
 				router.refresh()
 			} else {

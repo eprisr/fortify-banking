@@ -89,7 +89,7 @@ const Settings = async () => {
 					<form
 						action={async () => {
 							'use server'
-							const result = await enableMFA(user.userId)
+							const result = await enableMFA()
 							if (result.success) redirect('/')
 						}}
 						className="w-full group/mfa">

@@ -9,6 +9,11 @@ declare type ActionResponse<T> =
 	| { success: true; data: T; error?: never }
 	| { success: false; data?: never; error: string }
 
+declare type SignInResult =
+	| { success: true; mfaRequired: false; data: User }
+	| { success: true; mfaRequired: true; challengeId: string }
+	| { success: false; error: string }
+
 declare type SettingKey = 'faceId' | 'twoFactor'
 
 declare type SettingItemBase = {
@@ -184,7 +189,7 @@ declare interface HeaderBoxProps {
 	type?: 'title' | 'greeting'
 	title: string
 	subtext: string
-  user?: string
+	user?: string
 }
 
 declare interface MobileNavProps {
