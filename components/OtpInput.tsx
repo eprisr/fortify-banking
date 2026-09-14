@@ -91,7 +91,10 @@ function OtpInput<T extends FieldValues>({
 						<VisuallyHiddenPrimative.Root>
 							<FormLabel className="form-label">{label}</FormLabel>
 						</VisuallyHiddenPrimative.Root>
-						<div className="flex justify-center gap-2" onPaste={handlePaste}>
+						<div
+							className="grid gap-2"
+							style={{ gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))` }}
+							onPaste={handlePaste}>
 							{digits.map((digit, index) => (
 								<input
 									key={index}
@@ -109,7 +112,7 @@ function OtpInput<T extends FieldValues>({
 									autoCorrect="off"
 									spellCheck={false}
 									maxLength={1}
-									className="h-14 w-11 rounded-lg border border-input bg-cloud text-center text-lg font-semibold outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
+									className="h-14 w-full min-w-0 rounded-lg border border-input bg-cloud text-center text-lg font-semibold outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset focus-visible:bg-white"
 								/>
 							))}
 						</div>
