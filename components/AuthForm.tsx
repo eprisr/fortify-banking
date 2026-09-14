@@ -346,7 +346,7 @@ const AuthForm = ({
 				</div>
 
 				{type === 'signin' && (
-					<div className="flex justify-center gap-1 mt-2">
+					<div className="flex justify-center items-center gap-1 mt-2">
 						<p className="text-xs font-normal text-ink/60">Just exploring?</p>
 						<form action={enterDemoMode}>
 							<button type="submit" className="form-link text-xs">
