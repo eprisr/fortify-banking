@@ -1,7 +1,7 @@
 # ADR-008: Plaid OAuth and Appwrite MFA
 
 **Date:** 2026-08-27  
-**Status:** Proposed — Plaid OAuth implementation complete, MFA enrollment flow in progress  
+**Status:** Accepted  
 **Author:** Epris R
 
 ---
@@ -69,7 +69,51 @@ MFA is optional but prompted immediately after a user links a bank account. At t
 
 ## Consequences (Actual)
 
-*To be filled in after implementation.*
+The MFA implementation was significantly more involved than scoped. The triggering incident that kicked off the work: `signIn()` never handled Appwrite's `user_more_factors_required` response at all, meaning any MFA-enabled account was completely unable to log in, silently bounced to `/welcome`. That was the root cause. Everything else built out from fixing it.
+
+### Key architectural decisions made during implementation
+
+**MFA challenge inside AuthForm, not a separate route.** Local component state swaps the rendered branch in place. A second `useForm()` instance owns the challenge-code field independently of the sign-in form.
+
+**Two factors: email OTP as default, recovery code as fallback.** `requestMfaChallenge(factor)` and a client-side toggle switch between them without re-authenticating.
+
+**Session cookie is set once, at `signIn()`, and never re-written.** `completeMfaChallenge()` deliberately does not re-set the cookie. Appwrite's SDK only populates `Session.secret` for API-key-authenticated requests, so a session-authenticated call always gets an empty string back. Re-writing the cookie at challenge completion would have corrupted a valid session immediately after a successful MFA check.
+
+**Post-MFA navigation uses hard browser navigation, not `router.push`.** Eliminates ambiguity around Router Cache staleness on the freshly-authenticated session.
+
+**Demo mode converted from a GET route to a Server Action.** The old `/demo` route set a cookie as a GET side-effect and was reachable via Next.js `<Link>` prefetch, which could silently enter demo mode. A Server Action closes that gap.
+
+**`hasRealSession()` and `getLoggedInUser()` are distinct primitives.** `hasRealSession()` is used exclusively by the auth layout's "already logged in, bounce away from `/signin`" guard, so a demo-mode cookie is never mistaken for a real authenticated session. `getLoggedInUser()` returns `null`, not a partial object, when Appwrite auth succeeds but the profile row is missing.
+
+**Appwrite Auth is the sole source of truth for `verifiedEmail` and MFA status.** The database row no longer mirrors these fields. `getLoggedInUser()` overlays live `account.get()` values onto the DB-sourced profile on every fetch.
+
+**OTP entry is a real multi-box UI.** One `maxLength={1}` input per character, with auto-advance, backspace-to-previous, arrow-key nav, and paste distribution. Validation length and box count both derive from one `mfaLength` value computed from the active factor: 6 for email OTP, 8 for recovery code.
+
+### On device detection
+
+The original proposal noted that MFA ideally triggers only on new devices or sessions rather than every login. In practice, Appwrite triggers MFA on every login for MFA-enabled accounts. No custom session tracking was implemented to change this behavior.
+
+### Bugs found during implementation
+
+Eight bugs were found and fixed in the course of the MFA work, in the order they surfaced:
+
+1. `signIn()` never handled `user_more_factors_required`, the root cause of the original incident.
+2. `/demo` GET route vulnerable to `<Link>` prefetch silently entering demo mode.
+3. Auth layout used `getLoggedInUser()` (demo-mode-aware) for its auth guard, yanking users off an in-progress MFA challenge back to `/welcome`.
+4. React reconciliation bug: two `useForm()` branches at the same conditional-return fiber position with no `key`, causing React to reuse a stale fiber on the swap and silently break `Controller` registration for the code field.
+5. `completeMfaChallenge()` re-writing `appwrite-session` with an empty string from `updateMFAChallenge()`'s response, corrupting a valid session immediately after a successful MFA check.
+6. `getLoggedInUser()` returning a truthy-but-partial object when the DB profile row was missing, passing every auth guard then crashing downstream.
+7. Navbar name fallback (`firstName + ' ' + lastName || 'Guest'`) could never fire — concatenating two `undefined`s yields the truthy string `"undefined undefined"`.
+8. WebKit-only: a focused input's box-shadow ring clipped by the nearest `overflow: auto` ancestor. Fixed with `ring-inset` rather than restructuring the scroll hierarchy.
+
+### Rejected alternatives
+
+Disabling MFA server-side for affected accounts to unblock the original incident was raised and rejected. The fix was always building the actual challenge flow.
+
+### Known out-of-scope items
+
+- `sheet.tsx` has the same `data-open`/`data-closed` vs. Radix's actual `data-state` mismatch pattern, unfixed.
+- No UX yet for an account that reaches "authenticated, no profile row." Currently bounces to `/welcome`, which is acceptable since the only known trigger is a manual DB deletion, not an app code path.
 
 ---
 
