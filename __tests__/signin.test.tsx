@@ -454,7 +454,7 @@ describe('Sign In Flow', () => {
 			const boxes = await screen.findAllByLabelText(/code — character/i)
 			await userEvent.click(boxes[0])
 			await userEvent.paste('123456')
-			await userEvent.click(screen.getByRole('button', { name: /verify/i }))
+			await userEvent.click(screen.getByRole('button', { name: /continue/i }))
 
 			expect(completeMfaChallenge).toHaveBeenCalledWith({
 				challengeId: 'challenge-1',
@@ -483,6 +483,51 @@ describe('Sign In Flow', () => {
 
 			const boxes = await screen.findAllByLabelText(/recovery code — character/i)
 			expect(boxes).toHaveLength(8)
+		})
+
+		it('requests a fresh challenge when the resend link is clicked', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				mfaRequired: true,
+				challengeId: 'challenge-1',
+			})
+			;(requestMfaChallenge as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				data: { challengeId: 'challenge-2' },
+			})
+			render(<AuthForm type="signin" />)
+
+			await fillAndSubmit('jane@example.com', 'SecurePass1!')
+
+			await userEvent.click(
+				await screen.findByRole('button', { name: /resend code/i }),
+			)
+
+			expect(requestMfaChallenge).toHaveBeenCalledWith('email')
+		})
+
+		it('does not show a resend link on the recovery-code screen', async () => {
+			;(signIn as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				mfaRequired: true,
+				challengeId: 'challenge-1',
+			})
+			;(requestMfaChallenge as jest.Mock).mockResolvedValueOnce({
+				success: true,
+				data: { challengeId: 'challenge-2' },
+			})
+			render(<AuthForm type="signin" />)
+
+			await fillAndSubmit('jane@example.com', 'SecurePass1!')
+
+			await userEvent.click(
+				await screen.findByRole('button', { name: /use a recovery code/i }),
+			)
+			await screen.findAllByLabelText(/recovery code — character/i)
+
+			expect(
+				screen.queryByRole('button', { name: /resend code/i }),
+			).not.toBeInTheDocument()
 		})
 	})
 

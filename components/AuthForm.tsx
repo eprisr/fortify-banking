@@ -182,13 +182,24 @@ const AuthForm = ({
 							length={mfaLength}
 							numeric={isEmail}
 						/>
+						{isEmail && (
+							<div className="flex justify-center">
+								<Button
+									type="button"
+									variant="ghost"
+									className="p-0 text-sm text-primary font-semibold"
+									onClick={() => switchMfaFactor('email')}>
+									Resend code
+								</Button>
+							</div>
+						)}
 						<div className="flex flex-col gap-4">
 							{serverError && <p className="form-message">{serverError}</p>}
 							<Button
 								type="submit"
 								disabled={isLoading || !mfaForm.formState.isValid}
 								className="py-5 text-base shadow-xl">
-								{isLoading ? <>Verifying...</> : 'Verify'}
+								{isLoading ? <>Verifying...</> : 'Continue'}
 							</Button>
 						</div>
 					</form>
@@ -203,7 +214,7 @@ const AuthForm = ({
 								switchMfaFactor(isEmail ? 'recoverycode' : 'email')
 							}>
 							{isEmail
-								? "Can't access your email? Use a recovery code"
+								? 'Use a recovery code instead'
 								: 'Use your email instead'}
 						</Button>
 					</div>
