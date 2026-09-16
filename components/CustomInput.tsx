@@ -12,12 +12,25 @@ import { Input } from './ui/input'
 import * as VisuallyHiddenPrimative from '@radix-ui/react-visually-hidden'
 import { Control, FieldPath, FieldValues } from 'react-hook-form'
 
+// Browsers/password managers fall back to guessing field intent from name/id
+// when autocomplete isn't set, which is exactly the kind of ambiguity that
+// leads a mobile password manager to offer or fill the wrong saved value.
+const DEFAULT_AUTOCOMPLETE: Record<string, string> = {
+	email: 'email',
+	recipientEmail: 'email',
+	password: 'new-password',
+	confirmPassword: 'new-password',
+	firstName: 'given-name',
+	lastName: 'family-name',
+}
+
 interface CustomInputProps<T extends FieldValues> {
 	control: Control<T>
 	name: FieldPath<T>
 	label: string
 	placeholder: string
 	required?: boolean
+	autoComplete?: string
 }
 
 function CustomInput<T extends FieldValues>({
@@ -26,6 +39,7 @@ function CustomInput<T extends FieldValues>({
 	label,
 	placeholder,
 	required,
+	autoComplete,
 }: CustomInputProps<T>) {
 	const [visible, setVisible] = useState(false)
 	const isPasswordField = name === 'password' || name === 'confirmPassword'
@@ -61,6 +75,7 @@ function CustomInput<T extends FieldValues>({
 								// a mismatched credential. Disable that here.
 								autoCapitalize="none"
 								autoCorrect="off"
+								autoComplete={autoComplete ?? DEFAULT_AUTOCOMPLETE[name] ?? 'off'}
 								spellCheck={false}
 								className={`h-14 px-5 border-none text-base! placeholder:text-base placeholder:text-ink/40 ${isPasswordField ? 'pr-16' : ''}`}
 								{...field}
