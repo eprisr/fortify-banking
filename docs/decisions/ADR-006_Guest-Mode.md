@@ -1,4 +1,4 @@
-# ADR-005: Refactoring the Auth Flow
+# ADR-006: Refactoring the Auth Flow
 
 **Date:** 2026-08/25 _(documented retroactively)_  
 **Status:** Accepted — core implementation complete; navigation access scope still being determined
