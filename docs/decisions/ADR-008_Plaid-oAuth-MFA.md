@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-27  
 **Status:** Accepted  
-**Author:** Epris R
+**Author:** Epris R.
 
 ---
 
@@ -91,7 +91,7 @@ The MFA implementation was significantly more involved than scoped. The triggeri
 
 ### On device detection
 
-The original proposal noted that MFA ideally triggers only on new devices or sessions rather than every login. In practice, Appwrite triggers MFA on every login for MFA-enabled accounts. No custom session tracking was implemented to change this behavior.
+The original proposal noted that MFA ideally triggers only on new devices or sessions rather than every login. In practice, Appwrite triggers MFA on every login for MFA-enabled accounts. No custom session tracking was implemented to change this behavior. The fix is scoped in ADR-011.
 
 ### Bugs found during implementation
 
@@ -114,6 +114,8 @@ Disabling MFA server-side for affected accounts to unblock the original incident
 
 - `sheet.tsx` has the same `data-open`/`data-closed` vs. Radix's actual `data-state` mismatch pattern, unfixed.
 - No UX yet for an account that reaches "authenticated, no profile row." Currently bounces to `/welcome`, which is acceptable since the only known trigger is a manual DB deletion, not an app code path.
+- MFA re-enrollment is broken: a user who disables MFA cannot re-enable it because recovery codes cannot be regenerated. The re-enrollment flow has no path to produce new codes.
+- Device trust ("remember this device") not yet implemented. Appwrite challenges MFA on every login for enabled accounts. Fix scoped in ADR-011.
 
 ---
 
@@ -122,3 +124,4 @@ Disabling MFA server-side for affected accounts to unblock the original incident
 - [Plaid OAuth Guide](https://plaid.com/docs/link/oauth/)
 - [ADR-003: Separating bank linking from payment processing](ADR-003-plaid-dwolla-pattern.md)
 - [ADR-007: Security hardening pass](ADR-007-security-hardening.md)
+- [ADR-011: Device trust for MFA](ADR-011-device-trust.md)
