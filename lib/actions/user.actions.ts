@@ -1,5 +1,6 @@
 'use server'
 
+import { createHash } from 'crypto'
 import { AuthenticationFactor, ID, Query, type Models } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../server/appwrite'
 import { cookies } from 'next/headers'
@@ -62,6 +63,19 @@ export const signIn = async ({
 	email,
 	password,
 }: SignInProps): Promise<SignInResult> => {
+	// TEMP DIAGNOSTIC — remove after tracking down the mobile-only
+	// user_invalid_credentials issue. Logs shape, not content: never the raw
+	// password, never the full email. The hash lets us confirm byte-for-byte
+	// whether the value that reached the server matches what was intended,
+	// by comparing against a hash computed independently (e.g. `printf '%s'
+	// 'thepassword' | shasum -a 256`) of the password actually typed.
+	console.log('[signIn diagnostic]', {
+		emailLength: email.length,
+		emailHash: createHash('sha256').update(email).digest('hex'),
+		passwordLength: password.length,
+		passwordHash: createHash('sha256').update(password).digest('hex'),
+	})
+
 	try {
 		const { account } = await createAdminClient()
 
@@ -78,6 +92,7 @@ export const signIn = async ({
 			httpOnly: true,
 			sameSite: 'strict',
 			secure: true,
+			expires: new Date(session.expire),
 		})
 		cookieStore.delete(DEMO_MODE_COOKIE)
 
@@ -287,6 +302,7 @@ export const signUp = async (
 			httpOnly: true,
 			sameSite: 'strict',
 			secure: true,
+			expires: new Date(session.expire),
 		})
 		cookieStore.delete(DEMO_MODE_COOKIE)
 
