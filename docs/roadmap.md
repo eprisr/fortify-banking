@@ -17,7 +17,7 @@ Same status vocabulary as the landing page and case study, so there's one shared
 
 ---
 
-## Stage 1 — Settings (foundation)
+## Stage 1 — Settings (foundation) — ✅ done
 
 **Depends on:** nothing. This is why it's first.
 
@@ -28,13 +28,30 @@ Same status vocabulary as the landing page and case study, so there's one shared
 | Verified Customer / KYC entry point | ⚪ Planned | A link/card exists in Settings, but the actual verification flow ships with Stage 3 — it's triggered from two places (Settings and first top-up attempt), built once |
 | ADR-007 risk check | 🟢 Live | MFA enrollment touches auth data — every query goes through a server action, none reaches the client directly. Traced the full surface (enrollment, re-enrollment, sign-in's challenge, the Settings toggle row) and found one real gap: `completeMfaChallenge()` was returning the full user profile (ssn/dob/address) to two callers that never used it — fixed as part of [ADR-013](decisions/ADR-013_MFA-Reenrollment.md) |
 
-**Stage done when:** MFA setup is functional. The KYC entry point can stay a placeholder here — its real implementation is tracked under Stage 3, not duplicated.
+**Stage done when:** MFA setup is functional. The KYC entry point can stay a placeholder here — its real implementation is tracked under Stage 3, not duplicated. **This bar is now met** — MFA shipped and the ADR-007 check found and fixed a real issue rather than coming back clean by default.
+
+---
+
+## Stage 1.5 — Transfers (fix + overhaul)
+
+**Depends on:** nothing. **Blocks:** Stage 2 — bill pay extends `PaymentTransferForm`, so it can't safely start until this form actually works and reflects the current design system.
+
+Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Confirmation` predate the design system overhaul and currently have functional bugs. This was incorrectly treated as shipped in earlier planning; this stage exists to correct that.
+
+| Sub-feature | Status | Done means |
+|---|---|---|
+| Bug fixes | ⚪ Planned | Every transfer path (own accounts, to others) completes end-to-end with no known bugs — specifics TBD as they're logged |
+| Design system migration | ⚪ Planned | Matches current tokens (Ink/Paper/Cloud/Plum/Gold/Sage/Terracotta, current type scale) rather than the pre-overhaul styling it still carries |
+| Test coverage | ⚪ Planned | Jest/RTL/MSW + Playwright, same bar as the rest of the app — likely absent or stale given the component predates current conventions |
+| ADR-007 risk check | ⚪ Planned | This is the exact flow ADR-007 originally found leaking data on — re-verify the fix still holds after any changes here, don't assume it's untouched. The Stage 1 check just proved this kind of audit finds real things, not just checkbox-fills it |
+
+**Stage done when:** both transfer paths work reliably end-to-end and visually match the rest of the app, with test coverage at parity with everything built since.
 
 ---
 
 ## Stage 2 — Bill pay
 
-**Depends on:** Stage 1 not required, but logically follows since it's the fastest remaining Phase 1 gap.
+**Depends on:** Stage 1.5 (bill pay extends `PaymentTransferForm` directly — building on a broken, un-migrated form means redoing this work twice).
 
 | Sub-feature | Status | Done means |
 |---|---|---|
@@ -96,6 +113,24 @@ Same status vocabulary as the landing page and case study, so there's one shared
 
 ---
 
+## Blog cadence
+
+One post per stage, published when that stage closes — same checkpoint as the changelog entry, not a separate thing to remember. Titles are working drafts, not locked.
+
+| Stage | Working title | Angle |
+|---|---|---|
+| 1 — Settings | *Building Fortify: Settings, and the Two Decisions It Was Blocking* | Why a page can be "built" and a feature not "done" — the KYC-deferral and contextual-MFA decisions finally landing somewhere. Now that this stage is closed, this post has its ending: the ADR-007 check that found a real leak, not a clean pass |
+| 1.5 — Transfers fix + overhaul | *Building Fortify: Fixing What I Started With* | Honest post about revisiting "done" work that wasn't — the gap between a component existing and a component actually working, and why it matters enough to stop and fix before building on top of it |
+| 2 — Bill pay | *Building Fortify: Bill Pay* | Extending an existing form vs. forking a new one — the actual call made, and why |
+| 3 — Top-up, withdrawal, verification | *Building Fortify: Money In, Money Out* | The Dwolla Balance model, why Checkout.com over Stripe, Push-to-Card as a "free" upgrade — this is the richest stage, split into two posts if it runs long rather than cramming it |
+| 4 — Forecasting | *Building Fortify: Know Before Friday* | The flagship post. The spreadsheet origin, the recurring-rule-plus-exceptions model, why manual beat auto-detected. Likely the strongest piece — give it room, consider two parts (data model, then the UI) rather than rushing one |
+| 5 — Currency exchange | *(folds into the MVP wrap-up post below rather than standing alone — too small on its own)* | — |
+| MVP complete | *Shipping the MVP: What's Real, What's Simulated, and Why* | Closes the loop on the Definition of Done — the stack boundary, what got built vs. documented, and why that line was drawn deliberately instead of apologized for |
+
+The Stage 4 post is the one to protect if time gets tight elsewhere, same reasoning as the roadmap's Maya-journey note — it's the post that actually explains why the project exists.
+
+---
+
 ## Maya's user journey, mapped to the roadmap
 
 Walking through the app as the persona, in order, to sanity-check that the stages actually serve her, not just fill out a feature list.
@@ -104,7 +139,7 @@ Walking through the app as the persona, in order, to sanity-check that the stage
 2. **Guest exploration.** Tries the dashboard via guest mode before handing over any real information. *(Live — Guest Mode, ADR-006.)*
 3. **Sign-up and account linking.** Creates an account, links her bank via Plaid. No KYC friction here — that's deferred by design. *(Live.)*
 4. **Everyday check-in.** Opens the app the way she always did with her old bank app — checks the balance, glances at spending by category. *(Live.)*
-5. **First transfer.** Moves money to savings, or pays a friend back. *(Live — `PaymentTransferForm`.)*
+5. **First transfer.** Moves money to savings, or pays a friend back. *(Stage 1.5 — exists, but broken and pre-overhaul; not actually live yet despite earlier planning treating it as done.)*
 6. **Paying rent.** Uses bill pay instead of leaving the app. *(Stage 2.)*
 7. **Wants to add a cushion.** Tries to top up before a big expense, hits the verification prompt, completes it in under a minute, tops up. *(Stage 3 — this is the moment the Settings/KYC/top-up decisions all connect.)*
 8. **Needs cash same-day.** Withdraws via push-to-card instead of waiting on a standard transfer. *(Stage 3.)*
