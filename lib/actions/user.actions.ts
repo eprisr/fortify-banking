@@ -286,8 +286,6 @@ export const signUp = async (
 				userId: newUserAccount.$id,
 				dwollaCustomerId,
 				dwollaCustomerUrl,
-				verifiedEmail: newUserAccount.emailVerification,
-				mfa: newUserAccount.mfa,
 			},
 		})
 
