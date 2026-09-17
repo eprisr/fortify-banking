@@ -206,42 +206,31 @@ describe('transferFunds — downstream failures', () => {
 })
 
 // =============================================================================
-// NOT YET BUILT — spec for a dedicated same-owner "move money between my
-// accounts" flow (same bank or across the user's own different linked
-// banks). Decided 2026-08-26: this should be its own action, not just
-// reusing transferFunds with a self-chosen shareableId, because:
-//   - no recipientName/recipientEmail should be required — both accounts
-//     belong to the same logged-in user, so those are redundant UI/params.
-//   - it needs a server-side ownership check transferFunds has no reason to
-//     have: reject if the two bank documents don't both belong to the
-//     caller's own userId. Without that check, this would be a new way to
-//     move money into an arbitrary bank document by ID.
-//   - identify both accounts by their own bank document IDs directly
-//     (like senderBankDocumentId today), not by encrypting/decrypting a
-//     shareableId — there's no need to obscure an ID from yourself.
-// It.todo() rather than real assertions, since none of this exists yet —
-// there's nothing to import and run against, only a spec to track. See
-// component_fixes_deferred memory for where this is queued.
+// Self-transfer (moving money between the caller's own accounts) was
+// originally spec'd here as a dedicated action with its own ownership check.
+// Revisited under ADR-014: transferFunds already lets a caller send to any
+// shareableId they possess — that's what P2P transfer is — so a self-transfer
+// is just the case where sender and receiver resolve to the same userId.
+// There's no separate hole to close with an ownership check; Dwolla's own
+// funding-source/verified-customer requirements are the real security
+// boundary, not who owns the Appwrite bank row. The UI (ToPicker) is what
+// restricts the "to" list to the caller's own other accounts.
 // =============================================================================
-describe('moveFundsBetweenOwnAccounts (not yet built)', () => {
-	it.todo(
-		'moves funds between two of the caller\'s own accounts at the same bank/institution',
-	)
-	it.todo(
-		"moves funds between two of the caller's own accounts at different institutions",
-	)
-	it.todo('does not require recipientName or recipientEmail')
-	it.todo('supports an optional note, same as transferFunds')
-	it.todo(
-		'rejects when the receiver bank document does not belong to the caller (ownership check)',
-	)
-	it.todo(
-		'rejects when senderBankDocumentId and receiverBankDocumentId are the same account',
-	)
-	it.todo(
-		'records a transaction with senderId === receiverId but distinct senderBankId/receiverBankId',
-	)
-	it.todo(
-		'validates the amount with the same rules as transferFunds (positive, ≤ $1,000,000, ≤2dp) — confirm this cap should apply the same way to self-transfers, or if it should differ',
-	)
+describe('transferFunds — self-transfer (same user, two accounts)', () => {
+	it('moves money when the sender and receiver bank both belong to the same user', async () => {
+		const sameUserReceiver = { ...receiverBankRow, userId: senderBankRow.userId }
+		mockTable({ receiver: sameUserReceiver })
+
+		const result = await transferFunds(validParams())
+
+		expect(result).toEqual({ success: true, data: null })
+		expect(mockCreateTransaction).toHaveBeenCalledWith(
+			expect.objectContaining({
+				senderId: senderBankRow.userId.$id,
+				receiverId: senderBankRow.userId.$id,
+				senderBankId: senderBankRow.$id,
+				receiverBankId: sameUserReceiver.$id,
+			}),
+		)
+	})
 })

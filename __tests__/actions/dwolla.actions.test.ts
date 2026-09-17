@@ -9,7 +9,9 @@ import {
 	createOnDemandAuthorization,
 	createTransfer,
 	getCustomerFundingSource,
+	getDwollaCustomer,
 	getMasterFundingSource,
+	updateDwollaCustomer,
 } from '@/lib/actions/dwolla.actions'
 
 describe('createDwollaCustomer', () => {
@@ -216,6 +218,89 @@ describe('getMasterFundingSource', () => {
 		)
 
 		const result = await getMasterFundingSource('missing-master-id')
+		expect(result).toBeUndefined()
+	})
+})
+
+describe('updateDwollaCustomer', () => {
+	const customerUrl = `${DWOLLA_BASE}/customers/customer-123`
+
+	const kycFields = {
+		customerUrl,
+		firstName: 'Jane',
+		lastName: 'Doe',
+		email: 'jane@example.com',
+		address1: '99-99 33rd St',
+		city: 'Jackson Heights',
+		state: 'NY',
+		postalCode: '11372',
+		dateOfBirth: '1990-01-01',
+		ssn: '1234',
+	}
+
+	it('returns the updated customer resource on success', async () => {
+		server.use(
+			http.post(customerUrl, () =>
+				HttpResponse.json({ id: 'customer-123', type: 'personal', status: 'verified' }),
+			),
+		)
+
+		const result = await updateDwollaCustomer(kycFields)
+
+		expect(result).toEqual({
+			id: 'customer-123',
+			type: 'personal',
+			status: 'verified',
+		})
+	})
+
+	it('throws (does not swallow) when Dwolla rejects the update', async () => {
+		server.use(
+			http.post(customerUrl, () =>
+				HttpResponse.json(
+					{
+						code: 'ValidationError',
+						message: 'Invalid SSN',
+						_embedded: { errors: [{ message: 'Invalid SSN' }] },
+					},
+					{ status: 400 },
+				),
+			),
+		)
+
+		await expect(updateDwollaCustomer(kycFields)).rejects.toMatchObject({
+			body: { _embedded: { errors: [{ message: 'Invalid SSN' }] } },
+		})
+	})
+})
+
+describe('getDwollaCustomer', () => {
+	const customerUrl = `${DWOLLA_BASE}/customers/customer-123`
+
+	it('returns the customer resource', async () => {
+		server.use(
+			http.get(customerUrl, () =>
+				HttpResponse.json({ id: 'customer-123', type: 'unverified', status: 'unverified' }),
+			),
+		)
+
+		const result = await getDwollaCustomer(customerUrl)
+
+		expect(result).toEqual({
+			id: 'customer-123',
+			type: 'unverified',
+			status: 'unverified',
+		})
+	})
+
+	it('returns undefined and does not throw when the request fails', async () => {
+		server.use(
+			http.get(customerUrl, () =>
+				HttpResponse.json({ message: 'not found' }, { status: 404 }),
+			),
+		)
+
+		const result = await getDwollaCustomer(customerUrl)
 		expect(result).toBeUndefined()
 	})
 })

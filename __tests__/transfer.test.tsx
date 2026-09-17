@@ -1,74 +1,95 @@
 /**
  * Payment Transfer Flow Tests
  *
- * Covers: Transfer page (RSC), PaymentTransferForm rendering, validation,
- * submission success/error, loading state, and edge cases.
- *
- * MSW is not used here because all external API calls go through Next.js
- * server actions mocked via jest.mock.
- *
- * Uses the real transferFormSchema (lib/utils.ts) — no mock/workaround for
- * it. It used to be mocked with a z.coerce.string() amount field to paper
- * over PaymentTransferForm's amount/schema type mismatch (see
- * component_fixes_deferred item 8); that bug is fixed now, so the real
- * schema runs unmodified and would catch a regression of it.
+ * Covers: Transfer page (RSC) and the rebuilt PaymentTransferForm
+ * orchestration (entry → review → identity → success) per ADR-014.
+ * AccountPicker and IdentityVerificationForm are mocked here — each has its
+ * own dedicated test file — so these tests focus on step transitions and the
+ * calls PaymentTransferForm itself makes.
  */
 
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import { useRouter } from 'next/navigation'
 import PaymentTransferForm from '@/components/PaymentTransferForm'
-import TransferPage from '@/app/(root)/(with-nav)/payment-transfer/page'
-import { getLoggedInUser, transferFunds } from '@/lib/actions/user.actions'
+import TransferPage from '@/app/(root)/(no-nav)/payment-transfer/page'
+import {
+	getLoggedInUser,
+	getVerificationStatus,
+	transferFunds,
+} from '@/lib/actions/user.actions'
 import { getAccounts } from '@/lib/actions/bank.actions'
-
-// ---------------------------------------------------------------------------
-// Module mocks
-// ---------------------------------------------------------------------------
 
 jest.mock('@sentry/nextjs', () => ({ consoleIntegration: jest.fn() }))
 
 jest.mock('@/components/Navbar', () => () => <nav data-testid="navbar" />)
 
-// Transfer type radio group — not the focus of these tests
-jest.mock('@/components/Transfer', () => () => (
-	<div data-testid="transfer-type" />
-))
+jest.mock('@/components/transfers/AccountPicker', () => ({
+	AccountPicker: ({ mode, accounts, excludeAccountId, onChange }: any) => (
+		<div data-testid={`account-picker-${mode}`}>
+			<select
+				data-testid={`account-picker-${mode}-select`}
+				defaultValue=""
+				onChange={(e) => {
+					const account = accounts?.find(
+						(a: any) => a.appwriteItemId === e.target.value,
+					)
+					if (account) onChange({ kind: 'account', account })
+				}}>
+				<option value="">Choose account</option>
+				{accounts
+					?.filter((a: any) => a.appwriteItemId !== excludeAccountId)
+					.map((a: any) => (
+						<option key={a.appwriteItemId} value={a.appwriteItemId}>
+							{a.name}
+						</option>
+					))}
+			</select>
+			{mode === 'to' && (
+				<button
+					type="button"
+					data-testid="pick-recipient"
+					onClick={() =>
+						onChange({
+							kind: 'recipient',
+							recipient: { name: 'Jordan Lee', shareableId: 'recv-share-1' },
+							email: 'jordan@example.com',
+						})
+					}>
+					Pick Jordan Lee
+				</button>
+			)}
+		</div>
+	),
+}))
 
-// Contacts panel — not the focus of these tests
-jest.mock('@/components/Contacts', () => () => <div data-testid="contacts" />)
-
-// BankDropdown is a named export that calls setValue('senderBank', value) on change
-jest.mock('@/components/BankDropdown', () => ({
-	BankDropdown: ({ accounts, setValue }: any) => (
-		<select
-			data-testid="bank-dropdown"
-			defaultValue=""
-			onChange={(e) => setValue?.('senderBank', e.target.value)}>
-			<option value="">Select a bank</option>
-			{accounts?.map((a: any) => (
-				<option key={a.appwriteItemId} value={a.appwriteItemId}>
-					{a.name}
-				</option>
-			))}
-		</select>
+jest.mock('@/components/transfers/IdentityVerificationForm', () => ({
+	IdentityVerificationForm: ({ onVerified, onCancel }: any) => (
+		<div data-testid="identity-step">
+			<button type="button" data-testid="mock-verify" onClick={onVerified}>
+				Mock verify
+			</button>
+			<button
+				type="button"
+				data-testid="mock-cancel-identity"
+				onClick={onCancel}>
+				Mock cancel
+			</button>
+		</div>
 	),
 }))
 
 jest.mock('@/lib/actions/user.actions', () => ({
 	getLoggedInUser: jest.fn(),
 	transferFunds: jest.fn(),
+	getVerificationStatus: jest.fn(),
 }))
 
 jest.mock('@/lib/actions/bank.actions', () => ({
 	getAccounts: jest.fn(),
 	getAccount: jest.fn(),
 }))
-
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
 
 const mockUser: User = {
 	$id: 'user-123',
@@ -92,8 +113,9 @@ const mockAccount: Account = {
 	availableBalance: 1000,
 	currentBalance: 1200,
 	officialName: 'Chase Total Checking',
-	mask: '0001',
 	institutionId: 'ins_1',
+	institutionName: 'Chase',
+	mask: '0001',
 	name: 'Chase Checking',
 	type: 'depository',
 	subtype: 'checking',
@@ -101,65 +123,57 @@ const mockAccount: Account = {
 	shareableId: 'share-1',
 }
 
+const secondAccount: Account = {
+	...mockAccount,
+	id: 'acc-2',
+	appwriteItemId: 'item-2',
+	name: 'High-Yield Savings',
+	shareableId: 'share-2',
+}
+
 const mockTransferSuccess = { success: true, data: null }
 
-// Stands in for a real (AES-GCM encrypted) shareableId — the client treats
-// it as an opaque string, so any value passing the schema's min(8) works.
-const VALID_SHARABLE_ID = btoa('receiver-acc-1')
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 const mockPush = jest.fn()
+const mockRefresh = jest.fn()
 
 function setupRouter() {
 	;(useRouter as jest.Mock).mockReturnValue({
 		push: mockPush,
 		replace: jest.fn(),
-		refresh: jest.fn(),
+		refresh: mockRefresh,
 		back: jest.fn(),
 		forward: jest.fn(),
 	})
 }
 
-/** Await and render the async Transfer RSC. Returns null if the page early-returns. */
+/** Flushes the pending getVerificationStatus() promise inside an act() boundary. */
+async function flush() {
+	await act(async () => {})
+}
+
 async function renderPage() {
 	const jsx = await TransferPage()
 	if (!jsx) return null
-	return render(jsx)
+	const result = render(jsx)
+	await flush()
+	return result
 }
 
-/** Fill all required fields with valid data and click the submit button. */
-async function fillAndSubmit() {
-	await userEvent.selectOptions(screen.getByTestId('bank-dropdown'), 'item-1')
-	await userEvent.type(screen.getByPlaceholderText('J Doe'), 'Jane Doe')
-	await userEvent.type(
-		screen.getByPlaceholderText(/johndoe@email/i),
-		'receiver@example.com',
-	)
-	await userEvent.type(
-		screen.getByPlaceholderText(/fdewkl/i),
-		VALID_SHARABLE_ID,
-	)
-	await userEvent.type(screen.getByPlaceholderText(/ex: 5.00/i), '1000')
-	await userEvent.click(screen.getByRole('button', { name: /transfer funds/i }))
+async function typeAmount(digits: string) {
+	await userEvent.type(screen.getByPlaceholderText('$0.00'), digits)
 }
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 describe('Payment Transfer Flow', () => {
 	beforeEach(() => {
 		jest.clearAllMocks()
 		setupRouter()
+		;(getVerificationStatus as jest.Mock).mockResolvedValue({
+			success: true,
+			data: { status: 'verified' },
+		})
 	})
 
-	// =========================================================================
 	describe('Transfer Page — RSC', () => {
-		// =========================================================================
-
 		beforeEach(() => {
 			;(getLoggedInUser as jest.Mock).mockResolvedValue(mockUser)
 			;(getAccounts as jest.Mock).mockResolvedValue({
@@ -171,437 +185,310 @@ describe('Payment Transfer Flow', () => {
 
 		it('renders the Navbar', async () => {
 			await renderPage()
-			expect(screen.getByTestId('navbar')).toBeInTheDocument()
+			expect(await screen.findByTestId('navbar')).toBeInTheDocument()
 		})
 
 		it('renders the PaymentTransferForm', async () => {
 			await renderPage()
 			expect(
-				screen.getByRole('button', { name: /transfer funds/i }),
+				await screen.findByRole('button', { name: /review transfer/i }),
 			).toBeInTheDocument()
-		})
-
-		it('calls getLoggedInUser once', async () => {
-			await renderPage()
-			expect(getLoggedInUser).toHaveBeenCalledTimes(1)
 		})
 
 		it('calls getAccounts with the logged-in user id', async () => {
 			await renderPage()
+			await flush()
 			expect(getAccounts).toHaveBeenCalledWith({ userId: mockUser.$id })
 		})
 
-		it('still renders the form when getAccounts returns null', async () => {
-			;(getAccounts as jest.Mock).mockResolvedValue(null)
-			await renderPage()
-			expect(
-				screen.getByRole('button', { name: /transfer funds/i }),
-			).toBeInTheDocument()
-		})
-
-		it('still renders the form when getAccounts returns undefined', async () => {
-			;(getAccounts as jest.Mock).mockResolvedValue(undefined)
-			await renderPage()
-			expect(
-				screen.getByRole('button', { name: /transfer funds/i }),
-			).toBeInTheDocument()
-		})
-
-		it('does not throw when loggedIn is null, and calls getAccounts with undefined userId', async () => {
+		it('does not throw when loggedIn is null', async () => {
 			;(getLoggedInUser as jest.Mock).mockResolvedValue(null)
 			await expect(renderPage()).resolves.not.toThrow()
-			expect(getAccounts).toHaveBeenCalledWith({ userId: undefined })
+			await flush()
 		})
 	})
 
-	// =========================================================================
-	describe('PaymentTransferForm — Rendering', () => {
-		// =========================================================================
-
-		beforeEach(() => render(<PaymentTransferForm accounts={[mockAccount]} />))
-
-		it('renders the bank selector dropdown', () => {
-			expect(screen.getByTestId('bank-dropdown')).toBeInTheDocument()
-		})
-
-		it('renders the transaction type selector', () => {
-			expect(screen.getByTestId('transfer-type')).toBeInTheDocument()
-		})
-
-		it('renders the contacts panel', () => {
-			expect(screen.getByTestId('contacts')).toBeInTheDocument()
-		})
-
-		it('renders the "Recipient Information" card heading', () => {
-			expect(screen.getByText('Recipient Information')).toBeInTheDocument()
-		})
-
-		it('renders the recipient name input', () => {
-			expect(screen.getByPlaceholderText('J Doe')).toBeInTheDocument()
-		})
-
-		it('renders the recipient email input', () => {
-			expect(screen.getByPlaceholderText(/johndoe@email/i)).toBeInTheDocument()
-		})
-
-		it('renders the sharable ID input', () => {
-			expect(screen.getByPlaceholderText(/fdewkl/i)).toBeInTheDocument()
-		})
-
-		it('renders the amount input', () => {
-			expect(screen.getByPlaceholderText(/ex: 5.00/i)).toBeInTheDocument()
-		})
-
-		it('renders the optional transfer note textarea', () => {
-			expect(
-				screen.getByPlaceholderText(/write a short note/i),
-			).toBeInTheDocument()
-		})
-
-		it('renders the "Transfer Funds" submit button', () => {
-			expect(
-				screen.getByRole('button', { name: /transfer funds/i }),
-			).toBeInTheDocument()
-		})
-
-		it('submit button is enabled on initial render', () => {
-			expect(
-				screen.getByRole('button', { name: /transfer funds/i }),
-			).toBeEnabled()
-		})
-
-		it('does not show a loading indicator initially', () => {
-			expect(screen.queryByText(/sending/i)).not.toBeInTheDocument()
-		})
-	})
-
-	// =========================================================================
-	describe('PaymentTransferForm — Rendering with no accounts', () => {
-		// =========================================================================
-
-		it('renders without crashing when accounts is an empty array', () => {
-			render(<PaymentTransferForm accounts={[]} />)
-			expect(
-				screen.getByRole('button', { name: /transfer funds/i }),
-			).toBeInTheDocument()
-		})
-
-		it('renders the bank dropdown with no options', () => {
-			render(<PaymentTransferForm accounts={[]} />)
-			const dropdown = screen.getByTestId('bank-dropdown') as HTMLSelectElement
-			// Only the default "Select a bank" option
-			expect(dropdown.options).toHaveLength(1)
-		})
-	})
-
-	// =========================================================================
-	describe('PaymentTransferForm — Validation', () => {
-		// =========================================================================
-
-		beforeEach(() => render(<PaymentTransferForm accounts={[mockAccount]} />))
-
-		it('shows an error when no sender bank is selected', async () => {
-			await userEvent.click(
-				screen.getByRole('button', { name: /transfer funds/i }),
+	describe('Entry step', () => {
+		beforeEach(async () => {
+			render(
+				<PaymentTransferForm
+					accounts={[mockAccount, secondAccount]}
+					currentUserEmail={mockUser.email}
+				/>,
 			)
+			await flush()
+		})
+
+		it('renders the bank selector, recipient picker, amount, and note fields', () => {
+			expect(screen.getByTestId('account-picker-from-select')).toBeInTheDocument()
+			expect(screen.getByTestId('account-picker-to-select')).toBeInTheDocument()
+			expect(screen.getByPlaceholderText('$0.00')).toBeInTheDocument()
 			expect(
-				await screen.findByText(/please select a valid bank account/i),
+				screen.getByPlaceholderText(/moving to savings/i),
 			).toBeInTheDocument()
 		})
 
-		it('shows an error when recipient name is empty', async () => {
+		it('disables "Review transfer" until from, to, and a positive amount are set', async () => {
+			const button = screen.getByRole('button', { name: /review transfer/i })
+			expect(button).toBeDisabled()
+
 			await userEvent.selectOptions(
-				screen.getByTestId('bank-dropdown'),
+				screen.getByTestId('account-picker-from-select'),
 				'item-1',
 			)
-			await userEvent.click(
-				screen.getByRole('button', { name: /transfer funds/i }),
-			)
-			expect(
-				await screen.findByText(/recipient name is required/i),
-			).toBeInTheDocument()
-		})
+			expect(button).toBeDisabled()
 
-		it('shows an error for an invalid recipient email format', async () => {
 			await userEvent.selectOptions(
-				screen.getByTestId('bank-dropdown'),
-				'item-1',
+				screen.getByTestId('account-picker-to-select'),
+				'item-2',
 			)
-			await userEvent.type(screen.getByPlaceholderText('J Doe'), 'Jane Doe')
-			await userEvent.type(
-				screen.getByPlaceholderText(/johndoe@email/i),
-				'not-valid',
-			)
-			await userEvent.click(
-				screen.getByRole('button', { name: /transfer funds/i }),
-			)
-			expect(
-				await screen.findByText(/invalid email address/i),
-			).toBeInTheDocument()
+			expect(button).toBeDisabled()
+
+			await typeAmount('1000')
+			expect(button).toBeEnabled()
 		})
 
-		it('shows an error when sharable ID is shorter than 8 characters', async () => {
-			await userEvent.selectOptions(
-				screen.getByTestId('bank-dropdown'),
-				'item-1',
-			)
-			await userEvent.type(screen.getByPlaceholderText('J Doe'), 'Jane Doe')
-			await userEvent.type(
-				screen.getByPlaceholderText(/johndoe@email/i),
-				'r@example.com',
-			)
-			await userEvent.type(screen.getByPlaceholderText(/fdewkl/i), 'short')
-			await userEvent.click(
-				screen.getByRole('button', { name: /transfer funds/i }),
-			)
-			expect(
-				await screen.findByText(/please select a valid sharable id/i),
-			).toBeInTheDocument()
+		it('formats the amount as a currency string while typing', async () => {
+			await typeAmount('500')
+			expect(screen.getByPlaceholderText('$0.00')).toHaveValue('$5.00')
 		})
 
-		it('does not call any server actions when the form is invalid', async () => {
-			await userEvent.click(
-				screen.getByRole('button', { name: /transfer funds/i }),
-			)
-			await screen.findByText(/please select a valid bank account/i)
-			expect(transferFunds).not.toHaveBeenCalled()
+		it('leaves the amount empty when only non-numeric characters are typed', async () => {
+			await typeAmount('abc')
+			expect(screen.getByPlaceholderText('$0.00')).toHaveValue('')
 		})
 	})
 
-	// =========================================================================
-	describe('PaymentTransferForm — Successful submission', () => {
-		// =========================================================================
+	it('shows the unverified weekly limit note for an unverified user', async () => {
+		;(getVerificationStatus as jest.Mock).mockResolvedValue({
+			success: true,
+			data: { status: 'unverified' },
+		})
+		render(
+			<PaymentTransferForm
+				accounts={[mockAccount, secondAccount]}
+				currentUserEmail={mockUser.email}
+			/>,
+		)
+		expect(
+			await screen.findByText(/up to \$5,000.00 per week/i),
+		).toBeInTheDocument()
+	})
 
-		beforeEach(() => {
+	it('shows the per-transfer limit note for a verified user', async () => {
+		render(
+			<PaymentTransferForm
+				accounts={[mockAccount, secondAccount]}
+				currentUserEmail={mockUser.email}
+			/>,
+		)
+		expect(
+			await screen.findByText(/up to \$10,000.00 per transfer/i),
+		).toBeInTheDocument()
+	})
+
+	describe('Review step', () => {
+		async function fillEntry() {
+			await userEvent.selectOptions(
+				screen.getByTestId('account-picker-from-select'),
+				'item-1',
+			)
+			await userEvent.selectOptions(
+				screen.getByTestId('account-picker-to-select'),
+				'item-2',
+			)
+			await typeAmount('1000')
+			await userEvent.click(
+				screen.getByRole('button', { name: /review transfer/i }),
+			)
+		}
+
+		beforeEach(async () => {
+			render(
+				<PaymentTransferForm
+					accounts={[mockAccount, secondAccount]}
+					currentUserEmail={mockUser.email}
+				/>,
+			)
+			await flush()
+		})
+
+		it('shows the amount, from, and to accounts', async () => {
+			await fillEntry()
+			expect(screen.getByText('$10.00')).toBeInTheDocument()
+			expect(screen.getByText('Chase Checking')).toBeInTheDocument()
+			expect(screen.getByText('High-Yield Savings')).toBeInTheDocument()
+		})
+
+		it('goes back to the entry step on "Edit"', async () => {
+			await fillEntry()
+			await userEvent.click(screen.getByRole('button', { name: /edit/i }))
+			expect(screen.getByTestId('account-picker-from-select')).toBeInTheDocument()
+		})
+
+		it('submits the transfer directly for a self-transfer (no identity step)', async () => {
 			;(transferFunds as jest.Mock).mockResolvedValue(mockTransferSuccess)
-			render(<PaymentTransferForm accounts={[mockAccount]} />)
-		})
+			await fillEntry()
+			await userEvent.click(
+				screen.getByRole('button', { name: /confirm & send/i }),
+			)
 
-		it('calls transferFunds with the sender bank id, the raw (still-encrypted) shareableId, and amount', async () => {
-			await fillAndSubmit()
 			await waitFor(() =>
 				expect(transferFunds).toHaveBeenCalledWith(
 					expect.objectContaining({
 						senderBankDocumentId: 'item-1',
-						// Decryption is server-only now (lib/server/encryption.ts) —
-						// the client must pass the shareableId through unchanged.
-						receiverShareableId: VALID_SHARABLE_ID,
-						amount: expect.any(String),
+						receiverShareableId: 'share-2',
+						amount: '10.00',
+						recipientName: 'High-Yield Savings',
+						recipientEmail: mockUser.email,
 					}),
 				),
 			)
+			expect(screen.getByText(/transfer complete/i)).toBeInTheDocument()
 		})
 
-		it('sends the amount as the formatted currency string, not a number', async () => {
-			await fillAndSubmit()
-			await waitFor(() =>
-				expect(transferFunds).toHaveBeenCalledWith(
-					expect.objectContaining({ amount: '$10.00' }),
-				),
+		it('shows the server error and stays on review when transferFunds fails', async () => {
+			;(transferFunds as jest.Mock).mockResolvedValue({
+				success: false,
+				error: 'Transfer service unavailable',
+			})
+			await fillEntry()
+			await userEvent.click(
+				screen.getByRole('button', { name: /confirm & send/i }),
 			)
+
+			expect(
+				await screen.findByText('Transfer service unavailable'),
+			).toBeInTheDocument()
+			expect(screen.queryByText(/transfer complete/i)).not.toBeInTheDocument()
+		})
+	})
+
+	describe('Sending to another person', () => {
+		function renderForm() {
+			return render(
+				<PaymentTransferForm
+					accounts={[mockAccount, secondAccount]}
+					currentUserEmail={mockUser.email}
+				/>,
+			)
+		}
+
+		async function fillEntryForRecipient() {
+			await userEvent.selectOptions(
+				screen.getByTestId('account-picker-from-select'),
+				'item-1',
+			)
+			await userEvent.click(screen.getByTestId('pick-recipient'))
+			await typeAmount('1000')
+			await userEvent.click(
+				screen.getByRole('button', { name: /review transfer/i }),
+			)
+		}
+
+		it('routes to the identity step when the recipient is unverified', async () => {
+			;(getVerificationStatus as jest.Mock).mockResolvedValue({
+				success: true,
+				data: { status: 'unverified' },
+			})
+			renderForm()
+			await flush()
+			await fillEntryForRecipient()
+			await userEvent.click(
+				screen.getByRole('button', { name: /confirm & send/i }),
+			)
+
+			expect(await screen.findByTestId('identity-step')).toBeInTheDocument()
+			expect(transferFunds).not.toHaveBeenCalled()
 		})
 
-		it('calls transferFunds with recipient name and email', async () => {
-			await fillAndSubmit()
+		it('submits the transfer once identity verification completes', async () => {
+			;(getVerificationStatus as jest.Mock).mockResolvedValue({
+				success: true,
+				data: { status: 'unverified' },
+			})
+			;(transferFunds as jest.Mock).mockResolvedValue(mockTransferSuccess)
+			renderForm()
+			await flush()
+			await fillEntryForRecipient()
+			await userEvent.click(
+				screen.getByRole('button', { name: /confirm & send/i }),
+			)
+			await userEvent.click(await screen.findByTestId('mock-verify'))
+
 			await waitFor(() =>
 				expect(transferFunds).toHaveBeenCalledWith(
 					expect.objectContaining({
-						recipientName: 'Jane Doe',
-						recipientEmail: 'receiver@example.com',
+						receiverShareableId: 'recv-share-1',
+						recipientName: 'Jordan Lee',
+						recipientEmail: 'jordan@example.com',
 					}),
 				),
 			)
 		})
 
-		it('redirects to "/" after a successful transfer', async () => {
-			await fillAndSubmit()
-			await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/'))
-		})
-
-		it('shows a "Sending..." loading indicator while in-flight', async () => {
-			;(transferFunds as jest.Mock).mockImplementation(
-				() =>
-					new Promise((resolve) =>
-						setTimeout(() => resolve(mockTransferSuccess), 300),
-					),
-			)
-			await userEvent.selectOptions(
-				screen.getByTestId('bank-dropdown'),
-				'item-1',
-			)
-			await userEvent.type(screen.getByPlaceholderText('J Doe'), 'Jane Doe')
-			await userEvent.type(
-				screen.getByPlaceholderText(/johndoe@email/i),
-				'receiver@example.com',
-			)
-			await userEvent.type(
-				screen.getByPlaceholderText(/fdewkl/i),
-				VALID_SHARABLE_ID,
-			)
-			await userEvent.type(screen.getByPlaceholderText(/ex: 5.00/i), '1000')
-			await userEvent.click(
-				screen.getByRole('button', { name: /transfer funds/i }),
-			)
-
-			expect(screen.getByText(/sending/i)).toBeInTheDocument()
-			expect(screen.getByRole('button', { name: /sending/i })).toBeDisabled()
-		})
-
-		it('re-enables the submit button after a successful submission', async () => {
-			await fillAndSubmit()
-			await waitFor(() =>
-				expect(
-					screen.getByRole('button', { name: /transfer funds/i }),
-				).toBeEnabled(),
-			)
-		})
-
-		it('calls transferFunds exactly once per submit', async () => {
-			await fillAndSubmit()
-			await waitFor(() => expect(transferFunds).toHaveBeenCalledTimes(1))
-		})
-	})
-
-	// =========================================================================
-	describe('PaymentTransferForm — Error handling', () => {
-		// =========================================================================
-
-		beforeEach(() => {
-			render(<PaymentTransferForm accounts={[mockAccount]} />)
-		})
-
-		it('does not redirect when transferFunds returns success: false', async () => {
-			;(transferFunds as jest.Mock).mockResolvedValue({
-				success: false,
-				error: 'Transfer service unavailable',
-			})
-			await fillAndSubmit()
-			await waitFor(() => expect(transferFunds).toHaveBeenCalled())
-			expect(mockPush).not.toHaveBeenCalled()
-		})
-
-		it('re-enables the submit button after a failed transfer', async () => {
-			;(transferFunds as jest.Mock).mockResolvedValue({
-				success: false,
-				error: 'Transfer service unavailable',
-			})
-			await fillAndSubmit()
-			await waitFor(() =>
-				expect(
-					screen.getByRole('button', { name: /transfer funds/i }),
-				).toBeEnabled(),
-			)
-		})
-
-		it('does not crash when transferFunds throws', async () => {
-			;(transferFunds as jest.Mock).mockRejectedValue(
-				new Error('Transfer service unavailable'),
-			)
-			await expect(fillAndSubmit()).resolves.not.toThrow()
-			await waitFor(() =>
-				expect(
-					screen.getByRole('button', { name: /transfer funds/i }),
-				).toBeEnabled(),
-			)
-		})
-	})
-
-	// =========================================================================
-	describe('PaymentTransferForm — Edge cases', () => {
-		// =========================================================================
-
-		it('renders all provided accounts in the bank dropdown', () => {
-			const secondAccount: Account = {
-				...mockAccount,
-				id: 'acc-2',
-				appwriteItemId: 'item-2',
-				name: 'Bank of America',
-				mask: '0002',
-			}
-			render(<PaymentTransferForm accounts={[mockAccount, secondAccount]} />)
-			const options = Array.from(
-				(screen.getByTestId('bank-dropdown') as HTMLSelectElement).options,
-			).map((o) => o.text)
-			expect(options).toContain('Chase Checking')
-			expect(options).toContain('Bank of America')
-		})
-
-		it('formats the amount input as a currency string while typing', async () => {
-			render(<PaymentTransferForm accounts={[mockAccount]} />)
-			const amountInput = screen.getByPlaceholderText(/ex: 5.00/i)
-			await userEvent.type(amountInput, '500')
-			// useReducer formats via formatAmount: 500 cents → $5.00
-			expect(amountInput).toHaveValue('$5.00')
-		})
-
-		it('ignores non-numeric characters in the amount field', async () => {
-			render(<PaymentTransferForm accounts={[mockAccount]} />)
-			const amountInput = screen.getByPlaceholderText(/ex: 5.00/i)
-			await userEvent.type(amountInput, 'abc')
-			// All non-digits are stripped → 0 cents → $0.00
-			expect(amountInput).toHaveValue('$0.00')
-		})
-
-		it('submits a transfer note when provided', async () => {
+		it('does not require identity verification once already verified', async () => {
 			;(transferFunds as jest.Mock).mockResolvedValue(mockTransferSuccess)
-
-			render(<PaymentTransferForm accounts={[mockAccount]} />)
-			await userEvent.selectOptions(
-				screen.getByTestId('bank-dropdown'),
-				'item-1',
-			)
-			await userEvent.type(screen.getByPlaceholderText('J Doe'), 'Jane Doe')
-			await userEvent.type(
-				screen.getByPlaceholderText(/johndoe@email/i),
-				'receiver@example.com',
-			)
-			await userEvent.type(
-				screen.getByPlaceholderText(/fdewkl/i),
-				VALID_SHARABLE_ID,
-			)
-			await userEvent.type(screen.getByPlaceholderText(/ex: 5.00/i), '1000')
-			await userEvent.type(
-				screen.getByPlaceholderText(/write a short note/i),
-				'Birthday gift',
-			)
+			renderForm()
+			await flush()
+			await fillEntryForRecipient()
 			await userEvent.click(
-				screen.getByRole('button', { name: /transfer funds/i }),
+				screen.getByRole('button', { name: /confirm & send/i }),
 			)
 
-			await waitFor(() =>
-				expect(transferFunds).toHaveBeenCalledWith(
-					expect.objectContaining({ note: 'Birthday gift' }),
-				),
+			await waitFor(() => expect(transferFunds).toHaveBeenCalled())
+			expect(screen.queryByTestId('identity-step')).not.toBeInTheDocument()
+		})
+
+		it('returns to review when identity verification is cancelled', async () => {
+			;(getVerificationStatus as jest.Mock).mockResolvedValue({
+				success: true,
+				data: { status: 'unverified' },
+			})
+			renderForm()
+			await flush()
+			await fillEntryForRecipient()
+			await userEvent.click(
+				screen.getByRole('button', { name: /confirm & send/i }),
 			)
+			await userEvent.click(await screen.findByTestId('mock-cancel-identity'))
+
+			expect(
+				await screen.findByRole('button', { name: /confirm & send/i }),
+			).toBeInTheDocument()
+			expect(transferFunds).not.toHaveBeenCalled()
 		})
 	})
 
-	// ===========================================================================
-	// NOT YET BUILT — spec for a pre-submit confirmation/review step. Decided
-	// 2026-08-26: clicking "Transfer Funds" today calls transferFunds
-	// immediately (see `submit` in PaymentTransferForm.tsx); the intended
-	// behavior is a review screen (amount, sender account, recipient, note)
-	// that the user must explicitly confirm before the server action fires,
-	// with a way back to the form to edit without submitting.
-	// it.todo() rather than real assertions — none of this exists yet, only
-	// a spec to track. See component_fixes_deferred memory for where this is
-	// queued.
-	// ===========================================================================
-	describe('PaymentTransferForm — confirmation step (not yet built)', () => {
-		it.todo(
-			'does not call transferFunds immediately on submit — shows a review screen first',
-		)
-		it.todo(
-			'review screen displays the amount, sender account, recipient, and note exactly as entered',
-		)
-		it.todo(
-			'calls transferFunds only after the user explicitly confirms on the review screen',
-		)
-		it.todo(
-			'returns to the editable form without calling transferFunds when the user backs out of the review screen',
-		)
-		it.todo(
-			'preserves the entered values when backing out of the review screen',
-		)
+	describe('Demo mode', () => {
+		it('disables the confirm button and shows a demo notice', async () => {
+			render(
+				<PaymentTransferForm
+					accounts={[mockAccount, secondAccount]}
+					currentUserEmail={mockUser.email}
+					isDemo
+				/>,
+			)
+			await userEvent.selectOptions(
+				screen.getByTestId('account-picker-from-select'),
+				'item-1',
+			)
+			await userEvent.selectOptions(
+				screen.getByTestId('account-picker-to-select'),
+				'item-2',
+			)
+			await typeAmount('1000')
+			await userEvent.click(
+				screen.getByRole('button', { name: /review transfer/i }),
+			)
+
+			expect(
+				screen.getByRole('button', { name: /confirm & send/i }),
+			).toBeDisabled()
+			expect(
+				screen.getByText(/aren.t available in demo mode/i),
+			).toBeInTheDocument()
+			expect(getVerificationStatus).not.toHaveBeenCalled()
+		})
 	})
 })
