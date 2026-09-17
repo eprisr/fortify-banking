@@ -13,7 +13,6 @@ import { amountToWords, formatAmount } from '@/lib/utils'
 import { AccountPicker, Destination } from './transfers/AccountPicker'
 import { IdentityVerificationForm } from './transfers/IdentityVerificationForm'
 import { Button } from './ui/button'
-import { Textarea } from './ui/textarea'
 
 type Step = 'entry' | 'review' | 'identity' | 'success'
 
@@ -297,7 +296,8 @@ const PaymentTransferForm = ({
 				<p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
 					Note (optional)
 				</p>
-				<Textarea
+				<input
+					className="w-full rounded-2xl bg-muted px-4 py-3.5 text-sm text-foreground outline-none placeholder:text-muted-foreground"
 					placeholder="e.g. Moving to savings"
 					value={note}
 					onChange={(e) => setNote(e.target.value)}
