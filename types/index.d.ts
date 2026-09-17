@@ -15,7 +15,11 @@ declare type SignInResult =
 	| { success: false; error: string }
 
 declare type RecoveryCodesResult =
-	| { success: true; challengeRequired: false; data: import('node-appwrite').Models.MfaRecoveryCodes }
+	| {
+			success: true
+			challengeRequired: false
+			data: import('node-appwrite').Models.MfaRecoveryCodes
+	  }
 	| { success: true; challengeRequired: true }
 	| { success: false; error: string }
 
@@ -177,6 +181,41 @@ declare type NewDwollaCustomerParams = {
 	// ssn: string
 }
 
+declare type DwollaCustomerStatus =
+	| 'unverified'
+	| 'retry'
+	| 'document'
+	| 'verified'
+	| 'suspended'
+	| 'deactivated'
+
+declare type UpdateDwollaCustomerParams = {
+	customerUrl: string
+	firstName: string
+	lastName: string
+	email: string
+	address1: string
+	city: string
+	state: string
+	postalCode: string
+	dateOfBirth: string
+	ssn: string
+}
+
+declare type Recipient = {
+	name: string
+	shareableId: string
+}
+
+declare type VerifyIdentityParams = {
+	address1: string
+	city: string
+	state: string
+	postalCode: string
+	dateOfBirth: string
+	ssn: string
+}
+
 declare interface CreditCardProps {
 	account: Account
 	userName: string
@@ -238,12 +277,6 @@ declare interface AuthFormProps {
 	type: 'sign-in' | 'sign-up'
 }
 
-declare interface BankDropdownProps {
-	accounts: Account[]
-	setValue?: UseFormSetValue<any>
-	otherStyles?: string
-}
-
 declare interface BankTabItemProps {
 	account: Account
 	appwriteItemId?: string
@@ -303,6 +336,7 @@ declare interface DoughnutChartProps {
 
 declare interface PaymentTransferFormProps {
 	accounts: Account[]
+	currentUserEmail: string
 	isDemo?: boolean
 }
 

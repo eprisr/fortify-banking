@@ -5,7 +5,9 @@ import { createAdminClient, createSessionClient } from '../server/appwrite'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import {
+	dwollaSchema,
 	extractCustomerIdFromUrl,
+	firstDwollaErrorMessage,
 	handleError,
 	parseStringify,
 	passwordField,
@@ -32,9 +34,11 @@ import {
 	createDwollaCustomer,
 	createTransfer as createDwollaTransfer,
 	deactivateDwollaCustomer,
+	getDwollaCustomer,
+	updateDwollaCustomer,
 } from './dwolla.actions'
 import { createTransaction } from './transaction.actions'
-import { DEMO_MODE_COOKIE, DEMO_USER } from '../demo-data'
+import { DEMO_MODE_COOKIE, DEMO_USER, isDemoUserId } from '../demo-data'
 
 const {
 	APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -623,6 +627,52 @@ export const getBankByAccountId = async ({
 	}
 }
 
+export const findRecipientByEmail = async (
+	email: string,
+): Promise<ActionResponse<Recipient>> => {
+	const parsed = emailField.safeParse(email)
+	if (!parsed.success) {
+		return { success: false, error: firstIssueMessage(parsed.error) }
+	}
+
+	try {
+		const loggedIn = await getLoggedInUser()
+		if (!loggedIn) throw new Error('Not signed in')
+		if (parsed.data === loggedIn.email) {
+			return { success: false, error: "That's your own email — pick one of your own accounts instead" }
+		}
+
+		const { table } = await createAdminClient()
+		const users = await table.listRows({
+			databaseId: DATABASE_ID!,
+			tableId: USER_COLLECTION_ID!,
+			queries: [Query.equal('email', [parsed.data])],
+		})
+
+		const recipient = users.rows[0]
+		if (!recipient) {
+			return { success: false, error: 'No matching recipient found' }
+		}
+
+		const banks = await getBanks({ userId: recipient.$id })
+		const bank = banks.success ? banks.data?.[0] : null
+		if (!bank) {
+			return { success: false, error: 'No matching recipient found' }
+		}
+
+		return {
+			success: true,
+			data: {
+				name: `${recipient.firstName} ${recipient.lastName}`,
+				shareableId: bank.shareableId,
+			},
+		}
+	} catch (error: any) {
+		console.error('Find Recipient Error: ', error)
+		return { success: false, error: 'Failed to search for recipient' }
+	}
+}
+
 export const transferFunds = async (
 	params: TransferFundsProps,
 ): Promise<ActionResponse<null>> => {
@@ -685,6 +735,64 @@ export const transferFunds = async (
 			success: false,
 			error: error?.message || 'Failed to complete transfer',
 		}
+	}
+}
+
+export const getVerificationStatus = async (): Promise<
+	ActionResponse<{ status: DwollaCustomerStatus }>
+> => {
+	try {
+		const loggedIn = await getLoggedInUser()
+		if (!loggedIn) throw new Error('Not signed in')
+		if (isDemoUserId(loggedIn.$id)) {
+			return { success: true, data: { status: 'unverified' } }
+		}
+
+		const customer = await getDwollaCustomer(loggedIn.dwollaCustomerUrl)
+		if (!customer) throw new Error('Could not reach the payment provider')
+
+		return { success: true, data: { status: customer.status } }
+	} catch (error: any) {
+		console.error('Get Verification Status Error: ', error)
+		return {
+			success: false,
+			error: error?.message || 'Failed to check verification status',
+		}
+	}
+}
+
+export const verifyIdentity = async (
+	params: VerifyIdentityParams,
+): Promise<ActionResponse<{ status: DwollaCustomerStatus }>> => {
+	const parsed = dwollaSchema.safeParse(params)
+	if (!parsed.success) {
+		return { success: false, error: firstIssueMessage(parsed.error) }
+	}
+
+	try {
+		const loggedIn = await getLoggedInUser()
+		if (!loggedIn) throw new Error('Not signed in')
+		if (isDemoUserId(loggedIn.$id)) {
+			return {
+				success: false,
+				error: 'Verification is not available in demo mode',
+			}
+		}
+
+		const updated = await updateDwollaCustomer({
+			customerUrl: loggedIn.dwollaCustomerUrl,
+			firstName: loggedIn.firstName,
+			lastName: loggedIn.lastName,
+			email: loggedIn.email,
+			...parsed.data,
+		})
+
+		revalidatePath('/payment-transfer')
+
+		return { success: true, data: { status: updated.status } }
+	} catch (error: any) {
+		console.error('Verify Identity Error: ', error, error?.body?._embedded)
+		return { success: false, error: firstDwollaErrorMessage(error) }
 	}
 }
 

@@ -12,7 +12,7 @@ const getEnvironment = (): 'production' | 'sandbox' => {
 			return 'production'
 		default:
 			throw new Error(
-				'Dwolla environment should either be set to `sandbox` or `production`'
+				'Dwolla environment should either be set to `sandbox` or `production`',
 			)
 	}
 }
@@ -24,7 +24,7 @@ const dwollaClient = new Client({
 })
 
 export const createFundingSource = async (
-	options: CreateFundingSourceOptions
+	options: CreateFundingSourceOptions,
 ) => {
 	try {
 		return await dwollaClient
@@ -41,7 +41,7 @@ export const createFundingSource = async (
 export const createOnDemandAuthorization = async () => {
 	try {
 		const onDemandAuthorization = await dwollaClient.post(
-			'on-demand-authorizations'
+			'on-demand-authorizations',
 		)
 		const authLink = onDemandAuthorization.body._links
 		return authLink
@@ -51,7 +51,7 @@ export const createOnDemandAuthorization = async () => {
 }
 
 export const createDwollaCustomer = async (
-	newCustomer: NewDwollaCustomerParams
+	newCustomer: NewDwollaCustomerParams,
 ) => {
 	try {
 		return await dwollaClient
@@ -72,6 +72,33 @@ export const deactivateDwollaCustomer = async (customerUrl: string) => {
 		await dwollaClient.post(customerUrl, { status: 'deactivated' })
 	} catch (err) {
 		console.error('Deactivating a Dwolla Customer Failed: ', err)
+	}
+}
+
+export const updateDwollaCustomer = async ({
+	customerUrl,
+	...fields
+}: UpdateDwollaCustomerParams) => {
+	const res = await dwollaClient.post(customerUrl, {
+		...fields,
+		type: 'personal',
+	})
+	return res.body as { status: DwollaCustomerStatus } & Record<string, unknown>
+}
+
+export const getDwollaCustomer = async (customerUrl: string) => {
+	try {
+		return await dwollaClient
+			.get(customerUrl)
+			.then(
+				(res) =>
+					res.body as { status: DwollaCustomerStatus } & Record<
+						string,
+						unknown
+					>,
+			)
+	} catch (err) {
+		console.error('Getting Dwolla Customer Failed: ', err)
 	}
 }
 

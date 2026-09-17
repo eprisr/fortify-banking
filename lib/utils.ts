@@ -57,6 +57,11 @@ export const handleError = (
 	}
 }
 
+export const firstDwollaErrorMessage = (error: any): string =>
+	error?.body?._embedded?.errors?.[0]?.message ||
+	error?.body?.message ||
+	'Failed to verify identity. Please check your information and try again.'
+
 // FORMAT DATE TIME
 export const formatDateTime = (dateString: Date) => {
 	const dateTimeOptions: Intl.DateTimeFormatOptions = {
@@ -141,6 +146,81 @@ export function formatAmount(amount: number): string {
 	})
 
 	return formatter.format(amount)
+}
+
+const ONES = [
+	'',
+	'one',
+	'two',
+	'three',
+	'four',
+	'five',
+	'six',
+	'seven',
+	'eight',
+	'nine',
+	'ten',
+	'eleven',
+	'twelve',
+	'thirteen',
+	'fourteen',
+	'fifteen',
+	'sixteen',
+	'seventeen',
+	'eighteen',
+	'nineteen',
+]
+const TENS = [
+	'',
+	'',
+	'twenty',
+	'thirty',
+	'forty',
+	'fifty',
+	'sixty',
+	'seventy',
+	'eighty',
+	'ninety',
+]
+
+const threeDigitsToWords = (n: number): string => {
+	let words = ''
+	if (n >= 100) {
+		words += `${ONES[Math.floor(n / 100)]} hundred`
+		n %= 100
+		if (n > 0) words += ' '
+	}
+	if (n >= 20) {
+		words += TENS[Math.floor(n / 10)]
+		if (n % 10 > 0) words += `-${ONES[n % 10]}`
+	} else if (n > 0) {
+		words += ONES[n]
+	}
+	return words
+}
+
+export function amountToWords(amount: number): string {
+	const dollars = Math.floor(amount)
+	const cents = Math.round((amount - dollars) * 100)
+	if (dollars === 0 && cents === 0) return 'Zero dollars'
+
+	let dollarWords = ''
+	if (dollars === 0) {
+		dollarWords = 'zero'
+	} else {
+		const thousands = Math.floor(dollars / 1000)
+		const remainder = dollars % 1000
+		if (thousands > 0) dollarWords += `${threeDigitsToWords(thousands)} thousand`
+		if (remainder > 0) {
+			dollarWords += (thousands > 0 ? ' ' : '') + threeDigitsToWords(remainder)
+		}
+	}
+	dollarWords += dollars === 1 ? ' dollar' : ' dollars'
+	if (cents > 0) {
+		dollarWords += ` and ${threeDigitsToWords(cents)}${cents === 1 ? ' cent' : ' cents'}`
+	}
+
+	return dollarWords.charAt(0).toUpperCase() + dollarWords.slice(1)
 }
 
 export const parseStringify = (value: any) => JSON.parse(JSON.stringify(value))
@@ -381,7 +461,9 @@ export const signinSchema = z.object({
 
 export const mfaChallengeSchema = (length: number) =>
 	z.object({
-		code: z.string().length(length, { error: `Enter all ${length} characters` }),
+		code: z
+			.string()
+			.length(length, { error: `Enter all ${length} characters` }),
 	})
 
 export const forgotPwSchema = z.object({
@@ -418,16 +500,42 @@ export const waitlistSchema = z.object({
 })
 
 export const dwollaSchema = z.object({
-	address1: z.string().min(5, { error: 'Address is Required' }).max(50),
-	city: z.string().min(2, { error: 'City is Required' }).max(50),
+	address1: z
+		.string()
+		.trim()
+		.min(5, { error: 'Enter a valid street address' })
+		.max(50),
+	city: z.string().trim().min(2, { error: 'City is required' }).max(50),
 	state: z
 		.string()
-		.min(2, { error: 'State is Required' })
-		.max(2, { error: 'A Valid State is Required' }),
+		.trim()
+		.regex(/^[A-Za-z]{2}$/, { error: 'Enter a 2-letter state code' })
+		.transform((value) => value.toUpperCase()),
 	postalCode: z
 		.string()
-		.min(3, { error: 'A Postal Code is Required' })
-		.max(6, { error: 'A Valid Postal Code is Required' }),
-	dateOfBirth: z.string().min(3, { error: 'A Birth Date is Required' }),
-	ssn: z.string().min(4, { error: 'A SSN is Required' }),
+		.trim()
+		.regex(/^\d{5}(-\d{4})?$/, { error: 'Enter a valid ZIP code' }),
+	// Dwolla expects YYYY-MM-DD on the wire; the KYC form displays and
+	// collects MM/DD/YYYY and converts before this schema ever sees it.
+	dateOfBirth: z
+		.string()
+		.regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Enter a valid date of birth' })
+		.refine(
+			(value) => {
+				const dob = new Date(value)
+				if (Number.isNaN(dob.getTime())) return false
+				const eighteenYearsAgo = new Date()
+				eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18)
+				return dob <= eighteenYearsAgo
+			},
+			{ error: 'You must be at least 18 years old' },
+		),
+	ssn: z
+		.string()
+		.transform((value) => value.replace(/\D/g, ''))
+		.pipe(
+			z.string().regex(/^(\d{4}|\d{9})$/, {
+				error: 'Enter the last 4 digits of your SSN',
+			}),
+		),
 })

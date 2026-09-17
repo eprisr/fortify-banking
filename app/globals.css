@@ -325,22 +325,6 @@
 	.bank-info_content {
 		@apply flex flex-1 items-center justify-between gap-2 overflow-hidden;
 	}
-	.payment-transfer {
-		@apply no-scrollbar flex flex-col overflow-y-scroll bg-gray-25 p-8 md:max-h-screen xl:py-12;
-	}
-
-	.payment-transfer_form-item {
-		@apply flex w-full max-w-212.5 flex-col gap-3 md:flex-row lg:gap-8;
-	}
-
-	.payment-transfer_form-content {
-		@apply flex w-full max-w-70 flex-col gap-2;
-	}
-
-	.payment-transfer_btn-box {
-		@apply mt-5 flex w-full max-w-212.5 gap-3 border-gray-200 py-5;
-	}
-
 	/* My Banks */
 	.my-banks {
 		@apply flex h-screen max-h-screen w-full flex-col gap-8 bg-gray-25 p-8 xl:py-12;
