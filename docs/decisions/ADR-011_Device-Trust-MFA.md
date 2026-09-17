@@ -1,7 +1,7 @@
 # ADR-011: Device Trust — "Remember This Device" for MFA
 
 **Date:** 2026-09-16  
-**Status:** Proposed  
+**Status:** Rejected  
 **Author:** Epris R.
 
 ---
@@ -65,11 +65,30 @@ Appwrite caps `prefs` at 64kB per user. Each trusted-device entry (a SHA-256 has
 
 ## Consequences (Actual)
 
-*To be filled in after implementation.*
+**Rejected before implementation.** Checking Appwrite's own server source (`app/controllers/shared/api.php` in appwrite/appwrite) turned up a hard blocker: the MFA gate is a global route middleware, not something scoped to `account.get()`:
+
+```php
+$minimumFactors = ($mfaEnabled && $hasMoreFactors) ? 2 : 1;
+if (! in_array('mfa', $route->getGroups())) {
+    if ($session && count($session->getAttribute('factors', [])) < $minimumFactors) {
+        throw new Exception(Exception::USER_MORE_FACTORS_REQUIRED);
+    }
+}
+```
+
+This runs on every route outside the `mfa` route group, keyed off a `factors` count stored **on the session object itself**. The only way that count increases is a real `updateMFAChallenge()` call against that exact session — there is no admin/API-key endpoint that marks an existing session as MFA-satisfied without it.
+
+The Users-service prefs read/write (`Users.getPrefs(userId)`) this design leaned on is unaffected, since API-key calls have no `$session` in scope and the gate doesn't apply there. But that was never the problem. `signIn()`'s `session.secret` becomes the long-lived `appwrite-session` cookie every later request authenticates with via `createSessionClient()`. Detecting a trusted device and skipping `createMFAChallenge` would leave that session's `factors` count unchanged — Appwrite has no record that the challenge was "waived." Every subsequent session-scoped call on that cookie (`getLoggedInUser()`'s `account.get()` overlay, `hasRealSession()`, anything else) would keep throwing `user_more_factors_required` for the entire life of the session. The user would appear to sign in successfully and then be broken on the very next request.
+
+The only way around this is an app-level session layer that stops trusting Appwrite's own session-completeness signal — e.g. the app issuing and validating its own signed session claim alongside the Appwrite session. That's a materially bigger change than this ADR scoped, and it directly undermines ADR-008's decision that Appwrite Auth is the sole source of truth for MFA status. Not pursued.
+
+See [ADR-012](ADR-012_Persistent-Session-Cookie.md) for the lighter-weight fix that was pursued instead: rather than skip MFA on known devices, stop forcing *unnecessary* re-logins (and thus unnecessary MFA challenges) by making the session cookie survive a browser restart.
 
 ---
 
 ## References
 - [ADR-008: Plaid OAuth and Appwrite MFA](ADR-008-plaid-oauth-mfa.md)
+- [ADR-012: Persistent Session Cookie](ADR-012_Persistent-Session-Cookie.md)
 - [Appwrite User Preferences Documentation](https://appwrite.io/docs/products/auth/preferences)
 - [Appwrite MFA Documentation](https://appwrite.io/docs/products/auth/mfa)
+- [appwrite/appwrite — app/controllers/shared/api.php](https://github.com/appwrite/appwrite/blob/main/app/controllers/shared/api.php)

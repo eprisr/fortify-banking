@@ -445,7 +445,7 @@ describe('Sign In Flow', () => {
 			})
 			;(completeMfaChallenge as jest.Mock).mockResolvedValueOnce({
 				success: true,
-				data: { $id: 'user-123' },
+				data: null,
 			})
 			render(<AuthForm type="signin" />)
 

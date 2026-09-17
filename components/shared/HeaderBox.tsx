@@ -8,11 +8,11 @@ const HeaderBox = ({
 	type = 'title',
 	title,
 	subtext,
-  user,
+	user,
 }: HeaderBoxProps) => {
-  	const router = useRouter()
-  
-  return (
+	const router = useRouter()
+
+	return (
 		<>
 			{type === 'greeting' ? (
 				<div className="header-box">
@@ -36,8 +36,8 @@ const HeaderBox = ({
 						</div>
 					</button>
 					<div className="flex flex-col gap-1 md:gap-3">
-              <h1 className="text-xl font-bold">{title}</h1>
-              <p className="text-sm font-serif italic leading-2">{subtext}</p>
+						<h1 className="text-xl font-bold">{title}</h1>
+						<p className="text-sm font-serif italic">{subtext}</p>
 					</div>
 				</header>
 			)}

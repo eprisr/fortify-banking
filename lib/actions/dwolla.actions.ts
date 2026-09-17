@@ -62,6 +62,19 @@ export const createDwollaCustomer = async (
 	}
 }
 
+// Dwolla enforces a unique email per customer, and has no delete endpoint —
+// deactivating is as close to a rollback as the API allows. Without this, a
+// signup that creates a Dwolla customer but fails a later step (e.g. the
+// Appwrite DB row) leaves an orphaned customer that permanently blocks any
+// future signup attempt with that same email.
+export const deactivateDwollaCustomer = async (customerUrl: string) => {
+	try {
+		await dwollaClient.post(customerUrl, { status: 'deactivated' })
+	} catch (err) {
+		console.error('Deactivating a Dwolla Customer Failed: ', err)
+	}
+}
+
 export const createTransfer = async ({
 	sourceFundingSourceUrl,
 	destinationFundingSourceUrl,

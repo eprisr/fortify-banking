@@ -182,20 +182,13 @@ describe('signIn', () => {
 })
 
 describe('completeMfaChallenge', () => {
-	it('finishes authenticating on a valid recovery code', async () => {
+	it('confirms success without fetching or leaking the user profile back to the caller', async () => {
 		mockCreateSessionClient.mockResolvedValue({
 			account: {
 				updateMFAChallenge: jest.fn().mockResolvedValue({
 					userId: 'user-123',
 					secret: '',
 				}),
-			},
-		})
-		mockCreateAdminClient.mockResolvedValue({
-			table: {
-				listRows: jest
-					.fn()
-					.mockResolvedValue({ rows: [{ $id: 'row-1', userId: 'user-123' }] }),
 			},
 		})
 
@@ -207,10 +200,12 @@ describe('completeMfaChallenge', () => {
 		const { set } = await cookies()
 		expect(set).not.toHaveBeenCalled()
 
-		expect(result).toEqual({
-			success: true,
-			data: { $id: 'row-1', userId: 'user-123' },
-		})
+		// Neither caller (sign-in, recovery-codes re-enrollment) needs the
+		// profile back — asserting createAdminClient is never reached (not
+		// just that `data` happens to be empty) proves the SSN/DOB/address
+		// row is never even fetched, let alone shipped to the browser.
+		expect(mockCreateAdminClient).not.toHaveBeenCalled()
+		expect(result).toEqual({ success: true, data: null })
 	})
 
 	it('falls back to a clear message for an unrecognized rejection type', async () => {

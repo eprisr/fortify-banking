@@ -1,6 +1,6 @@
 'use server'
 
-import { AuthenticationFactor, ID, Query, type Models } from 'node-appwrite'
+import { AuthenticationFactor, ID, Query } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../server/appwrite'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -31,6 +31,7 @@ import {
 	addFundingSource,
 	createDwollaCustomer,
 	createTransfer as createDwollaTransfer,
+	deactivateDwollaCustomer,
 } from './dwolla.actions'
 import { createTransaction } from './transaction.actions'
 import { DEMO_MODE_COOKIE, DEMO_USER } from '../demo-data'
@@ -78,6 +79,7 @@ export const signIn = async ({
 			httpOnly: true,
 			sameSite: 'strict',
 			secure: true,
+			expires: new Date(session.expire),
 		})
 		cookieStore.delete(DEMO_MODE_COOKIE)
 
@@ -111,18 +113,16 @@ export const completeMfaChallenge = async ({
 }: {
 	challengeId: string
 	code: string
-}): Promise<ActionResponse<User>> => {
+}): Promise<ActionResponse<null>> => {
 	try {
 		const { account } = await createSessionClient()
 
-		const session = await account.updateMFAChallenge({
+		await account.updateMFAChallenge({
 			challengeId,
 			otp: code,
 		})
 
-		const user = await getUserInfo({ userId: session.userId })
-
-		return { success: true, data: parseStringify(user) }
+		return { success: true, data: null }
 	} catch (error: any) {
 		return handleError(error, 'Invalid or expired code')
 	}
@@ -234,6 +234,7 @@ export const signUp = async (
 	const { firstName, lastName, email, password } = parsed.data
 
 	let newUserAccountId: string | null = null
+	let newDwollaCustomerUrl: string | null = null
 
 	try {
 		const { account, table } = await createAdminClient()
@@ -258,6 +259,8 @@ export const signUp = async (
 
 		if (!dwollaCustomerUrl) throw new Error('Payment provider setup failed')
 
+		newDwollaCustomerUrl = dwollaCustomerUrl
+
 		const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl)
 
 		const newUser = await table.createRow({
@@ -271,8 +274,6 @@ export const signUp = async (
 				userId: newUserAccount.$id,
 				dwollaCustomerId,
 				dwollaCustomerUrl,
-				verifiedEmail: newUserAccount.emailVerification,
-				mfa: newUserAccount.mfa,
 			},
 		})
 
@@ -287,6 +288,7 @@ export const signUp = async (
 			httpOnly: true,
 			sameSite: 'strict',
 			secure: true,
+			expires: new Date(session.expire),
 		})
 		cookieStore.delete(DEMO_MODE_COOKIE)
 
@@ -302,6 +304,10 @@ export const signUp = async (
 					cleanupError,
 				)
 			}
+		}
+
+		if (newDwollaCustomerUrl) {
+			await deactivateDwollaCustomer(newDwollaCustomerUrl)
 		}
 
 		return handleError(error, 'An error occurred during sign up')
@@ -682,15 +688,17 @@ export const transferFunds = async (
 	}
 }
 
-export const generateRecoveryCodes = async (): Promise<
-	ActionResponse<Models.MfaRecoveryCodes>
-> => {
+export const generateRecoveryCodes = async (): Promise<RecoveryCodesResult> => {
 	try {
 		const { account } = await createSessionClient()
 
 		const res = await account.createMFARecoveryCodes()
 
-		return { success: true, data: res }
+		return {
+			success: true,
+			challengeRequired: false,
+			data: parseStringify(res),
+		}
 	} catch (error: any) {
 		if (error.type === 'user_recovery_codes_already_exists') {
 			// Codes can only ever be *created* once — every later visit (a
@@ -700,8 +708,22 @@ export const generateRecoveryCodes = async (): Promise<
 				const { account } = await createSessionClient()
 				const res = await account.updateMFARecoveryCodes()
 
-				return { success: true, data: res }
+				return {
+					success: true,
+					challengeRequired: false,
+					data: parseStringify(res),
+				}
 			} catch (regenerateError: any) {
+				// Regenerating is gated behind Appwrite's `mfaProtected` route
+				// group, which requires the *current session* to have passed an
+				// MFA challenge within the last 30 minutes. Re-enabling after a
+				// disable never triggers one (Appwrite only challenges
+				// MFA-enabled accounts at sign-in) — the caller has to run the
+				// user through one explicitly before retrying.
+				if (regenerateError.type === 'user_challenge_required') {
+					return { success: true, challengeRequired: true }
+				}
+
 				console.error(
 					'An Error Occurred while regenerating recovery codes: ',
 					regenerateError,

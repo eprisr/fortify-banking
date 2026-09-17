@@ -264,6 +264,7 @@ const AuthForm = ({
 								type === 'reset-pw' ? 'Enter new password' : 'Password'
 							}
 							required
+							autoComplete={type === 'signin' ? 'current-password' : 'new-password'}
 						/>
 					)}
 
