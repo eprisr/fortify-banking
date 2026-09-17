@@ -23,8 +23,6 @@ import { getAccounts } from '@/lib/actions/bank.actions'
 
 jest.mock('@sentry/nextjs', () => ({ consoleIntegration: jest.fn() }))
 
-jest.mock('@/components/Navbar', () => () => <nav data-testid="navbar" />)
-
 jest.mock('@/components/transfers/AccountPicker', () => ({
 	AccountPicker: ({ mode, accounts, excludeAccountId, onChange }: any) => (
 		<div data-testid={`account-picker-${mode}`}>
@@ -183,9 +181,12 @@ describe('Payment Transfer Flow', () => {
 			})
 		})
 
-		it('renders the Navbar', async () => {
+		it('renders the header with a back button and the page title', async () => {
 			await renderPage()
-			expect(await screen.findByTestId('navbar')).toBeInTheDocument()
+			expect(
+				await screen.findByRole('heading', { name: /transfer/i }),
+			).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /go back/i })).toBeInTheDocument()
 		})
 
 		it('renders the PaymentTransferForm', async () => {
