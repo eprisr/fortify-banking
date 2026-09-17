@@ -13,11 +13,12 @@ const Transfer = async () => {
 
 	return (
 		<>
-			<Navbar type="sub" pageTitle="Transfer" />
-			<section className="payment-transfer size-full">
+			<Navbar type="sub" pageTitle="Transfer" user={loggedIn} />
+			<section className="size-full">
 				<Suspense>
 					<PaymentTransferForm
 						accounts={accountsData}
+						currentUserEmail={loggedIn?.email}
 						isDemo={isDemoUserId(loggedIn?.$id)}
 					/>
 				</Suspense>

@@ -627,6 +627,52 @@ export const getBankByAccountId = async ({
 	}
 }
 
+export const findRecipientByEmail = async (
+	email: string,
+): Promise<ActionResponse<Recipient>> => {
+	const parsed = emailField.safeParse(email)
+	if (!parsed.success) {
+		return { success: false, error: firstIssueMessage(parsed.error) }
+	}
+
+	try {
+		const loggedIn = await getLoggedInUser()
+		if (!loggedIn) throw new Error('Not signed in')
+		if (parsed.data === loggedIn.email) {
+			return { success: false, error: "That's your own email — pick one of your own accounts instead" }
+		}
+
+		const { table } = await createAdminClient()
+		const users = await table.listRows({
+			databaseId: DATABASE_ID!,
+			tableId: USER_COLLECTION_ID!,
+			queries: [Query.equal('email', [parsed.data])],
+		})
+
+		const recipient = users.rows[0]
+		if (!recipient) {
+			return { success: false, error: 'No matching recipient found' }
+		}
+
+		const banks = await getBanks({ userId: recipient.$id })
+		const bank = banks.success ? banks.data?.[0] : null
+		if (!bank) {
+			return { success: false, error: 'No matching recipient found' }
+		}
+
+		return {
+			success: true,
+			data: {
+				name: `${recipient.firstName} ${recipient.lastName}`,
+				shareableId: bank.shareableId,
+			},
+		}
+	} catch (error: any) {
+		console.error('Find Recipient Error: ', error)
+		return { success: false, error: 'Failed to search for recipient' }
+	}
+}
+
 export const transferFunds = async (
 	params: TransferFundsProps,
 ): Promise<ActionResponse<null>> => {

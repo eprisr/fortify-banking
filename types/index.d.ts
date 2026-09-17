@@ -202,6 +202,11 @@ declare type UpdateDwollaCustomerParams = {
 	ssn: string
 }
 
+declare type Recipient = {
+	name: string
+	shareableId: string
+}
+
 declare type VerifyIdentityParams = {
 	address1: string
 	city: string
@@ -272,12 +277,6 @@ declare interface AuthFormProps {
 	type: 'sign-in' | 'sign-up'
 }
 
-declare interface BankDropdownProps {
-	accounts: Account[]
-	setValue?: UseFormSetValue<any>
-	otherStyles?: string
-}
-
 declare interface BankTabItemProps {
 	account: Account
 	appwriteItemId?: string
@@ -337,6 +336,7 @@ declare interface DoughnutChartProps {
 
 declare interface PaymentTransferFormProps {
 	accounts: Account[]
+	currentUserEmail: string
 	isDemo?: boolean
 }
 
