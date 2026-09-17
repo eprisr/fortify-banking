@@ -207,6 +207,12 @@ declare type Recipient = {
 	shareableId: string
 }
 
+declare type RecentRecipient = {
+	name: string
+	email: string
+	shareableId: string
+}
+
 declare type VerifyIdentityParams = {
 	address1: string
 	city: string

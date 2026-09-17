@@ -44,6 +44,7 @@ const {
 	APPWRITE_DATABASE_ID: DATABASE_ID,
 	APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID,
 	APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID,
+	APPWRITE_TRANSACTION_COLLECTION_ID: TRANSACTION_COLLECTION_ID,
 } = process.env
 
 export const getUserInfo = async ({ userId }: getUserInfoProps) => {
@@ -639,7 +640,10 @@ export const findRecipientByEmail = async (
 		const loggedIn = await getLoggedInUser()
 		if (!loggedIn) throw new Error('Not signed in')
 		if (parsed.data === loggedIn.email) {
-			return { success: false, error: "That's your own email — pick one of your own accounts instead" }
+			return {
+				success: false,
+				error: "That's your own email — pick one of your own accounts instead",
+			}
 		}
 
 		const { table } = await createAdminClient()
@@ -670,6 +674,55 @@ export const findRecipientByEmail = async (
 	} catch (error: any) {
 		console.error('Find Recipient Error: ', error)
 		return { success: false, error: 'Failed to search for recipient' }
+	}
+}
+
+export const getRecentRecipients = async (): Promise<
+	ActionResponse<RecentRecipient[]>
+> => {
+	try {
+		const loggedIn = await getLoggedInUser()
+		if (!loggedIn) throw new Error('Not signed in')
+		if (isDemoUserId(loggedIn.$id)) {
+			return { success: true, data: [] }
+		}
+
+		const { table } = await createAdminClient()
+		const transactions = await table.listRows({
+			databaseId: DATABASE_ID!,
+			tableId: TRANSACTION_COLLECTION_ID!,
+			queries: [
+				Query.equal('senderId', [loggedIn.$id]),
+				Query.orderDesc('$createdAt'),
+				Query.limit(50),
+			],
+		})
+
+		const seenReceivers = new Set<string>()
+		const recipients: RecentRecipient[] = []
+
+		for (const txn of transactions.rows) {
+			if (txn.receiverId === loggedIn.$id) continue
+			if (seenReceivers.has(txn.receiverId)) continue
+			seenReceivers.add(txn.receiverId)
+
+			const bank = await getBank({ documentId: txn.receiverBankId }).catch(
+				() => null,
+			)
+			if (!bank) continue
+
+			recipients.push({
+				name: txn.name,
+				email: txn.email,
+				shareableId: bank.shareableId,
+			})
+			if (recipients.length >= 6) break
+		}
+
+		return { success: true, data: recipients }
+	} catch (error: any) {
+		console.error('Get Recent Recipients Error: ', error)
+		return { success: false, error: 'Failed to load recent recipients' }
 	}
 }
 
