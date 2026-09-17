@@ -1,7 +1,7 @@
 # ADR-013: MFA Re-Enrollment Fix — Pre-Challenge Before Regenerating Recovery Codes
 
 **Date:** 2026-09-17  
-**Status:** Proposed  
+**Status:** Accepted  
 **Author:** Epris R.
 
 ---
@@ -82,7 +82,46 @@ Unlike sign-in's MFA challenge, this one is email-only with no option to switch 
 
 ## Consequences (Actual)
 
-*To be filled in after implementation.*
+Implemented as scoped, with one structural deviation and two bugs found and fixed after the initial pass.
+
+### Deviation from the plan: a new child component, not a converted page
+
+The ADR's plan called for `recovery-codes/page.tsx` itself to become a client component. In practice, the page stayed a server component — it still owns the `verifiedEmail` gate and the initial `generateRecoveryCodes()` call — and a new `components/settings/RecoveryCodesFlow.tsx` client component was introduced underneath it, taking `initialResult` as a prop and owning the three states (codes-ready, challenge-pending, error) described in the ADR. Functionally equivalent to what was scoped, but keeps the server-only verified-email check simple rather than folding it into client state.
+
+### `RecoveryCodesResult`'s actual shape
+
+The ADR's draft type used `{ success: true; data: ... }` for the non-challenge success case. The implemented type adds an explicit `challengeRequired: false` discriminant on that variant:
+
+```ts
+type RecoveryCodesResult =
+  | { success: true; challengeRequired: false; data: import('node-appwrite').Models.MfaRecoveryCodes }
+  | { success: true; challengeRequired: true }
+  | { success: false; error: string }
+```
+
+Needed for TypeScript to narrow cleanly between the two `success: true` variants — without it, accessing `.data` after checking `.success` alone doesn't type-narrow away the challenge-required case.
+
+### Bug 1: RSC serialization crash
+
+Passing the Appwrite SDK's raw `Models.MfaRecoveryCodes` response as `initialResult` from the server page to the new client component tripped React's Server Components boundary: *"Only plain objects, and a few built-ins, can be passed to Client Components from Server Components."* The SDK response isn't a plain object. Fixed by wrapping the returned `data` in `parseStringify()` inside `generateRecoveryCodes()` — the same `JSON.parse(JSON.stringify(...))` pattern already used everywhere else in `user.actions.ts` for exactly this reason, which this function had been missing since it predates the ADR's client-component boundary.
+
+### Bug 2: a second MFA challenge, a second email
+
+The `useEffect` requesting the email challenge on mount was guarded only by the `challengeId` state. Because that state updates asynchronously, an effect re-run before the update landed (a double-invoke, or a re-render racing the pending promise) fired a second `requestMfaChallenge('email')` — a second real Appwrite challenge, a second real email sent. The client ended up holding whichever `challengeId` resolved last, while the user could easily be looking at the *other* email's code, which then failed as invalid/expired against the newer challenge. Fixed with a `useRef` guard that flips synchronously on first fire, so only one challenge is ever requested regardless of how many times the effect body runs.
+
+### Bug 3: `completeMfaChallenge()` leaking the full user profile
+
+A data-exposure check run against this ADR's diff (per the `data-exposure-check` skill — the same lineage as ADR-007) found that `completeMfaChallenge()` returned the full `getUserInfo()` row on success, including `ssn`, `dateOfBirth`, and `address1/city/state/postalCode`. This predates ADR-013 — it's the same function sign-in's MFA challenge has always used — but neither caller has ever consumed `.data`: `AuthForm.tsx`'s `onMfaSubmit` only checks `.success` before a hard navigation (which re-fetches everything server-side anyway), and the new `RecoveryCodesFlow.tsx` does the same. ADR-013 doubled the exposed surface by adding a second call site to an already-over-returning function, which is what surfaced it.
+
+Fixed by changing `completeMfaChallenge()`'s return type from `ActionResponse<User>` to `ActionResponse<null>` and dropping the `getUserInfo()` call entirely — one fewer DB read, and the PII never leaves the server for this path. This is a shared-function change: sign-in's MFA challenge UX is unaffected (it never used the data), but the action's contract changed for both callers, so "untouched" below refers to behavior, not to every line of code in the shared function.
+
+### Untouched, as planned
+
+First-time MFA setup, `enableMFA()`/`disableMFA()`, and sign-in's own MFA challenge *behavior* were not touched — only `completeMfaChallenge()`'s internals, per Bug 3 above.
+
+### Test coverage
+
+Two existing `generateRecoveryCodes()` assertions updated for the new response shape, one new test for the `challengeRequired` branch, and a new `__tests__/recovery-codes.test.tsx` (7 tests) covering `RecoveryCodesFlow.tsx` directly — including a regression test that forces a re-render mid-challenge-request and asserts `requestMfaChallenge` still only fires once (Bug 2), and an assertion that the challenge-completion mock carries no user-profile fields (Bug 3). The `completeMfaChallenge` test in `user.actions.signin.test.ts` now also asserts `createAdminClient` is never called, proving the profile is never even fetched, not just absent from the response. The component-test gap noted in the previous revision of this ADR is closed.
 
 ---
 
