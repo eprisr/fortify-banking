@@ -113,18 +113,16 @@ export const completeMfaChallenge = async ({
 }: {
 	challengeId: string
 	code: string
-}): Promise<ActionResponse<User>> => {
+}): Promise<ActionResponse<null>> => {
 	try {
 		const { account } = await createSessionClient()
 
-		const session = await account.updateMFAChallenge({
+		await account.updateMFAChallenge({
 			challengeId,
 			otp: code,
 		})
 
-		const user = await getUserInfo({ userId: session.userId })
-
-		return { success: true, data: parseStringify(user) }
+		return { success: true, data: null }
 	} catch (error: any) {
 		return handleError(error, 'Invalid or expired code')
 	}
@@ -696,7 +694,11 @@ export const generateRecoveryCodes = async (): Promise<RecoveryCodesResult> => {
 
 		const res = await account.createMFARecoveryCodes()
 
-		return { success: true, challengeRequired: false, data: parseStringify(res) }
+		return {
+			success: true,
+			challengeRequired: false,
+			data: parseStringify(res),
+		}
 	} catch (error: any) {
 		if (error.type === 'user_recovery_codes_already_exists') {
 			// Codes can only ever be *created* once — every later visit (a
@@ -706,7 +708,11 @@ export const generateRecoveryCodes = async (): Promise<RecoveryCodesResult> => {
 				const { account } = await createSessionClient()
 				const res = await account.updateMFARecoveryCodes()
 
-				return { success: true, challengeRequired: false, data: parseStringify(res) }
+				return {
+					success: true,
+					challengeRequired: false,
+					data: parseStringify(res),
+				}
 			} catch (regenerateError: any) {
 				// Regenerating is gated behind Appwrite's `mfaProtected` route
 				// group, which requires the *current session* to have passed an
