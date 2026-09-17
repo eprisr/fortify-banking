@@ -1,7 +1,7 @@
 # ADR-014: Transfer Flow Rebuild
 
 **Date:** 2026-09-17  
-**Status:** Proposed  
+**Status:** Accepted (scope amended 2026-09-17 — see Amendment below)  
 **Author:** Epris R
 
 ---
@@ -59,6 +59,22 @@ Rebuild the transfer flow from the current broken state, scoped strictly to PRD 
 **Risks:**
 - The `transferFunds` server action from ADR-007 was written to close the security gap, not to be the complete transfer implementation. It may need extension to cover edge cases the tutorial's original backend handled, such as insufficient funds responses, failed transfer states, or Dwolla webhook handling.
 - Transaction history rendering depends on Plaid data that flows through the same auth and session changes that broke the tutorial build. Both pieces need to be verified as working together, not just independently.
+
+---
+
+## Amendment — Scope Expansion (2026-09-17)
+
+The Dwolla audit called for in step 1 surfaced a blocker more fundamental than "the UI is over-engineered": every Dwolla customer is created with `type: 'unverified'` at signup (`lib/actions/user.actions.ts`), no code path ever upgrades a customer to verified, and Dwolla requires at least one verified party per transfer. Confirmed against a live Dwolla sandbox call in a prior session (2026-08-27) — this environment has no local Dwolla sandbox credentials to re-run the call, so the finding is carried forward rather than re-verified live, but the code-side half of it (no upgrade path exists) is independently confirmed by grep against current `main`. Practical effect: an unverified user can transfer between their own linked accounts, but two organically-signed-up users can never transfer to each other — not a UI bug, a missing backend capability.
+
+Roadmap Stage 3 already scoped a "Verification flow (KYC)" sub-feature, gated behind Settings and first-top-up, deliberately kept out of this rebuild's original minimum. Given the blocker above, that dependency is pulled forward: **this rebuild now includes real KYC data collection and the Dwolla unverified→verified customer upgrade**, not just transfer UI/wiring. Rationale: shipping a "rebuilt" P2P transfer flow that still can't complete a transfer between two real users would repeat the exact mistake this ADR exists to correct (treating broken as done).
+
+Revised scope, on top of the original three-part approach:
+
+4. **KYC data collection + Dwolla customer upgrade.** Collect the fields Dwolla's customer-update endpoint requires to upgrade `unverified` → `verified` (`personal`): address, city, state, postal code, date of birth, SSN. The `dwollaSchema` in `lib/utils.ts` was already written for this shape and has been unused since it was added — reuse it rather than redefining. Handle Dwolla's non-`verified` outcomes (`document`/`retry`/`suspended`) rather than assuming every submission succeeds outright.
+5. **Recipient search by email**, replacing raw shareable-ID paste as the primary UX (per the attached transfer-flow mockup), with a manual shareable-ID fallback retained for the case a lookup can't resolve. New server-side surface — reviewed under the ADR-007 pattern (server action returns only name + shareable ID, never raw account or Dwolla data).
+6. **Per-transfer OTP is explicitly out of scope.** The mockup's MFA screen is redundant with existing session-level MFA (ADR-008) — this rebuild relies on the session already being challenged, and does not add a second per-transfer OTP step. If real time-of-transfer step-up auth is wanted later, that's a separate ADR, not a silent addition here.
+
+This does not change the roadmap's Stage 3 top-up/withdrawal scope (Checkout.com-gated, still blocked) — only the KYC/verification sub-feature moves earlier, since transfer now depends on it too.
 
 ---
 
