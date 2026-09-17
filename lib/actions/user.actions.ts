@@ -32,6 +32,7 @@ import {
 	addFundingSource,
 	createDwollaCustomer,
 	createTransfer as createDwollaTransfer,
+	deactivateDwollaCustomer,
 } from './dwolla.actions'
 import { createTransaction } from './transaction.actions'
 import { DEMO_MODE_COOKIE, DEMO_USER } from '../demo-data'
@@ -249,6 +250,7 @@ export const signUp = async (
 	const { firstName, lastName, email, password } = parsed.data
 
 	let newUserAccountId: string | null = null
+	let newDwollaCustomerUrl: string | null = null
 
 	try {
 		const { account, table } = await createAdminClient()
@@ -272,6 +274,8 @@ export const signUp = async (
 		})
 
 		if (!dwollaCustomerUrl) throw new Error('Payment provider setup failed')
+
+		newDwollaCustomerUrl = dwollaCustomerUrl
 
 		const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl)
 
@@ -316,6 +320,10 @@ export const signUp = async (
 					cleanupError,
 				)
 			}
+		}
+
+		if (newDwollaCustomerUrl) {
+			await deactivateDwollaCustomer(newDwollaCustomerUrl)
 		}
 
 		return handleError(error, 'An error occurred during sign up')
