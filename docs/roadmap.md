@@ -24,7 +24,7 @@ Same status vocabulary as the landing page and case study, so there's one shared
 | Sub-feature | Status | Done means |
 |---|---|---|
 | Route, layout, nav | 🟢 Live | Settings is reachable and has a place for everything below |
-| MFA setup | 🟢 Live | User can enroll in MFA from Settings, independent of anything else — no Dwolla/Plaid dependency. Email OTP + recovery-code challenge flow, per [ADR-008](decisions/ADR-008-Plaid-oAuth-MFA.md). Known gap: Appwrite triggers the challenge on every login rather than only on new devices/sessions — no custom session tracking was built to change that |
+| MFA setup | 🟢 Live | User can enroll in MFA from Settings, independent of anything else — no Dwolla/Plaid dependency. Email OTP + recovery-code challenge flow, per [ADR-008](decisions/ADR-008-Plaid-oAuth-MFA.md). Per-device MFA skip was explored and rejected — Appwrite gates MFA at the session level with no bypass ([ADR-011](decisions/ADR-011_Device-Trust-MFA.md)); the session cookie now persists across browser restarts instead, so re-challenges only happen on genuinely new sessions ([ADR-012](decisions/ADR-012_Persistent-Session-Cookie.md)) |
 | Verified Customer / KYC entry point | ⚪ Planned | A link/card exists in Settings, but the actual verification flow ships with Stage 3 — it's triggered from two places (Settings and first top-up attempt), built once |
 | ADR-007 risk check | ⚪ Planned | MFA enrollment touches auth data — confirm every query goes through a server action, none reaches the client directly |
 
