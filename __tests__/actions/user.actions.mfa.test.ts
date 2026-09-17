@@ -84,7 +84,11 @@ describe('generateRecoveryCodes', () => {
 
 		const result = await generateRecoveryCodes()
 
-		expect(result).toEqual({ success: true, data: codes })
+		expect(result).toEqual({
+			success: true,
+			challengeRequired: false,
+			data: codes,
+		})
 	})
 
 	it('regenerates instead of failing forever once codes already exist', async () => {
@@ -100,7 +104,28 @@ describe('generateRecoveryCodes', () => {
 
 		const result = await generateRecoveryCodes()
 
-		expect(result).toEqual({ success: true, data: regenerated })
+		expect(result).toEqual({
+			success: true,
+			challengeRequired: false,
+			data: regenerated,
+		})
+	})
+
+	it('reports challengeRequired when regenerating needs a fresh MFA challenge', async () => {
+		mockCreateSessionClient.mockResolvedValue({
+			account: {
+				createMFARecoveryCodes: jest
+					.fn()
+					.mockRejectedValue({ type: 'user_recovery_codes_already_exists' }),
+				updateMFARecoveryCodes: jest
+					.fn()
+					.mockRejectedValue({ type: 'user_challenge_required' }),
+			},
+		})
+
+		const result = await generateRecoveryCodes()
+
+		expect(result).toEqual({ success: true, challengeRequired: true })
 	})
 
 	it('fails cleanly if the regenerate call also fails', async () => {

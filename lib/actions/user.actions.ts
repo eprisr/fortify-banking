@@ -1,6 +1,6 @@
 'use server'
 
-import { AuthenticationFactor, ID, Query, type Models } from 'node-appwrite'
+import { AuthenticationFactor, ID, Query } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../server/appwrite'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -690,15 +690,13 @@ export const transferFunds = async (
 	}
 }
 
-export const generateRecoveryCodes = async (): Promise<
-	ActionResponse<Models.MfaRecoveryCodes>
-> => {
+export const generateRecoveryCodes = async (): Promise<RecoveryCodesResult> => {
 	try {
 		const { account } = await createSessionClient()
 
 		const res = await account.createMFARecoveryCodes()
 
-		return { success: true, data: res }
+		return { success: true, challengeRequired: false, data: parseStringify(res) }
 	} catch (error: any) {
 		if (error.type === 'user_recovery_codes_already_exists') {
 			// Codes can only ever be *created* once — every later visit (a
@@ -708,8 +706,18 @@ export const generateRecoveryCodes = async (): Promise<
 				const { account } = await createSessionClient()
 				const res = await account.updateMFARecoveryCodes()
 
-				return { success: true, data: res }
+				return { success: true, challengeRequired: false, data: parseStringify(res) }
 			} catch (regenerateError: any) {
+				// Regenerating is gated behind Appwrite's `mfaProtected` route
+				// group, which requires the *current session* to have passed an
+				// MFA challenge within the last 30 minutes. Re-enabling after a
+				// disable never triggers one (Appwrite only challenges
+				// MFA-enabled accounts at sign-in) — the caller has to run the
+				// user through one explicitly before retrying.
+				if (regenerateError.type === 'user_challenge_required') {
+					return { success: true, challengeRequired: true }
+				}
+
 				console.error(
 					'An Error Occurred while regenerating recovery codes: ',
 					regenerateError,

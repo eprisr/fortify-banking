@@ -14,6 +14,11 @@ declare type SignInResult =
 	| { success: true; mfaRequired: true; challengeId: string }
 	| { success: false; error: string }
 
+declare type RecoveryCodesResult =
+	| { success: true; challengeRequired: false; data: import('node-appwrite').Models.MfaRecoveryCodes }
+	| { success: true; challengeRequired: true }
+	| { success: false; error: string }
+
 declare type SettingKey = 'faceId' | 'twoFactor'
 
 declare type SettingItemBase = {
