@@ -13,6 +13,7 @@ import { amountToWords, formatAmount } from '@/lib/utils'
 import { AccountPicker, Destination } from './transfers/AccountPicker'
 import { IdentityVerificationForm } from './transfers/IdentityVerificationForm'
 import { Button } from './ui/button'
+import HeaderBox from './shared/HeaderBox'
 
 type Step = 'entry' | 'review' | 'identity' | 'success'
 
@@ -179,7 +180,7 @@ const PaymentTransferForm = ({
 	if (step === 'review') {
 		return (
 			<div className="flex flex-col gap-4">
-				<h2 className="text-xl font-bold text-foreground">Review transfer</h2>
+				<HeaderBox title="Review transfer" subtext="" />
 				<div className="py-2 text-center">
 					<p className="font-mono text-4xl text-foreground">
 						{formatAmount(amount)}
@@ -238,6 +239,7 @@ const PaymentTransferForm = ({
 
 	return (
 		<div className="flex flex-col gap-4">
+			<HeaderBox title="Transfer" subtext="" />
 			<div>
 				<p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
 					From

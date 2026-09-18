@@ -3,11 +3,19 @@
 import { ChevronRight, CreditCard, Plus, User as UserIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { findRecipientByEmail, getRecentRecipients } from '@/lib/actions/user.actions'
+import {
+	findRecipientByEmail,
+	getRecentRecipients,
+} from '@/lib/actions/user.actions'
 import { cn, formatAmount } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import {
+	Sheet,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
+} from '@/components/ui/sheet'
 import { useMobileContainer } from '@/components/mobile-container'
 
 export type Destination =
@@ -41,7 +49,9 @@ export const AccountPicker = ({
 }: AccountPickerProps) => {
 	const container = useMobileContainer()
 	const [open, setOpen] = useState(false)
-	const [recentRecipients, setRecentRecipients] = useState<RecentRecipient[]>([])
+	const [recentRecipients, setRecentRecipients] = useState<RecentRecipient[]>(
+		[],
+	)
 	const [addPanelOpen, setAddPanelOpen] = useState(false)
 	const [email, setEmail] = useState('')
 	const [searching, setSearching] = useState(false)
@@ -121,7 +131,7 @@ export const AccountPicker = ({
 					)}
 				</span>
 				<span className="min-w-0 flex-1">
-					<span className="block truncate font-serif text-sm font-bold text-foreground">
+					<span className="block truncate text-sm font-bold text-foreground">
 						{rowLabel}
 					</span>
 					{rowSublabel && (
@@ -136,12 +146,14 @@ export const AccountPicker = ({
 			<SheetContent
 				side="bottom"
 				container={container}
-				className="max-h-[85vh] overflow-y-auto">
-				<SheetHeader>
-					<SheetTitle>{mode === 'from' ? 'Send from' : 'Send to'}</SheetTitle>
+				className="bg-paper rounded-t-2xl max-h-[85vh] overflow-y-auto">
+				<SheetHeader className="pt-6 px-6 pb-4">
+					<SheetTitle className="text-base font-bold">
+						{mode === 'from' ? 'Send from' : 'Send to'}
+					</SheetTitle>
 				</SheetHeader>
 
-				<div className="flex flex-col gap-1 px-4 pb-2">
+				<div className="flex flex-col gap-1 px-6 pb-7">
 					<p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
 						Your accounts
 					</p>
@@ -161,7 +173,7 @@ export const AccountPicker = ({
 									<CreditCard className="size-4" />
 								</span>
 								<span className="min-w-0 flex-1">
-									<span className="block truncate font-serif text-sm font-bold text-foreground">
+									<span className="block truncate text-sm font-bold text-foreground">
 										{account.name}
 									</span>
 									<span className="block font-mono text-xs text-muted-foreground">
@@ -186,7 +198,9 @@ export const AccountPicker = ({
 								<span className="flex size-14 items-center justify-center rounded-full bg-accent text-accent-foreground">
 									<Plus className="size-5" />
 								</span>
-								<span className="text-xs font-semibold text-foreground">Add new</span>
+								<span className="text-xs font-semibold text-foreground">
+									Add new
+								</span>
 							</button>
 							{recentRecipients.map((recipient) => (
 								<button
@@ -195,7 +209,10 @@ export const AccountPicker = ({
 									onClick={() =>
 										select({
 											kind: 'recipient',
-											recipient: { name: recipient.name, shareableId: recipient.shareableId },
+											recipient: {
+												name: recipient.name,
+												shareableId: recipient.shareableId,
+											},
 											email: recipient.email,
 										})
 									}
@@ -220,7 +237,9 @@ export const AccountPicker = ({
 										type="button"
 										onClick={() => setManualMode((prev) => !prev)}
 										className="text-xs font-medium text-primary hover:underline">
-										{manualMode ? 'Search by email instead' : 'Have a shareable ID?'}
+										{manualMode
+											? 'Search by email instead'
+											: 'Have a shareable ID?'}
 									</button>
 								</div>
 
@@ -244,7 +263,9 @@ export const AccountPicker = ({
 										<Button
 											type="button"
 											disabled={
-												!manualName.trim() || !manualEmail.trim() || !manualId.trim()
+												!manualName.trim() ||
+												!manualEmail.trim() ||
+												!manualId.trim()
 											}
 											onClick={() =>
 												select({
@@ -281,13 +302,19 @@ export const AccountPicker = ({
 											</Button>
 										</div>
 										{searchError && (
-											<p className="text-xs font-medium text-destructive">{searchError}</p>
+											<p className="text-xs font-medium text-destructive">
+												{searchError}
+											</p>
 										)}
 										{found && (
 											<button
 												type="button"
 												onClick={() =>
-													select({ kind: 'recipient', recipient: found, email: email.trim() })
+													select({
+														kind: 'recipient',
+														recipient: found,
+														email: email.trim(),
+													})
 												}
 												className="flex items-center gap-3 rounded-xl bg-background px-3 py-3 text-left">
 												<span className="flex size-8.5 shrink-0 items-center justify-center rounded-xl bg-primary text-xs font-semibold text-primary-foreground">

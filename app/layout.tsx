@@ -59,9 +59,11 @@ export default function RootLayout({
 	children: React.ReactNode
 }>) {
 	return (
-		<html lang="en" suppressHydrationWarning className={cn('font-sans')}>
-			<body
-				className={`${poppins.variable} ${firaSans.variable} ${ibmPlexSerif.variable} ${inter.variable} ${dmSans.variable} ${dmMono.variable} ${sora.variable}`}>
+		<html
+			lang="en"
+			suppressHydrationWarning
+			className={`${dmSans.className} ${poppins.variable} ${firaSans.variable} ${ibmPlexSerif.variable} ${inter.variable} ${dmSans.variable} ${dmMono.variable} ${sora.variable}`}>
+			<body>
 				<div>{children}</div>
 				<Toaster position="bottom-center" richColors />
 			</body>
