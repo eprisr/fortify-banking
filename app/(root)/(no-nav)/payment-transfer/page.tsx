@@ -15,7 +15,8 @@ const Transfer = async () => {
 			<Suspense>
 				<PaymentTransferForm
 					accounts={accountsData}
-					currentUserEmail={loggedIn?.email}
+					currentUser={loggedIn}
+					needsBankLink={!!accounts?.isSampleData}
 					isDemo={isDemoUserId(loggedIn?.$id)}
 				/>
 			</Suspense>

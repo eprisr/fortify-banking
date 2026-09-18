@@ -1,6 +1,6 @@
 'use client'
 
-import { Loader2 } from 'lucide-react'
+import { Landmark, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -12,6 +12,7 @@ import { amountToWords, formatAmount } from '@/lib/utils'
 
 import { AccountPicker, Destination } from './transfers/AccountPicker'
 import { IdentityVerificationForm } from './transfers/IdentityVerificationForm'
+import PlaidLink from './PlaidLink'
 import { Button } from './ui/button'
 import HeaderBox from './shared/HeaderBox'
 
@@ -21,7 +22,8 @@ const CTA_BUTTON = 'h-auto w-full rounded-2xl py-4 text-base'
 
 const PaymentTransferForm = ({
 	accounts,
-	currentUserEmail,
+	currentUser,
+	needsBankLink = false,
 	isDemo = false,
 }: PaymentTransferFormProps) => {
 	const router = useRouter()
@@ -38,11 +40,11 @@ const PaymentTransferForm = ({
 	const [submitError, setSubmitError] = useState('')
 
 	useEffect(() => {
-		if (isDemo) return
+		if (isDemo || needsBankLink) return
 		getVerificationStatus().then((res) => {
 			if (res.success) setVerificationStatus(res.data.status)
 		})
-	}, [isDemo])
+	}, [isDemo, needsBankLink])
 
 	const amount = Number(amountDigits || '0') / 100
 	const limit = verificationStatus === 'verified' ? 10_000 : 5_000
@@ -80,7 +82,7 @@ const PaymentTransferForm = ({
 				? destination.account.name
 				: destination.recipient.name
 		const recipientEmail =
-			destination.kind === 'account' ? currentUserEmail : destination.email
+			destination.kind === 'account' ? currentUser.email : destination.email
 		const receiverShareableId =
 			destination.kind === 'account'
 				? destination.account.shareableId
@@ -119,6 +121,32 @@ const PaymentTransferForm = ({
 		destination?.kind === 'account'
 			? destination.account.name
 			: destination?.recipient.name
+
+	if (needsBankLink) {
+		return (
+			<div className="flex flex-col gap-4">
+				<HeaderBox title="Transfer" subtext="" />
+				<div className="flex flex-col items-center gap-4 py-6 text-center">
+					<div className="flex size-14 items-center justify-center rounded-full bg-accent">
+						<Landmark className="size-6 text-accent-foreground" />
+					</div>
+					<h2 className="text-xl font-bold text-foreground">
+						Link a bank to send money
+					</h2>
+					<p className="text-sm text-muted-foreground">
+						You&apos;re seeing sample accounts because no real bank is linked
+						yet. Connect one to send a transfer.
+					</p>
+					<PlaidLink
+						user={currentUser}
+						variant="primary"
+						redirectTo="/payment-transfer"
+						className={CTA_BUTTON}
+					/>
+				</div>
+			</div>
+		)
+	}
 
 	if (step === 'success') {
 		return (

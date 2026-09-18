@@ -342,7 +342,8 @@ declare interface DoughnutChartProps {
 
 declare interface PaymentTransferFormProps {
 	accounts: Account[]
-	currentUserEmail: string
+	currentUser: User
+	needsBankLink?: boolean
 	isDemo?: boolean
 }
 

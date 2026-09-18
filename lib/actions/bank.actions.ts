@@ -33,6 +33,7 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 			totalBanks: DEMO_ACCOUNTS.length,
 			totalCurrentBalance,
 			needsReconnect: [],
+			isSampleData: true,
 		})
 	}
 
@@ -41,6 +42,8 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 		const banks = await getBanks({ userId })
 
 		// No real bank linked yet — show sample data until they connect one.
+		// isSampleData tells callers these accounts aren't real and can't be
+		// used for anything that touches money (transfers, etc).
 		if (!banks?.data?.length) {
 			const totalCurrentBalance = DEMO_ACCOUNTS.reduce(
 				(total, account) => total + account.currentBalance,
@@ -51,6 +54,7 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 				totalBanks: DEMO_ACCOUNTS.length,
 				totalCurrentBalance,
 				needsReconnect: [],
+				isSampleData: true,
 			})
 		}
 
