@@ -47,7 +47,7 @@ const senderBankRow = {
 	bankId: 'item-sender',
 	accessToken: 'access-sandbox-sender',
 	fundingSourceUrl: `${DWOLLA_BASE}/funding-sources/sender-fs`,
-	userId: { $id: 'user-sender' },
+	userId: 'user-sender',
 	shareableId: 'irrelevant-here',
 }
 
@@ -57,7 +57,7 @@ const receiverBankRow = {
 	bankId: 'item-receiver',
 	accessToken: 'access-sandbox-receiver',
 	fundingSourceUrl: `${DWOLLA_BASE}/funding-sources/receiver-fs`,
-	userId: { $id: 'user-receiver' },
+	userId: 'user-receiver',
 	shareableId: 'irrelevant-here',
 }
 
@@ -72,7 +72,10 @@ function mockTable({
 } = {}) {
 	const listRows = jest
 		.fn()
-		.mockResolvedValueOnce({ rows: sender ? [sender] : [], total: sender ? 1 : 0 })
+		.mockResolvedValueOnce({
+			rows: sender ? [sender] : [],
+			total: sender ? 1 : 0,
+		})
 		.mockResolvedValueOnce({
 			rows: receiver ? [receiver] : [],
 			total: receiver ? 1 : 0,
@@ -218,7 +221,10 @@ describe('transferFunds — downstream failures', () => {
 // =============================================================================
 describe('transferFunds — self-transfer (same user, two accounts)', () => {
 	it('moves money when the sender and receiver bank both belong to the same user', async () => {
-		const sameUserReceiver = { ...receiverBankRow, userId: senderBankRow.userId }
+		const sameUserReceiver = {
+			...receiverBankRow,
+			userId: senderBankRow.userId,
+		}
 		mockTable({ receiver: sameUserReceiver })
 
 		const result = await transferFunds(validParams())
@@ -226,8 +232,8 @@ describe('transferFunds — self-transfer (same user, two accounts)', () => {
 		expect(result).toEqual({ success: true, data: null })
 		expect(mockCreateTransaction).toHaveBeenCalledWith(
 			expect.objectContaining({
-				senderId: senderBankRow.userId.$id,
-				receiverId: senderBankRow.userId.$id,
+				senderId: senderBankRow.userId,
+				receiverId: senderBankRow.userId,
 				senderBankId: senderBankRow.$id,
 				receiverBankId: sameUserReceiver.$id,
 			}),

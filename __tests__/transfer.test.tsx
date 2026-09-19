@@ -472,6 +472,58 @@ describe('Payment Transfer Flow', () => {
 			)
 		})
 
+		it('shows the transfer error on the identity step when it fails after verification succeeds', async () => {
+			;(getVerificationStatus as jest.Mock).mockResolvedValue({
+				success: true,
+				data: { status: 'unverified' },
+			})
+			;(transferFunds as jest.Mock).mockResolvedValue({
+				success: false,
+				error: 'Failed to record transaction',
+			})
+			renderForm()
+			await flush()
+			await fillEntryForRecipient()
+			await userEvent.click(
+				screen.getByRole('button', { name: /confirm & send/i }),
+			)
+			await userEvent.click(await screen.findByTestId('mock-verify'))
+
+			expect(
+				await screen.findByText('Failed to record transaction'),
+			).toBeInTheDocument()
+			expect(screen.getByTestId('identity-step')).toBeInTheDocument()
+		})
+
+		it('treats the sender as verified after a successful identity check, without re-prompting', async () => {
+			;(getVerificationStatus as jest.Mock).mockResolvedValue({
+				success: true,
+				data: { status: 'unverified' },
+			})
+			;(transferFunds as jest.Mock).mockResolvedValue({
+				success: false,
+				error: 'Failed to record transaction',
+			})
+			renderForm()
+			await flush()
+			await fillEntryForRecipient()
+			await userEvent.click(
+				screen.getByRole('button', { name: /confirm & send/i }),
+			)
+			await userEvent.click(await screen.findByTestId('mock-verify'))
+			await screen.findByText('Failed to record transaction')
+
+			;(transferFunds as jest.Mock).mockClear()
+			;(transferFunds as jest.Mock).mockResolvedValue(mockTransferSuccess)
+			await userEvent.click(screen.getByTestId('mock-cancel-identity'))
+			await userEvent.click(
+				screen.getByRole('button', { name: /confirm & send/i }),
+			)
+
+			await waitFor(() => expect(transferFunds).toHaveBeenCalledTimes(1))
+			expect(screen.queryByTestId('identity-step')).not.toBeInTheDocument()
+		})
+
 		it('does not require identity verification once already verified', async () => {
 			;(transferFunds as jest.Mock).mockResolvedValue(mockTransferSuccess)
 			renderForm()
