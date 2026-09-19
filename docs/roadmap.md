@@ -1,7 +1,7 @@
 # Fortify Banking — Roadmap
 
 **Status:** Draft v1
-**Last updated:** 2026-09-17
+**Last updated:** 2026-09-19
 
 ---
 
@@ -92,16 +92,19 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 
 **Depends on:** ideally after Stage 2–3, since realistic transaction/balance data makes the forecast meaningful. Could start in parallel if mock data is good enough, but the honest version needs real activity to project against.
 
+**Account scope (added 2026-09-18):** checking, savings, credit, and Dwolla Balance all feed the forecast — the projected balance line is a blend across every schedule-driven account the user has linked, not checking alone. Investment accounts are excluded from the forecast calculation entirely; they're market-driven, not schedule-driven, so blending them into a projected balance would misrepresent what the forecast is actually predicting. If an investment account is linked at all, it's shown as a separate net-worth figure, never folded into the runway number.
+
 | Sub-feature | Status | Done means |
 |---|---|---|
-| `RecurringItemForm` | ⚪ Planned | User can manually add a recurring income/expense: name, frequency, amount, start/end date |
+| `RecurringItemForm` | ⚪ Planned | User can manually add a recurring income/expense: name, frequency, amount, start/end date, and which account it's tied to |
 | `RecurringItemException` | ⚪ Planned | User can override a single occurrence's date/amount, or skip it, without editing the rule |
-| `ForecastChart` | ⚪ Planned | Projects balance forward, highlights the danger point if it dips below threshold |
+| Multi-account forecast aggregation | ⚪ Planned | Forecast blends checking + savings + credit + Balance into one projected line; investment balances are tracked separately and never enter the calculation |
+| `ForecastChart` | ⚪ Planned | Projects balance forward across the scoped accounts, highlights the danger point if it dips below threshold |
 | `UpcomingBills` | ⚪ Planned | Lists known bills between now and next paycheck |
-| Test coverage | ⚪ Planned | Especially the semi-monthly date-boundary logic — the one most likely to silently break |
+| Test coverage | ⚪ Planned | Especially the semi-monthly date-boundary logic and the multi-account aggregation math — both are the kind of thing that breaks silently |
 | ADR-007 risk check | ⚪ Planned | Recurring items are tied to accounts — confirm no new query exposes another user's account or recurring-item data through relationship auto-expansion |
 
-**Stage done when:** Maya can add her real recurring items, see a believable forward-projected balance, and get a clear signal before a low point catches her off guard. This is the feature the whole positioning statement rests on — it should get the most scrutiny before being called done, not the least.
+**Stage done when:** Maya can add her real recurring items across any of her scoped accounts, see a believable forward-projected balance that reflects all of them, and get a clear signal before a low point catches her off guard. This is the feature the whole positioning statement rests on — it should get the most scrutiny before being called done, not the least.
 
 ---
 
@@ -147,7 +150,7 @@ Walking through the app as the persona, in order, to sanity-check that the stage
 6. **Paying rent.** Uses bill pay instead of leaving the app. *(Stage 2.)*
 7. **Wants to add a cushion.** Tries to top up before a big expense — already Verified from the transfer flow, so no repeat KYC friction here, straight to tops up. *(Stage 3 — this is the moment the Settings/KYC/top-up decisions all connect.)*
 8. **Needs cash same-day.** Withdraws via push-to-card instead of waiting on a standard transfer. *(Stage 3.)*
-9. **The Thursday-night anxiety moment.** Checks the forecast instead of doing mental math. Sees Friday's paycheck will cover what's scheduled, with room to spare — or doesn't, and adjusts before it's a problem. *(Stage 4 — this is the actual product thesis. Everything before this stage is infrastructure for this moment.)*
+9. **The Thursday-night anxiety moment.** Checks the forecast instead of doing mental math, across checking, savings, credit, and her Balance, not just one account. Sees Friday's paycheck will cover what's scheduled, with room to spare — or doesn't, and adjusts before it's a problem. *(Stage 4 — this is the actual product thesis. Everything before this stage is infrastructure for this moment.)*
 10. **Edge case.** A friend visiting from abroad — she explores currency exchange once, sees it's a demo, understands why. *(Stage 5 — intentionally the least-visited step in her journey, which is why it's last.)*
 
 Step 9 is the one to protect. If time pressure ever forces a cut, everything except Stage 4 is replaceable without breaking the story Fortify tells about itself. Stage 4 isn't.
