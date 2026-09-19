@@ -9,7 +9,9 @@ interface LinkedAccountsListProps {
 }
 
 export const LinkedAccountsList = ({ accounts }: LinkedAccountsListProps) => {
-	const [selectedId, setSelectedId] = useState<string | null>(null)
+	const [selectedId, setSelectedId] = useState<string | null>(
+		accounts[0]?.appwriteItemId ?? null,
+	)
 
 	return (
 		<div className="flex flex-col gap-3">
