@@ -74,12 +74,39 @@ describe('LinkedAccountsList', () => {
 		expect(
 			screen.getByRole('button', { name: 'Statements' }),
 		).toBeInTheDocument()
-		expect(
-			screen.getByRole('button', { name: 'Remove account' }),
-		).toBeInTheDocument()
 		// Untouched accounts are still simple rows.
 		expect(screen.getByText('High-Yield Savings')).toBeInTheDocument()
 		expect(screen.getByText('Signature Credit')).toBeInTheDocument()
+	})
+
+	it('opens the account-options sheet from the kebab button without collapsing the card', async () => {
+		render(<LinkedAccountsList accounts={accounts} />)
+
+		await userEvent.click(screen.getByText('Everyday Checking'))
+		await userEvent.click(
+			screen.getByRole('button', { name: 'Account options' }),
+		)
+
+		expect(screen.getByText('Available balance')).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /relink account/i })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /rename account/i })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /remove account/i })).toBeInTheDocument()
+	})
+
+	it('closes the account-options sheet on Cancel', async () => {
+		render(<LinkedAccountsList accounts={accounts} />)
+
+		await userEvent.click(screen.getByText('Everyday Checking'))
+		await userEvent.click(
+			screen.getByRole('button', { name: 'Account options' }),
+		)
+		await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+		expect(
+			screen.queryByRole('button', { name: /remove account/i }),
+		).not.toBeInTheDocument()
+		// The card itself is still expanded — only the sheet closed.
+		expect(screen.getByText('Available balance')).toBeInTheDocument()
 	})
 
 	it('switching the selection collapses the previous card and expands the new one', async () => {
