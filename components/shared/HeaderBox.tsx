@@ -29,7 +29,7 @@ const HeaderBox = ({
 					<p className="header-box-subtext">{subtext}</p>
 				</div>
 			) : (
-				<header className="flex flex-col gap-5 mb-8">
+				<header className="flex flex-col gap-5 mb-4">
 					<button aria-label="Go back" onClick={() => router.back()}>
 						<div className="flex flex-center h-8 w-8 bg-cloud rounded-full cursor-pointer">
 							<ChevronLeft size={12} />
@@ -37,7 +37,7 @@ const HeaderBox = ({
 					</button>
 					<div className="flex flex-col gap-1 md:gap-3">
 						<h1 className="text-xl font-bold">{title}</h1>
-						<p className="text-sm font-serif italic">{subtext}</p>
+						{subtext && <p className="text-sm font-serif italic">{subtext}</p>}
 					</div>
 				</header>
 			)}

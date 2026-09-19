@@ -210,7 +210,8 @@ export function amountToWords(amount: number): string {
 	} else {
 		const thousands = Math.floor(dollars / 1000)
 		const remainder = dollars % 1000
-		if (thousands > 0) dollarWords += `${threeDigitsToWords(thousands)} thousand`
+		if (thousands > 0)
+			dollarWords += `${threeDigitsToWords(thousands)} thousand`
 		if (remainder > 0) {
 			dollarWords += (thousands > 0 ? ' ' : '') + threeDigitsToWords(remainder)
 		}
@@ -222,6 +223,8 @@ export function amountToWords(amount: number): string {
 
 	return dollarWords.charAt(0).toUpperCase() + dollarWords.slice(1)
 }
+
+export const TRANSFER_LIMITS = { verified: 10_000, unverified: 5_000 } as const
 
 export const parseStringify = (value: any) => JSON.parse(JSON.stringify(value))
 

@@ -106,6 +106,7 @@ declare type Account = {
 	subtype: string
 	appwriteItemId: string
 	shareableId: string
+	hasFundingSource: boolean
 }
 
 declare type Transaction = {
@@ -204,6 +205,12 @@ declare type UpdateDwollaCustomerParams = {
 
 declare type Recipient = {
 	name: string
+	shareableId: string
+}
+
+declare type RecentRecipient = {
+	name: string
+	email: string
 	shareableId: string
 }
 
@@ -336,7 +343,8 @@ declare interface DoughnutChartProps {
 
 declare interface PaymentTransferFormProps {
 	accounts: Account[]
-	currentUserEmail: string
+	currentUser: User
+	needsBankLink?: boolean
 	isDemo?: boolean
 }
 
@@ -418,7 +426,7 @@ declare interface CreateBankAccountProps {
 	userId: string
 	accountId: string
 	bankId: string
-	fundingSourceUrl: string
+	fundingSourceUrl?: string
 	shareableId: string
 }
 

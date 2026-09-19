@@ -80,7 +80,24 @@ This does not change the roadmap's Stage 3 top-up/withdrawal scope (Checkout.com
 
 ## Consequences (Actual)
 
-*To be filled in after implementation.*
+All four original steps plus the three amended items shipped. Self-transfer, transfer to a verified user, and transfer to an unverified user (triggering the KYC step and completing once Dwolla approves it) were manually tested end-to-end against a live Dwolla sandbox and confirmed in both Dwolla and Appwrite, then backed with Jest coverage at the component and server-action layers for the same three scenarios.
+
+One design decision reversed mid-build: self-transfer was originally going to be a dedicated server action with its own ownership check, to keep it obviously separate from P2P. Revisited and dropped — `transferFunds` already has to support sending to any shareable ID the caller has (that's what P2P is), so a self-transfer is just the case where sender and receiver resolve to the same `userId`. No second code path was needed. This reasoning was correct about the *receiver* side but, per the risk-check finding below, incomplete about the *sender* side.
+
+A design-system pass followed once the flow was confirmed working: consolidated a duplicated `CTA_BUTTON` style constant, made `font-serif` (reserved for personalized/human-identity text) consistently apply to recipient names across the account picker and the review/success screens, and fixed a flat heading hierarchy on the "link a bank" reminder screen.
+
+### Risk check (ADR-007 pattern, 2026-09-19)
+
+Per the roadmap's Stage 1.5 risk-check line, re-audited the new surfaces this rebuild introduced — the KYC data path (`verifyIdentity`, `getVerificationStatus`) and recipient search (`findRecipientByEmail`, `getRecentRecipients`) — against ADR-007's three rules. The KYC and recipient surfaces held up cleanly: every client-facing return is a narrow DTO (never a raw Dwolla or Appwrite row), all new inputs are re-validated server-side (`dwollaSchema`, `emailField`), and recipient lookup gives an identical generic error whether an email doesn't exist or exists with no linked bank, so it can't be used to enumerate Fortify users.
+
+The audit found two real gaps in `transferFunds` itself, both fixed the same day:
+
+1. **No ownership check on the sender's bank (critical).** `senderBankDocumentId` was looked up by raw Appwrite `$id` with nothing tying it back to the authenticated caller. The self-transfer reasoning above ("Dwolla's own funding-source/verified-customer requirements are the real security boundary") turned out to be wrong: Dwolla has no concept of which Appwrite user owns a funding source URL — it trusts whatever URL our server sends it. Nothing stopped a signed-in user from calling `transferFunds` directly with another user's bank document ID and moving money out of their account. Fixed by resolving the caller via `getLoggedInUser()` and comparing `senderBank.userId` against it before proceeding, returning the same generic "Bank not found" error on a mismatch as on a nonexistent ID (so the error can't be used to distinguish "wrong owner" from "doesn't exist").
+2. **Per-transfer limit was UI-only.** `PaymentTransferForm` disabled its own submit button above $10,000 (verified) / $5,000 (unverified), but `transferFunds` only enforced the flat $1,000,000 global cap from ADR-007's own validation pass — nothing stopped a direct call from moving any amount up to that cap regardless of verification status. This is exactly the ADR-007 root cause ("client-side validation is UX, not security") recurring in new code. Fixed by extracting the limit values into a shared `TRANSFER_LIMITS` constant (`lib/utils.ts`) used by both the client's disabled-state check and a new server-side enforcement in `transferFunds`, so the two can no longer drift independently.
+
+Both gaps are regression-tested in `__tests__/actions/user.actions.transfer.test.ts` (`transferFunds — authorization`, `transferFunds — verification-tiered limit`). Full Jest suite and `tsc --noEmit` confirmed clean afterward — the same pre-existing, unrelated failures (4 suites: plaidlink, reset-password, navbar, quicklinks) appeared identically before and after.
+
+The lesson from item 1 generalizes beyond this ADR: a code comment asserting "X is the real security boundary, not Y" is itself a claim that needs verifying, not a reason to skip a check. It had gone unquestioned since the self-transfer design decision was made, until this risk-check pass re-examined it directly.
 
 ---
 

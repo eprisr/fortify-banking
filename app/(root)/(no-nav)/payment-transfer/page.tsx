@@ -1,4 +1,3 @@
-import HeaderBox from '@/components/shared/HeaderBox'
 import PaymentTransferForm from '@/components/PaymentTransferForm'
 import { getAccounts } from '@/lib/actions/bank.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
@@ -13,11 +12,11 @@ const Transfer = async () => {
 
 	return (
 		<section className="size-full">
-			<HeaderBox title="Transfer" subtext="" />
 			<Suspense>
 				<PaymentTransferForm
 					accounts={accountsData}
-					currentUserEmail={loggedIn?.email}
+					currentUser={loggedIn}
+					needsBankLink={!!accounts?.isSampleData}
 					isDemo={isDemoUserId(loggedIn?.$id)}
 				/>
 			</Suspense>

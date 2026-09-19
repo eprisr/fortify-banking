@@ -12,6 +12,7 @@ import {
 	parseStringify,
 	passwordField,
 	siteUrl,
+	TRANSFER_LIMITS,
 } from '../utils'
 import { encryptId, decryptId } from '../server/encryption'
 import {
@@ -23,6 +24,8 @@ import {
 import {
 	AccountType,
 	CountryCode,
+	CreditAccountSubtype,
+	DepositoryAccountSubtype,
 	ProcessorTokenCreateRequest,
 	ProcessorTokenCreateRequestProcessorEnum,
 	Products,
@@ -44,6 +47,7 @@ const {
 	APPWRITE_DATABASE_ID: DATABASE_ID,
 	APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID,
 	APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID,
+	APPWRITE_TRANSACTION_COLLECTION_ID: TRANSACTION_COLLECTION_ID,
 } = process.env
 
 export const getUserInfo = async ({ userId }: getUserInfoProps) => {
@@ -439,6 +443,10 @@ export const createLinkToken = async (
 			language: 'en',
 			country_codes: ['US'] as CountryCode[],
 			redirect_uri: siteUrl('/oauth'),
+			account_filters: {
+				depository: { account_subtypes: [DepositoryAccountSubtype.All] },
+				credit: { account_subtypes: [CreditAccountSubtype.All] },
+			},
 			...(accessToken && { access_token: accessToken }),
 		}
 
@@ -521,47 +529,54 @@ export const exchangePublicToken = async ({
 			access_token: accessToken,
 		})
 
-		const accountData = accountsResponse.data.accounts.find(
-			(account) => account.type === AccountType.Depository,
+		const eligibleAccounts = accountsResponse.data.accounts.filter(
+			(account) =>
+				account.type === AccountType.Depository ||
+				account.type === AccountType.Credit,
 		)
 
-		if (!accountData) {
+		if (eligibleAccounts.length === 0) {
 			throw new Error(
 				accountsResponse.data.accounts.length === 0
 					? 'No accounts were returned for this bank connection'
-					: 'No eligible checking or savings account was found for this bank connection',
+					: 'No eligible checking, savings, or credit card account was found for this bank connection',
 			)
 		}
 
-		// Create a processor token for Dwolla using the access token and account ID
-		const req: ProcessorTokenCreateRequest = {
-			access_token: accessToken,
-			account_id: accountData.account_id,
-			processor: 'dwolla' as ProcessorTokenCreateRequestProcessorEnum,
+		for (const accountData of eligibleAccounts) {
+			let fundingSourceUrl: string | undefined
+			try {
+				const req: ProcessorTokenCreateRequest = {
+					access_token: accessToken,
+					account_id: accountData.account_id,
+					processor: 'dwolla' as ProcessorTokenCreateRequestProcessorEnum,
+				}
+				const processorTokenResponse =
+					await plaidClient.processorTokenCreate(req)
+				fundingSourceUrl =
+					(await addFundingSource({
+						dwollaCustomerId: user.dwollaCustomerId,
+						processorToken: processorTokenResponse.data.processor_token,
+						bankName: accountData.name,
+					})) ?? undefined
+			} catch (error) {
+				console.warn(
+					`No Dwolla funding source for account ${accountData.account_id} (${accountData.type}/${accountData.subtype}) — linking for display only:`,
+					error,
+				)
+			}
+
+			const bankAccount = await createBankAccount({
+				userId: user.$id,
+				bankId: itemId,
+				accountId: accountData.account_id,
+				accessToken,
+				fundingSourceUrl,
+				shareableId: encryptId(accountData.account_id),
+			})
+
+			if (!bankAccount) throw new Error('Failed to save bank account')
 		}
-
-		const processorTokenResponse = await plaidClient.processorTokenCreate(req)
-		const processorToken = processorTokenResponse.data.processor_token
-
-		// Create a funding source URL for the account using the Dwolla customer ID, processor token, and bank name
-		const fundingSourceUrl = await addFundingSource({
-			dwollaCustomerId: user.dwollaCustomerId,
-			processorToken,
-			bankName: accountData.name,
-		})
-
-		if (!fundingSourceUrl) throw new Error('Failed to link funding source')
-
-		const bankAccount = await createBankAccount({
-			userId: user.$id,
-			bankId: itemId,
-			accountId: accountData.account_id,
-			accessToken,
-			fundingSourceUrl,
-			shareableId: encryptId(accountData.account_id),
-		})
-
-		if (!bankAccount) throw new Error('Failed to save bank account')
 
 		await waitForInitialTransactions(accessToken)
 
@@ -639,7 +654,10 @@ export const findRecipientByEmail = async (
 		const loggedIn = await getLoggedInUser()
 		if (!loggedIn) throw new Error('Not signed in')
 		if (parsed.data === loggedIn.email) {
-			return { success: false, error: "That's your own email — pick one of your own accounts instead" }
+			return {
+				success: false,
+				error: "That's your own email — pick one of your own accounts instead",
+			}
 		}
 
 		const { table } = await createAdminClient()
@@ -673,6 +691,55 @@ export const findRecipientByEmail = async (
 	}
 }
 
+export const getRecentRecipients = async (): Promise<
+	ActionResponse<RecentRecipient[]>
+> => {
+	try {
+		const loggedIn = await getLoggedInUser()
+		if (!loggedIn) throw new Error('Not signed in')
+		if (isDemoUserId(loggedIn.$id)) {
+			return { success: true, data: [] }
+		}
+
+		const { table } = await createAdminClient()
+		const transactions = await table.listRows({
+			databaseId: DATABASE_ID!,
+			tableId: TRANSACTION_COLLECTION_ID!,
+			queries: [
+				Query.equal('senderId', [loggedIn.$id]),
+				Query.orderDesc('$createdAt'),
+				Query.limit(50),
+			],
+		})
+
+		const seenReceivers = new Set<string>()
+		const recipients: RecentRecipient[] = []
+
+		for (const txn of transactions.rows) {
+			if (txn.receiverId === loggedIn.$id) continue
+			if (seenReceivers.has(txn.receiverId)) continue
+			seenReceivers.add(txn.receiverId)
+
+			const bank = await getBank({ documentId: txn.receiverBankId }).catch(
+				() => null,
+			)
+			if (!bank) continue
+
+			recipients.push({
+				name: txn.name,
+				email: txn.email,
+				shareableId: bank.shareableId,
+			})
+			if (recipients.length >= 6) break
+		}
+
+		return { success: true, data: recipients }
+	} catch (error: any) {
+		console.error('Get Recent Recipients Error: ', error)
+		return { success: false, error: 'Failed to load recent recipients' }
+	}
+}
+
 export const transferFunds = async (
 	params: TransferFundsProps,
 ): Promise<ActionResponse<null>> => {
@@ -691,7 +758,26 @@ export const transferFunds = async (
 	const normalizedAmount = amount.toFixed(2)
 
 	try {
+		const loggedIn = await getLoggedInUser()
+		if (!loggedIn) throw new Error('Not signed in')
+
+		const verification = await getVerificationStatus()
+		const verified =
+			verification.success && verification.data.status === 'verified'
+		const limit = verified
+			? TRANSFER_LIMITS.verified
+			: TRANSFER_LIMITS.unverified
+		if (amount > limit) {
+			return {
+				success: false,
+				error: `This exceeds your $${limit.toLocaleString()} ${verified ? 'per-transfer' : 'weekly'} limit`,
+			}
+		}
+
 		const senderBank = await getBank({ documentId: senderBankDocumentId })
+		if (senderBank.userId !== loggedIn.$id) {
+			return { success: false, error: 'Bank not found' }
+		}
 
 		const receiverAccountId = decryptId(receiverShareableId)
 		const receiverBankResult = await getBankByAccountId({
@@ -717,9 +803,9 @@ export const transferFunds = async (
 			name: recipientName,
 			email: recipientEmail,
 			amount: normalizedAmount,
-			senderId: senderBank.userId.$id,
+			senderId: senderBank.userId,
 			senderBankId: senderBank.$id,
-			receiverId: receiverBank.userId.$id,
+			receiverId: receiverBank.userId,
 			receiverBankId: receiverBank.$id,
 			note,
 		})

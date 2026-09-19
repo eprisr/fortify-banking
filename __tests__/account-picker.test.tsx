@@ -2,10 +2,11 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import { AccountPicker } from '@/components/transfers/AccountPicker'
-import { findRecipientByEmail } from '@/lib/actions/user.actions'
+import { findRecipientByEmail, getRecentRecipients } from '@/lib/actions/user.actions'
 
 jest.mock('@/lib/actions/user.actions', () => ({
 	findRecipientByEmail: jest.fn(),
+	getRecentRecipients: jest.fn(),
 }))
 
 const fromAccount: Account = {
@@ -21,6 +22,7 @@ const fromAccount: Account = {
 	subtype: 'checking',
 	appwriteItemId: 'item-1',
 	shareableId: 'share-1',
+	hasFundingSource: true,
 }
 
 const savingsAccount: Account = {
@@ -31,14 +33,15 @@ const savingsAccount: Account = {
 	shareableId: 'share-2',
 }
 
+beforeEach(() => {
+	jest.clearAllMocks()
+	;(getRecentRecipients as jest.Mock).mockResolvedValue({ success: true, data: [] })
+})
+
 describe('AccountPicker — mode="from"', () => {
 	const onChange = jest.fn()
 
-	beforeEach(() => {
-		jest.clearAllMocks()
-	})
-
-	it('lists every account and has no "send to a person" section', async () => {
+	it('lists every account and has no "People" section', async () => {
 		render(
 			<AccountPicker
 				mode="from"
@@ -52,7 +55,8 @@ describe('AccountPicker — mode="from"', () => {
 
 		expect(screen.getByText('Chase Checking')).toBeInTheDocument()
 		expect(screen.getByText('High-Yield Savings')).toBeInTheDocument()
-		expect(screen.queryByText(/send to a person/i)).not.toBeInTheDocument()
+		expect(screen.queryByText('People')).not.toBeInTheDocument()
+		expect(getRecentRecipients).not.toHaveBeenCalled()
 	})
 
 	it('selects an account', async () => {
@@ -75,10 +79,6 @@ describe('AccountPicker — mode="from"', () => {
 describe('AccountPicker — mode="to"', () => {
 	const onChange = jest.fn()
 
-	beforeEach(() => {
-		jest.clearAllMocks()
-	})
-
 	function setup() {
 		render(
 			<AccountPicker
@@ -92,11 +92,13 @@ describe('AccountPicker — mode="to"', () => {
 		)
 	}
 
-	it('excludes the sender account from the list of own accounts', async () => {
+	it('shows the sender account but disabled, not hidden', async () => {
 		setup()
 		await userEvent.click(screen.getByRole('button', { name: /choose recipient/i }))
+
 		expect(screen.getByText('High-Yield Savings')).toBeInTheDocument()
-		expect(screen.queryByText('Chase Checking')).not.toBeInTheDocument()
+		const senderRow = screen.getByText('Chase Checking').closest('button')
+		expect(senderRow).toBeDisabled()
 	})
 
 	it('selects one of the user’s own accounts', async () => {
@@ -109,6 +111,53 @@ describe('AccountPicker — mode="to"', () => {
 		})
 	})
 
+	it('does not select the disabled sender account when clicked', async () => {
+		setup()
+		await userEvent.click(screen.getByRole('button', { name: /choose recipient/i }))
+		await userEvent.click(screen.getByText('Chase Checking'))
+		expect(onChange).not.toHaveBeenCalled()
+	})
+
+	it('loads and displays recent recipients as quick-select avatars', async () => {
+		;(getRecentRecipients as jest.Mock).mockResolvedValue({
+			success: true,
+			data: [
+				{ name: 'Emma Ruiz', email: 'emma@example.com', shareableId: 'emma-share' },
+				{ name: 'Justin Cole', email: 'justin@example.com', shareableId: 'justin-share' },
+			],
+		})
+		setup()
+		await userEvent.click(screen.getByRole('button', { name: /choose recipient/i }))
+
+		expect(await screen.findByText('Emma')).toBeInTheDocument()
+		expect(screen.getByText('Justin')).toBeInTheDocument()
+	})
+
+	it('selects a recent recipient directly, without opening the search panel', async () => {
+		;(getRecentRecipients as jest.Mock).mockResolvedValue({
+			success: true,
+			data: [{ name: 'Emma Ruiz', email: 'emma@example.com', shareableId: 'emma-share' }],
+		})
+		setup()
+		await userEvent.click(screen.getByRole('button', { name: /choose recipient/i }))
+		await userEvent.click(await screen.findByText('Emma'))
+
+		expect(onChange).toHaveBeenCalledWith({
+			kind: 'recipient',
+			recipient: { name: 'Emma Ruiz', shareableId: 'emma-share' },
+			email: 'emma@example.com',
+		})
+	})
+
+	it('opens the add-recipient panel only after clicking "Add new"', async () => {
+		setup()
+		await userEvent.click(screen.getByRole('button', { name: /choose recipient/i }))
+
+		expect(screen.queryByPlaceholderText(/their email address/i)).not.toBeInTheDocument()
+		await userEvent.click(screen.getByRole('button', { name: /add new/i }))
+		expect(screen.getByPlaceholderText(/their email address/i)).toBeInTheDocument()
+	})
+
 	it('finds a recipient by email and selects them', async () => {
 		;(findRecipientByEmail as jest.Mock).mockResolvedValue({
 			success: true,
@@ -116,6 +165,7 @@ describe('AccountPicker — mode="to"', () => {
 		})
 		setup()
 		await userEvent.click(screen.getByRole('button', { name: /choose recipient/i }))
+		await userEvent.click(screen.getByRole('button', { name: /add new/i }))
 		await userEvent.type(
 			screen.getByPlaceholderText(/their email address/i),
 			'jordan@example.com',
@@ -139,6 +189,7 @@ describe('AccountPicker — mode="to"', () => {
 		})
 		setup()
 		await userEvent.click(screen.getByRole('button', { name: /choose recipient/i }))
+		await userEvent.click(screen.getByRole('button', { name: /add new/i }))
 		await userEvent.type(
 			screen.getByPlaceholderText(/their email address/i),
 			'nobody@example.com',
@@ -152,6 +203,7 @@ describe('AccountPicker — mode="to"', () => {
 	it('falls back to a manually entered shareable ID', async () => {
 		setup()
 		await userEvent.click(screen.getByRole('button', { name: /choose recipient/i }))
+		await userEvent.click(screen.getByRole('button', { name: /add new/i }))
 		await userEvent.click(
 			screen.getByRole('button', { name: /have a shareable id/i }),
 		)

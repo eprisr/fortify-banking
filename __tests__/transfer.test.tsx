@@ -62,6 +62,12 @@ jest.mock('@/components/transfers/AccountPicker', () => ({
 	),
 }))
 
+jest.mock('@/components/PlaidLink', () => (props: any) => (
+	<button type="button" data-testid="plaid-link" data-props={JSON.stringify(props)}>
+		Connect bank
+	</button>
+))
+
 jest.mock('@/components/transfers/IdentityVerificationForm', () => ({
 	IdentityVerificationForm: ({ onVerified, onCancel }: any) => (
 		<div data-testid="identity-step">
@@ -119,6 +125,7 @@ const mockAccount: Account = {
 	subtype: 'checking',
 	appwriteItemId: 'item-1',
 	shareableId: 'share-1',
+	hasFundingSource: true,
 }
 
 const secondAccount: Account = {
@@ -214,7 +221,7 @@ describe('Payment Transfer Flow', () => {
 			render(
 				<PaymentTransferForm
 					accounts={[mockAccount, secondAccount]}
-					currentUserEmail={mockUser.email}
+					currentUser={mockUser}
 				/>,
 			)
 			await flush()
@@ -268,7 +275,7 @@ describe('Payment Transfer Flow', () => {
 		render(
 			<PaymentTransferForm
 				accounts={[mockAccount, secondAccount]}
-				currentUserEmail={mockUser.email}
+				currentUser={mockUser}
 			/>,
 		)
 		expect(
@@ -280,12 +287,49 @@ describe('Payment Transfer Flow', () => {
 		render(
 			<PaymentTransferForm
 				accounts={[mockAccount, secondAccount]}
-				currentUserEmail={mockUser.email}
+				currentUser={mockUser}
 			/>,
 		)
 		expect(
 			await screen.findByText(/up to \$10,000.00 per transfer/i),
 		).toBeInTheDocument()
+	})
+
+	describe('Needs bank link', () => {
+		it('shows a reminder to link a bank instead of the transfer form', async () => {
+			render(
+				<PaymentTransferForm
+					accounts={[mockAccount, secondAccount]}
+					currentUser={mockUser}
+					needsBankLink
+				/>,
+			)
+
+			expect(
+				screen.getByText(/link a bank to send money/i),
+			).toBeInTheDocument()
+			expect(screen.getByTestId('plaid-link')).toBeInTheDocument()
+			expect(
+				screen.queryByTestId('account-picker-from-select'),
+			).not.toBeInTheDocument()
+			expect(
+				screen.queryByRole('button', { name: /review transfer/i }),
+			).not.toBeInTheDocument()
+		})
+
+		it('passes the current user to PlaidLink', async () => {
+			render(
+				<PaymentTransferForm
+					accounts={[mockAccount, secondAccount]}
+					currentUser={mockUser}
+					needsBankLink
+				/>,
+			)
+
+			const plaidLink = screen.getByTestId('plaid-link')
+			const props = JSON.parse(plaidLink.getAttribute('data-props') ?? '{}')
+			expect(props.user).toEqual(mockUser)
+		})
 	})
 
 	describe('Review step', () => {
@@ -308,7 +352,7 @@ describe('Payment Transfer Flow', () => {
 			render(
 				<PaymentTransferForm
 					accounts={[mockAccount, secondAccount]}
-					currentUserEmail={mockUser.email}
+					currentUser={mockUser}
 				/>,
 			)
 			await flush()
@@ -370,7 +414,7 @@ describe('Payment Transfer Flow', () => {
 			return render(
 				<PaymentTransferForm
 					accounts={[mockAccount, secondAccount]}
-					currentUserEmail={mockUser.email}
+					currentUser={mockUser}
 				/>,
 			)
 		}
@@ -428,6 +472,58 @@ describe('Payment Transfer Flow', () => {
 			)
 		})
 
+		it('shows the transfer error on the identity step when it fails after verification succeeds', async () => {
+			;(getVerificationStatus as jest.Mock).mockResolvedValue({
+				success: true,
+				data: { status: 'unverified' },
+			})
+			;(transferFunds as jest.Mock).mockResolvedValue({
+				success: false,
+				error: 'Failed to record transaction',
+			})
+			renderForm()
+			await flush()
+			await fillEntryForRecipient()
+			await userEvent.click(
+				screen.getByRole('button', { name: /confirm & send/i }),
+			)
+			await userEvent.click(await screen.findByTestId('mock-verify'))
+
+			expect(
+				await screen.findByText('Failed to record transaction'),
+			).toBeInTheDocument()
+			expect(screen.getByTestId('identity-step')).toBeInTheDocument()
+		})
+
+		it('treats the sender as verified after a successful identity check, without re-prompting', async () => {
+			;(getVerificationStatus as jest.Mock).mockResolvedValue({
+				success: true,
+				data: { status: 'unverified' },
+			})
+			;(transferFunds as jest.Mock).mockResolvedValue({
+				success: false,
+				error: 'Failed to record transaction',
+			})
+			renderForm()
+			await flush()
+			await fillEntryForRecipient()
+			await userEvent.click(
+				screen.getByRole('button', { name: /confirm & send/i }),
+			)
+			await userEvent.click(await screen.findByTestId('mock-verify'))
+			await screen.findByText('Failed to record transaction')
+
+			;(transferFunds as jest.Mock).mockClear()
+			;(transferFunds as jest.Mock).mockResolvedValue(mockTransferSuccess)
+			await userEvent.click(screen.getByTestId('mock-cancel-identity'))
+			await userEvent.click(
+				screen.getByRole('button', { name: /confirm & send/i }),
+			)
+
+			await waitFor(() => expect(transferFunds).toHaveBeenCalledTimes(1))
+			expect(screen.queryByTestId('identity-step')).not.toBeInTheDocument()
+		})
+
 		it('does not require identity verification once already verified', async () => {
 			;(transferFunds as jest.Mock).mockResolvedValue(mockTransferSuccess)
 			renderForm()
@@ -466,7 +562,7 @@ describe('Payment Transfer Flow', () => {
 			render(
 				<PaymentTransferForm
 					accounts={[mockAccount, secondAccount]}
-					currentUserEmail={mockUser.email}
+					currentUser={mockUser}
 					isDemo
 				/>,
 			)

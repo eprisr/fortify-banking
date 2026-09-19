@@ -9,10 +9,10 @@ jest.mock('@/lib/actions/user.actions', () => ({
 }))
 
 async function fillValidFields() {
-	await userEvent.type(screen.getByPlaceholderText('123 Main St'), '99-99 33rd St')
+	await userEvent.type(screen.getByPlaceholderText('Street address'), '99-99 33rd St')
 	await userEvent.type(screen.getByPlaceholderText('City'), 'Jackson Heights')
-	await userEvent.type(screen.getByPlaceholderText('NY'), 'ny')
-	await userEvent.type(screen.getByPlaceholderText('10001'), '11372')
+	await userEvent.type(screen.getByPlaceholderText('State'), 'ny')
+	await userEvent.type(screen.getByPlaceholderText('ZIP'), '11372')
 	const dob = document.querySelector('input[type="date"]') as HTMLInputElement
 	await userEvent.type(dob, '1990-01-01')
 }
@@ -44,7 +44,7 @@ describe('IdentityVerificationForm', () => {
 			data: { status: 'verified' },
 		})
 		await fillValidFields()
-		await userEvent.type(screen.getByPlaceholderText('1234'), '1234')
+		await userEvent.type(screen.getByPlaceholderText('Last 4 digits of SSN'), '1234')
 		await userEvent.click(screen.getByRole('button', { name: /verify identity/i }))
 
 		await waitFor(() =>
@@ -61,7 +61,7 @@ describe('IdentityVerificationForm', () => {
 			data: { status: 'retry' },
 		})
 		await fillValidFields()
-		await userEvent.type(screen.getByPlaceholderText('1234'), '1234')
+		await userEvent.type(screen.getByPlaceholderText('Last 4 digits of SSN'), '1234')
 		await userEvent.click(screen.getByRole('button', { name: /verify identity/i }))
 
 		expect(
@@ -76,7 +76,7 @@ describe('IdentityVerificationForm', () => {
 			data: { status: 'suspended' },
 		})
 		await fillValidFields()
-		await userEvent.type(screen.getByPlaceholderText('1234'), '1234')
+		await userEvent.type(screen.getByPlaceholderText('Last 4 digits of SSN'), '1234')
 		await userEvent.click(screen.getByRole('button', { name: /verify identity/i }))
 
 		expect(
@@ -92,7 +92,7 @@ describe('IdentityVerificationForm', () => {
 			error: 'Invalid SSN',
 		})
 		await fillValidFields()
-		await userEvent.type(screen.getByPlaceholderText('1234'), '1234')
+		await userEvent.type(screen.getByPlaceholderText('Last 4 digits of SSN'), '1234')
 		await userEvent.click(screen.getByRole('button', { name: /verify identity/i }))
 
 		expect(await screen.findByText('Invalid SSN')).toBeInTheDocument()

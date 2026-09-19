@@ -1,6 +1,6 @@
 'use client'
 
-import { Loader2 } from 'lucide-react'
+import { Landmark, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -8,25 +8,28 @@ import {
 	getVerificationStatus,
 	transferFunds,
 } from '@/lib/actions/user.actions'
-import { amountToWords, formatAmount } from '@/lib/utils'
+import { amountToWords, cn, formatAmount, TRANSFER_LIMITS } from '@/lib/utils'
 
 import { AccountPicker, Destination } from './transfers/AccountPicker'
 import { IdentityVerificationForm } from './transfers/IdentityVerificationForm'
+import PlaidLink from './PlaidLink'
+import { CTA_BUTTON } from './transfers/styles'
 import { Button } from './ui/button'
+import HeaderBox from './shared/HeaderBox'
 
 type Step = 'entry' | 'review' | 'identity' | 'success'
 
-const CTA_BUTTON = 'h-auto w-full rounded-2xl py-4 text-base'
-
 const PaymentTransferForm = ({
 	accounts,
-	currentUserEmail,
+	currentUser,
+	needsBankLink = false,
 	isDemo = false,
 }: PaymentTransferFormProps) => {
 	const router = useRouter()
+	const transferableAccounts = accounts?.filter((a) => a.hasFundingSource) ?? []
 	const [step, setStep] = useState<Step>('entry')
 	const [fromAccount, setFromAccount] = useState<Account | undefined>(
-		accounts?.[0],
+		transferableAccounts[0],
 	)
 	const [destination, setDestination] = useState<Destination | null>(null)
 	const [amountDigits, setAmountDigits] = useState('')
@@ -37,21 +40,23 @@ const PaymentTransferForm = ({
 	const [submitError, setSubmitError] = useState('')
 
 	useEffect(() => {
-		if (isDemo) return
+		if (isDemo || needsBankLink) return
 		getVerificationStatus().then((res) => {
 			if (res.success) setVerificationStatus(res.data.status)
 		})
-	}, [isDemo])
+	}, [isDemo, needsBankLink])
 
 	const amount = Number(amountDigits || '0') / 100
-	const limit = verificationStatus === 'verified' ? 10_000 : 5_000
+	const limit =
+		verificationStatus === 'verified'
+			? TRANSFER_LIMITS.verified
+			: TRANSFER_LIMITS.unverified
 	const overLimit = amount > limit
 	const sameAccountConflict =
 		destination?.kind === 'account' &&
 		fromAccount &&
 		destination.account.appwriteItemId === fromAccount.appwriteItemId
-	const needsVerification =
-		destination?.kind === 'recipient' && verificationStatus !== 'verified'
+	const needsVerification = verificationStatus !== 'verified'
 
 	const canContinue =
 		!!fromAccount &&
@@ -79,7 +84,7 @@ const PaymentTransferForm = ({
 				? destination.account.name
 				: destination.recipient.name
 		const recipientEmail =
-			destination.kind === 'account' ? currentUserEmail : destination.email
+			destination.kind === 'account' ? currentUser.email : destination.email
 		const receiverShareableId =
 			destination.kind === 'account'
 				? destination.account.shareableId
@@ -105,6 +110,11 @@ const PaymentTransferForm = ({
 		setStep('success')
 	}
 
+	const handleVerified = () => {
+		setVerificationStatus('verified')
+		submitTransfer()
+	}
+
 	const handleConfirm = () => {
 		if (isDemo) return
 		if (needsVerification) {
@@ -118,6 +128,32 @@ const PaymentTransferForm = ({
 		destination?.kind === 'account'
 			? destination.account.name
 			: destination?.recipient.name
+
+	if (needsBankLink) {
+		return (
+			<div className="flex flex-col gap-4">
+				<HeaderBox title="Transfer" subtext="" />
+				<div className="flex flex-col items-center gap-4 py-6 text-center">
+					<div className="flex size-14 items-center justify-center rounded-full bg-accent">
+						<Landmark className="size-6 text-accent-foreground" />
+					</div>
+					<h2 className="text-lg font-semibold text-foreground">
+						Link a bank to send money
+					</h2>
+					<p className="text-sm text-muted-foreground">
+						You&apos;re seeing sample accounts because no real bank is linked
+						yet. Connect one to send a transfer.
+					</p>
+					<PlaidLink
+						user={currentUser}
+						variant="primary"
+						redirectTo="/payment-transfer"
+						className={CTA_BUTTON}
+					/>
+				</div>
+			</div>
+		)
+	}
 
 	if (step === 'success') {
 		return (
@@ -150,7 +186,11 @@ const PaymentTransferForm = ({
 					</div>
 					<div className="flex justify-between py-3 text-sm">
 						<span className="text-muted-foreground">To</span>
-						<span className="font-medium text-foreground">
+						<span
+							className={cn(
+								'font-medium text-foreground',
+								destination?.kind === 'recipient' && 'font-serif',
+							)}>
 							{recipientLabel}
 						</span>
 					</div>
@@ -165,13 +205,19 @@ const PaymentTransferForm = ({
 	if (step === 'identity') {
 		return (
 			<div className="flex flex-col gap-4">
-				<h2 className="text-xl font-bold text-foreground">
-					Verify your identity
-				</h2>
+				<HeaderBox title="Verify your identity" subtext="" />
 				<IdentityVerificationForm
-					onVerified={submitTransfer}
+					onVerified={handleVerified}
 					onCancel={() => setStep('review')}
 				/>
+				{isSubmitting && (
+					<p className="text-center text-xs text-muted-foreground">
+						Completing your transfer…
+					</p>
+				)}
+				{submitError && (
+					<p className="text-xs font-medium text-destructive">{submitError}</p>
+				)}
 			</div>
 		)
 	}
@@ -179,7 +225,7 @@ const PaymentTransferForm = ({
 	if (step === 'review') {
 		return (
 			<div className="flex flex-col gap-4">
-				<h2 className="text-xl font-bold text-foreground">Review transfer</h2>
+				<HeaderBox title="Review transfer" subtext="" />
 				<div className="py-2 text-center">
 					<p className="font-mono text-4xl text-foreground">
 						{formatAmount(amount)}
@@ -197,7 +243,11 @@ const PaymentTransferForm = ({
 					</div>
 					<div className="flex justify-between border-b border-foreground/10 py-3 text-sm">
 						<span className="text-muted-foreground">To</span>
-						<span className="font-medium text-foreground">
+						<span
+							className={cn(
+								'font-medium text-foreground',
+								destination?.kind === 'recipient' && 'font-serif',
+							)}>
 							{recipientLabel}
 						</span>
 					</div>
@@ -238,6 +288,7 @@ const PaymentTransferForm = ({
 
 	return (
 		<div className="flex flex-col gap-4">
+			<HeaderBox title="Transfer" subtext="" />
 			<div>
 				<p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
 					From
@@ -245,7 +296,7 @@ const PaymentTransferForm = ({
 				<AccountPicker
 					mode="from"
 					label="Choose account"
-					accounts={accounts}
+					accounts={transferableAccounts}
 					value={fromAccount ? { kind: 'account', account: fromAccount } : null}
 					onChange={(d) => d.kind === 'account' && setFromAccount(d.account)}
 				/>
@@ -258,7 +309,7 @@ const PaymentTransferForm = ({
 				<AccountPicker
 					mode="to"
 					label="Choose recipient"
-					accounts={accounts}
+					accounts={transferableAccounts}
 					excludeAccountId={fromAccount?.appwriteItemId}
 					value={destination}
 					onChange={setDestination}

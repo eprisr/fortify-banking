@@ -24,6 +24,7 @@ jest.unmock('@/lib/actions/user.actions')
 import { cookies } from 'next/headers'
 import {
 	findRecipientByEmail,
+	getRecentRecipients,
 	getVerificationStatus,
 	verifyIdentity,
 } from '@/lib/actions/user.actions'
@@ -246,5 +247,86 @@ describe('findRecipientByEmail', () => {
 			success: true,
 			data: { name: 'Jordan Lee', shareableId: 'recv-share-1' },
 		})
+	})
+})
+
+describe('getRecentRecipients', () => {
+	it('returns an empty list without querying transactions in demo mode', async () => {
+		signInAsDemo()
+
+		const result = await getRecentRecipients()
+
+		expect(result).toEqual({ success: true, data: [] })
+	})
+
+	it('excludes self-transfers and dedupes by receiver, most recent first', async () => {
+		const listRows = jest
+			.fn()
+			.mockResolvedValueOnce({ rows: [loggedInUserRow], total: 1 }) // getLoggedInUser
+			.mockResolvedValueOnce({
+				rows: [
+					{
+						receiverId: 'user-123',
+						name: 'Jane Doe',
+						email: 'jane@example.com',
+						receiverBankId: 'bank-self',
+					},
+					{
+						receiverId: 'user-456',
+						name: 'Jordan Lee',
+						email: 'jordan@example.com',
+						receiverBankId: 'bank-456',
+					},
+					{
+						receiverId: 'user-456',
+						name: 'Jordan Lee',
+						email: 'jordan@example.com',
+						receiverBankId: 'bank-456',
+					},
+					{
+						receiverId: 'user-789',
+						name: 'Sam Rivera',
+						email: 'sam@example.com',
+						receiverBankId: 'bank-789',
+					},
+				],
+				total: 4,
+			}) // transactions, most recent first
+			.mockResolvedValueOnce({ rows: [{ $id: 'bank-456', shareableId: 'share-456' }], total: 1 })
+			.mockResolvedValueOnce({ rows: [{ $id: 'bank-789', shareableId: 'share-789' }], total: 1 })
+		signIn({ listRows })
+
+		const result = await getRecentRecipients()
+
+		expect(result).toEqual({
+			success: true,
+			data: [
+				{ name: 'Jordan Lee', email: 'jordan@example.com', shareableId: 'share-456' },
+				{ name: 'Sam Rivera', email: 'sam@example.com', shareableId: 'share-789' },
+			],
+		})
+	})
+
+	it('skips a recipient whose bank can no longer be found', async () => {
+		const listRows = jest
+			.fn()
+			.mockResolvedValueOnce({ rows: [loggedInUserRow], total: 1 })
+			.mockResolvedValueOnce({
+				rows: [
+					{
+						receiverId: 'user-456',
+						name: 'Jordan Lee',
+						email: 'jordan@example.com',
+						receiverBankId: 'bank-456',
+					},
+				],
+				total: 1,
+			})
+			.mockResolvedValueOnce({ rows: [], total: 0 })
+		signIn({ listRows })
+
+		const result = await getRecentRecipients()
+
+		expect(result).toEqual({ success: true, data: [] })
 	})
 })

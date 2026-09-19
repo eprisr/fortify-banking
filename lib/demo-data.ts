@@ -39,6 +39,7 @@ export const DEMO_ACCOUNTS: Account[] = [
 		subtype: 'checking',
 		appwriteItemId: 'demo-bank-checking',
 		shareableId: 'ZGVtby1hY2NvdW50LWNoZWNraW5n',
+		hasFundingSource: true,
 	},
 	{
 		id: 'demo-account-savings',
@@ -53,6 +54,7 @@ export const DEMO_ACCOUNTS: Account[] = [
 		subtype: 'savings',
 		appwriteItemId: 'demo-bank-savings',
 		shareableId: 'ZGVtby1hY2NvdW50LXNhdmluZ3M=',
+		hasFundingSource: true,
 	},
 	{
 		id: 'demo-account-credit',
@@ -68,6 +70,7 @@ export const DEMO_ACCOUNTS: Account[] = [
 		subtype: 'credit',
 		appwriteItemId: 'demo-bank-credit',
 		shareableId: 'ZGVtby1hY2NvdW50LXNhdmluZ3M=',
+		hasFundingSource: false,
 	},
 ]
 

@@ -1,7 +1,7 @@
 # Fortify Banking — Roadmap
 
 **Status:** Draft v1
-**Last updated:** 2026-09-17
+**Last updated:** 2026-09-19
 
 ---
 
@@ -32,7 +32,7 @@ Same status vocabulary as the landing page and case study, so there's one shared
 
 ---
 
-## Stage 1.5 — Transfers (fix + overhaul)
+## Stage 1.5 — Transfers (fix + overhaul) — ✅ done
 
 **Depends on:** nothing. **Blocks:** Stage 2 — bill pay extends `PaymentTransferForm`, so it can't safely start until this form actually works and reflects the current design system.
 
@@ -42,13 +42,13 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 
 | Sub-feature | Status | Done means |
 |---|---|---|
-| Bug fixes | ⚪ Planned | Every transfer path (own accounts, to others) completes end-to-end with no known bugs — specifics TBD as they're logged |
-| Verification flow (KYC) | ⚪ Planned | *(moved from Stage 3)* Real CIP data collection (name, DOB, address, SSN), upgrades a Dwolla customer from `unverified` to `verified` — required before a P2P transfer to another user can complete at all |
-| Design system migration | ⚪ Planned | Matches current tokens (Ink/Paper/Cloud/Plum/Gold/Sage/Terracotta, current type scale) rather than the pre-overhaul styling it still carries |
-| Test coverage | ⚪ Planned | Jest/RTL/MSW + Playwright, same bar as the rest of the app — likely absent or stale given the component predates current conventions |
-| ADR-007 risk check | ⚪ Planned | This is the exact flow ADR-007 originally found leaking data on — re-verify the fix still holds after any changes here, don't assume it's untouched. The Stage 1 check just proved this kind of audit finds real things, not just checkbox-fills it. Also covers the new KYC data path and the new recipient-search-by-email surface |
+| Bug fixes | 🟢 Live | Every transfer path (own accounts, to others) completes end-to-end — root-caused and fixed a bug where `senderBank.userId.$id`/`receiverBank.userId.$id` silently evaluated to `undefined` (`userId` is a plain string, not an expanded relationship) so `createTransaction` failed its required-field validation on every transfer ever attempted. Confirmed working against a live Dwolla sandbox + Appwrite for all three scenarios: self-transfer, P2P to a verified user, P2P to an unverified user (KYC flow) |
+| Verification flow (KYC) | 🟢 Live | *(moved from Stage 3)* Real CIP data collection (name, DOB, address, SSN — last 4 digits first, escalating to full 9 only if Dwolla requests a retry), upgrades a Dwolla customer from `unverified` to `verified`. Confirmed live: an unverified sender is routed to this step before a P2P transfer completes, and the transfer proceeds automatically once verification succeeds |
+| Design system migration | 🟢 Live | Matches current tokens (Ink/Paper/Cloud/Plum/Gold/Sage/Terracotta, current type scale). Design-system pass also fixed a duplicated `CTA_BUTTON` constant, inconsistent `font-serif` on recipient names, and a flat heading hierarchy on the "link a bank" screen |
+| Test coverage | 🟢 Live | Jest/RTL/MSW at both the component (`transfer.test.tsx`, `account-picker.test.tsx`, `identity-verification-form.test.tsx`) and server-action layers, covering all three manually-tested scenarios plus the ownership and tiered-limit checks below. Full suite green apart from the same 4 pre-existing, unrelated failing suites |
+| ADR-007 risk check | 🟢 Live | The new KYC and recipient-search-by-email surfaces held up cleanly — narrow DTOs only, server-side re-validation, no enumeration difference between "no such user" and "user has no linked bank." The audit did find two real gaps in `transferFunds` itself: (1) **critical** — `senderBankDocumentId` had no check tying it to the authenticated caller, so any signed-in user could name another user's bank document ID as their funding source; a prior code comment claiming "Dwolla's own requirements are the real security boundary" was wrong and is corrected. (2) the verified/unverified per-transfer limit was enforced only in the UI, not on the server. Both fixed same-day — see [ADR-014](decisions/ADR-014_Transfer-Rebuild.md#risk-check-adr-007-pattern-2026-09-19) |
 
-**Stage done when:** both transfer paths (self-transfer and P2P to another user) work reliably end-to-end and visually match the rest of the app, with test coverage at parity with everything built since.
+**Stage done when:** both transfer paths (self-transfer and P2P to another user) work reliably end-to-end and visually match the rest of the app, with test coverage at parity with everything built since. **This bar is now met.**
 
 ---
 
@@ -92,16 +92,19 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 
 **Depends on:** ideally after Stage 2–3, since realistic transaction/balance data makes the forecast meaningful. Could start in parallel if mock data is good enough, but the honest version needs real activity to project against.
 
+**Account scope (added 2026-09-18):** checking, savings, credit, and Dwolla Balance all feed the forecast — the projected balance line is a blend across every schedule-driven account the user has linked, not checking alone. Investment accounts are excluded from the forecast calculation entirely; they're market-driven, not schedule-driven, so blending them into a projected balance would misrepresent what the forecast is actually predicting. If an investment account is linked at all, it's shown as a separate net-worth figure, never folded into the runway number.
+
 | Sub-feature | Status | Done means |
 |---|---|---|
-| `RecurringItemForm` | ⚪ Planned | User can manually add a recurring income/expense: name, frequency, amount, start/end date |
+| `RecurringItemForm` | ⚪ Planned | User can manually add a recurring income/expense: name, frequency, amount, start/end date, and which account it's tied to |
 | `RecurringItemException` | ⚪ Planned | User can override a single occurrence's date/amount, or skip it, without editing the rule |
-| `ForecastChart` | ⚪ Planned | Projects balance forward, highlights the danger point if it dips below threshold |
+| Multi-account forecast aggregation | ⚪ Planned | Forecast blends checking + savings + credit + Balance into one projected line; investment balances are tracked separately and never enter the calculation |
+| `ForecastChart` | ⚪ Planned | Projects balance forward across the scoped accounts, highlights the danger point if it dips below threshold |
 | `UpcomingBills` | ⚪ Planned | Lists known bills between now and next paycheck |
-| Test coverage | ⚪ Planned | Especially the semi-monthly date-boundary logic — the one most likely to silently break |
+| Test coverage | ⚪ Planned | Especially the semi-monthly date-boundary logic and the multi-account aggregation math — both are the kind of thing that breaks silently |
 | ADR-007 risk check | ⚪ Planned | Recurring items are tied to accounts — confirm no new query exposes another user's account or recurring-item data through relationship auto-expansion |
 
-**Stage done when:** Maya can add her real recurring items, see a believable forward-projected balance, and get a clear signal before a low point catches her off guard. This is the feature the whole positioning statement rests on — it should get the most scrutiny before being called done, not the least.
+**Stage done when:** Maya can add her real recurring items across any of her scoped accounts, see a believable forward-projected balance that reflects all of them, and get a clear signal before a low point catches her off guard. This is the feature the whole positioning statement rests on — it should get the most scrutiny before being called done, not the least.
 
 ---
 
@@ -147,7 +150,7 @@ Walking through the app as the persona, in order, to sanity-check that the stage
 6. **Paying rent.** Uses bill pay instead of leaving the app. *(Stage 2.)*
 7. **Wants to add a cushion.** Tries to top up before a big expense — already Verified from the transfer flow, so no repeat KYC friction here, straight to tops up. *(Stage 3 — this is the moment the Settings/KYC/top-up decisions all connect.)*
 8. **Needs cash same-day.** Withdraws via push-to-card instead of waiting on a standard transfer. *(Stage 3.)*
-9. **The Thursday-night anxiety moment.** Checks the forecast instead of doing mental math. Sees Friday's paycheck will cover what's scheduled, with room to spare — or doesn't, and adjusts before it's a problem. *(Stage 4 — this is the actual product thesis. Everything before this stage is infrastructure for this moment.)*
+9. **The Thursday-night anxiety moment.** Checks the forecast instead of doing mental math, across checking, savings, credit, and her Balance, not just one account. Sees Friday's paycheck will cover what's scheduled, with room to spare — or doesn't, and adjusts before it's a problem. *(Stage 4 — this is the actual product thesis. Everything before this stage is infrastructure for this moment.)*
 10. **Edge case.** A friend visiting from abroad — she explores currency exchange once, sees it's a demo, understands why. *(Stage 5 — intentionally the least-visited step in her journey, which is why it's last.)*
 
 Step 9 is the one to protect. If time pressure ever forces a cut, everything except Stage 4 is replaceable without breaking the story Fortify tells about itself. Stage 4 isn't.
