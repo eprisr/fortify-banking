@@ -8,17 +8,16 @@ import {
 	getVerificationStatus,
 	transferFunds,
 } from '@/lib/actions/user.actions'
-import { amountToWords, formatAmount } from '@/lib/utils'
+import { amountToWords, cn, formatAmount } from '@/lib/utils'
 
 import { AccountPicker, Destination } from './transfers/AccountPicker'
 import { IdentityVerificationForm } from './transfers/IdentityVerificationForm'
 import PlaidLink from './PlaidLink'
+import { CTA_BUTTON } from './transfers/styles'
 import { Button } from './ui/button'
 import HeaderBox from './shared/HeaderBox'
 
 type Step = 'entry' | 'review' | 'identity' | 'success'
-
-const CTA_BUTTON = 'h-auto w-full rounded-2xl py-4 text-base'
 
 const PaymentTransferForm = ({
 	accounts,
@@ -135,7 +134,7 @@ const PaymentTransferForm = ({
 					<div className="flex size-14 items-center justify-center rounded-full bg-accent">
 						<Landmark className="size-6 text-accent-foreground" />
 					</div>
-					<h2 className="text-xl font-bold text-foreground">
+					<h2 className="text-lg font-semibold text-foreground">
 						Link a bank to send money
 					</h2>
 					<p className="text-sm text-muted-foreground">
@@ -184,7 +183,11 @@ const PaymentTransferForm = ({
 					</div>
 					<div className="flex justify-between py-3 text-sm">
 						<span className="text-muted-foreground">To</span>
-						<span className="font-medium text-foreground">
+						<span
+							className={cn(
+								'font-medium text-foreground',
+								destination?.kind === 'recipient' && 'font-serif',
+							)}>
 							{recipientLabel}
 						</span>
 					</div>
@@ -237,7 +240,11 @@ const PaymentTransferForm = ({
 					</div>
 					<div className="flex justify-between border-b border-foreground/10 py-3 text-sm">
 						<span className="text-muted-foreground">To</span>
-						<span className="font-medium text-foreground">
+						<span
+							className={cn(
+								'font-medium text-foreground',
+								destination?.kind === 'recipient' && 'font-serif',
+							)}>
 							{recipientLabel}
 						</span>
 					</div>

@@ -131,7 +131,11 @@ export const AccountPicker = ({
 					)}
 				</span>
 				<span className="min-w-0 flex-1">
-					<span className="block truncate text-sm font-bold text-foreground">
+					<span
+						className={cn(
+							'block truncate text-sm font-bold text-foreground',
+							value?.kind === 'recipient' && 'font-serif',
+						)}>
 						{rowLabel}
 					</span>
 					{rowSublabel && (

@@ -17,8 +17,8 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form'
+import { CTA_BUTTON } from './styles'
 
-const CTA_BUTTON = 'h-auto w-full rounded-2xl py-4 text-base'
 const FIELD_INPUT =
 	'w-full rounded-2xl bg-muted px-4 py-3.5 text-sm text-foreground outline-none placeholder:text-muted-foreground'
 
