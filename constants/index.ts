@@ -25,7 +25,7 @@ import {
 export const navLinks = [
 	{
 		Icon: CreditCard,
-		route: '/',
+		route: '/my-banks',
 		category: 'account',
 		label: 'Linked Accounts',
 		subText: '',
@@ -128,7 +128,7 @@ export const mobileLinks = [
 	},
 	{
 		Icon: BiCreditCard,
-		route: '#',
+		route: '/my-banks',
 		label: 'Accounts',
 	},
 ]
