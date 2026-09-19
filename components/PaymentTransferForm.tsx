@@ -54,8 +54,7 @@ const PaymentTransferForm = ({
 		destination?.kind === 'account' &&
 		fromAccount &&
 		destination.account.appwriteItemId === fromAccount.appwriteItemId
-	const needsVerification =
-		destination?.kind === 'recipient' && verificationStatus !== 'verified'
+	const needsVerification = verificationStatus !== 'verified'
 
 	const canContinue =
 		!!fromAccount &&
@@ -107,6 +106,11 @@ const PaymentTransferForm = ({
 
 		router.refresh()
 		setStep('success')
+	}
+
+	const handleVerified = () => {
+		setVerificationStatus('verified')
+		submitTransfer()
 	}
 
 	const handleConfirm = () => {
@@ -195,13 +199,19 @@ const PaymentTransferForm = ({
 	if (step === 'identity') {
 		return (
 			<div className="flex flex-col gap-4">
-				<h2 className="text-xl font-bold text-foreground">
-					Verify your identity
-				</h2>
+				<HeaderBox title="Verify your identity" subtext="" />
 				<IdentityVerificationForm
-					onVerified={submitTransfer}
+					onVerified={handleVerified}
 					onCancel={() => setStep('review')}
 				/>
+				{isSubmitting && (
+					<p className="text-center text-xs text-muted-foreground">
+						Completing your transfer…
+					</p>
+				)}
+				{submitError && (
+					<p className="text-xs font-medium text-destructive">{submitError}</p>
+				)}
 			</div>
 		)
 	}

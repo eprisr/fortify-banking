@@ -783,9 +783,9 @@ export const transferFunds = async (
 			name: recipientName,
 			email: recipientEmail,
 			amount: normalizedAmount,
-			senderId: senderBank.userId.$id,
+			senderId: senderBank.userId,
 			senderBankId: senderBank.$id,
-			receiverId: receiverBank.userId.$id,
+			receiverId: receiverBank.userId,
 			receiverBankId: receiverBank.$id,
 			note,
 		})
