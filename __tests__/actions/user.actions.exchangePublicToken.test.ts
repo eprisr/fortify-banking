@@ -3,8 +3,12 @@
  *
  * This is the function Plaid Link's onSuccess callback invokes once a user
  * finishes linking a bank: exchange the public token, pull account info,
- * mint a Dwolla processor token, link a Dwolla funding source, save the
- * bank row, then best-effort poll Plaid for the item's first transactions.
+ * then for *every* account the Item exposes (not just depository ones —
+ * see ADR discussion 2026-09-18), attempt a Dwolla funding source and save
+ * a bank row regardless of whether that attempt succeeds. A funding-source
+ * failure is expected for non-ACH-eligible accounts (credit cards, etc.)
+ * and is non-fatal — the account still gets linked for display/
+ * forecasting, just not usable as a transfer source or destination.
  * No automated coverage previously existed for this flow (see
  * plaid_oauth_status memory).
  *
@@ -116,7 +120,7 @@ describe('exchangePublicToken — happy path', () => {
 		expect(revalidatePath).toHaveBeenCalledWith('/')
 	})
 
-	it('picks the depository account even when it is not accounts[0]', async () => {
+	it('links every account regardless of order, not just accounts[0]', async () => {
 		server.use(
 			http.post(`${PLAID_BASE}/accounts/get`, () =>
 				HttpResponse.json({
@@ -150,8 +154,99 @@ describe('exchangePublicToken — happy path', () => {
 		const result = await exchangePublicToken(validParams())
 
 		expect(result).toEqual({ success: true, data: null })
-		const savedRow = createRow.mock.calls[0][0].data
-		expect(savedRow.accountId).toBe('plaid-account-checking')
+		expect(createRow).toHaveBeenCalledTimes(2)
+		const savedAccountIds = createRow.mock.calls.map((call) => call[0].data.accountId)
+		expect(savedAccountIds).toEqual(['plaid-account-credit', 'plaid-account-checking'])
+	})
+
+	it('links every eligible account from the same Plaid Item — checking, savings, and credit alike', async () => {
+		server.use(
+			http.post(`${PLAID_BASE}/accounts/get`, () =>
+				HttpResponse.json({
+					accounts: [
+						{
+							account_id: 'plaid-account-checking',
+							balances: { available: 950.5, current: 1000, limit: null },
+							mask: '0000',
+							name: 'Plaid Checking',
+							official_name: 'Plaid Gold Standard 0% Interest Checking',
+							subtype: 'checking',
+							type: 'depository',
+						},
+						{
+							account_id: 'plaid-account-savings',
+							balances: { available: 200, current: 210, limit: null },
+							mask: '1111',
+							name: 'Plaid Saving',
+							official_name: 'Plaid Silver Standard 0.1% Interest Saving',
+							subtype: 'savings',
+							type: 'depository',
+						},
+						{
+							account_id: 'plaid-account-credit',
+							balances: { available: null, current: 500, limit: 2000 },
+							mask: '2222',
+							name: 'Plaid Credit Card',
+							official_name: 'Plaid Diamond Credit Card',
+							subtype: 'credit card',
+							type: 'credit',
+						},
+					],
+					item: { institution_id: 'ins_109508' },
+					request_id: 'req-accounts-get',
+				}),
+			),
+		)
+		const createRow = mockCreateRow()
+
+		const result = await exchangePublicToken(validParams())
+
+		expect(result).toEqual({ success: true, data: null })
+		expect(createRow).toHaveBeenCalledTimes(3)
+		const savedAccountIds = createRow.mock.calls.map((call) => call[0].data.accountId)
+		expect(savedAccountIds).toEqual([
+			'plaid-account-checking',
+			'plaid-account-savings',
+			'plaid-account-credit',
+		])
+	})
+
+	it('excludes investment accounts even when linked alongside eligible ones (PRD §4/§7 — no investments)', async () => {
+		server.use(
+			http.post(`${PLAID_BASE}/accounts/get`, () =>
+				HttpResponse.json({
+					accounts: [
+						{
+							account_id: 'plaid-account-checking',
+							balances: { available: 950.5, current: 1000, limit: null },
+							mask: '0000',
+							name: 'Plaid Checking',
+							official_name: 'Plaid Gold Standard 0% Interest Checking',
+							subtype: 'checking',
+							type: 'depository',
+						},
+						{
+							account_id: 'plaid-account-investment',
+							balances: { available: 12000, current: 12000, limit: null },
+							mask: '3333',
+							name: 'Plaid Cash Invest',
+							official_name: 'Plaid Cash Investment Account',
+							subtype: 'cash management',
+							type: 'investment',
+						},
+					],
+					item: { institution_id: 'ins_109508' },
+					request_id: 'req-accounts-get',
+				}),
+			),
+		)
+		const createRow = mockCreateRow()
+
+		const result = await exchangePublicToken(validParams())
+
+		expect(result).toEqual({ success: true, data: null })
+		expect(createRow).toHaveBeenCalledTimes(1)
+		expect(createRow.mock.calls[0][0].data.accountId).toBe('plaid-account-checking')
 	})
 })
 
@@ -170,7 +265,9 @@ describe('exchangePublicToken — failures', () => {
 		expect(createRow).not.toHaveBeenCalled()
 	})
 
-	it('fails when Dwolla cannot link a funding source', async () => {
+	it('still links the account for display when Dwolla cannot create a funding source', async () => {
+		// Not every account type can get an ACH funding source (a credit card,
+		// for instance) — that's expected and non-fatal, not a link failure.
 		server.use(
 			http.post(`${DWOLLA_BASE}/on-demand-authorizations`, () =>
 				HttpResponse.json({ message: 'server error' }, { status: 500 }),
@@ -180,11 +277,11 @@ describe('exchangePublicToken — failures', () => {
 
 		const result = await exchangePublicToken(validParams())
 
-		expect(result).toEqual({
-			success: false,
-			error: 'Failed to link funding source',
-		})
-		expect(createRow).not.toHaveBeenCalled()
+		expect(result).toEqual({ success: true, data: null })
+		expect(createRow).toHaveBeenCalledTimes(1)
+		const savedRow = createRow.mock.calls[0][0].data
+		expect(savedRow.accountId).toBe('plaid-account-1')
+		expect(savedRow.fundingSourceUrl).toBeUndefined()
 	})
 
 	it('fails when saving the bank row to Appwrite fails', async () => {
@@ -221,7 +318,7 @@ describe('exchangePublicToken — failures', () => {
 		expect(createRow).not.toHaveBeenCalled()
 	})
 
-	it('fails with a clear message when none of the returned accounts are depository', async () => {
+	it('still links a lone credit card account instead of rejecting it', async () => {
 		server.use(
 			http.post(`${PLAID_BASE}/accounts/get`, () =>
 				HttpResponse.json({
@@ -245,10 +342,39 @@ describe('exchangePublicToken — failures', () => {
 
 		const result = await exchangePublicToken(validParams())
 
+		expect(result).toEqual({ success: true, data: null })
+		expect(createRow).toHaveBeenCalledTimes(1)
+		expect(createRow.mock.calls[0][0].data.accountId).toBe('plaid-account-credit')
+	})
+
+	it('fails with a clear message when the only linked account is an investment account', async () => {
+		server.use(
+			http.post(`${PLAID_BASE}/accounts/get`, () =>
+				HttpResponse.json({
+					accounts: [
+						{
+							account_id: 'plaid-account-investment',
+							balances: { available: 12000, current: 12000, limit: null },
+							mask: '3333',
+							name: 'Plaid Cash Invest',
+							official_name: 'Plaid Cash Investment Account',
+							subtype: 'cash management',
+							type: 'investment',
+						},
+					],
+					item: { institution_id: 'ins_109508' },
+					request_id: 'req-accounts-get',
+				}),
+			),
+		)
+		const createRow = mockCreateRow()
+
+		const result = await exchangePublicToken(validParams())
+
 		expect(result).toEqual({
 			success: false,
 			error:
-				'No eligible checking or savings account was found for this bank connection',
+				'No eligible checking, savings, or credit card account was found for this bank connection',
 		})
 		expect(createRow).not.toHaveBeenCalled()
 	})

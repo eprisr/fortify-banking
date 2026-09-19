@@ -53,6 +53,28 @@ describe('createLinkToken', () => {
 		})
 	})
 
+	it('restricts Link to depository and credit accounts only — no investments (PRD §4/§7)', async () => {
+		let capturedBody: any
+		server.use(
+			http.post(`${PLAID_BASE}/link/token/create`, async ({ request }) => {
+				capturedBody = await request.json()
+				return HttpResponse.json({
+					link_token: 'link-sandbox-test-token',
+					expiration: '2026-12-31T00:00:00Z',
+					request_id: 'req-link-token-create',
+				})
+			}),
+		)
+
+		await createLinkToken(testUser)
+
+		expect(capturedBody.account_filters).toEqual({
+			depository: { account_subtypes: ['all'] },
+			credit: { account_subtypes: ['all'] },
+		})
+		expect(capturedBody.account_filters.investment).toBeUndefined()
+	})
+
 	it('requests an update-mode link token, resolving the access token server-side from appwriteItemId', async () => {
 		const listRows = jest.fn().mockResolvedValue({
 			rows: [{ $id: 'bank-doc-1', accessToken: 'access-sandbox-1' }],

@@ -129,6 +129,7 @@ const mockAccount: Account = {
 	subtype: 'checking',
 	appwriteItemId: 'item-1',
 	shareableId: 'share-1',
+	hasFundingSource: true,
 }
 
 // Mirrors lib/demo-data.ts DEMO_ACCOUNTS[0] — real getAccounts falls back to
@@ -146,6 +147,7 @@ const demoAccount: Account = {
 	subtype: 'checking',
 	appwriteItemId: 'demo-bank-checking',
 	shareableId: 'ZGVtby1hY2NvdW50LWNoZWNraW5n',
+	hasFundingSource: true,
 }
 
 const mockTransactions = [

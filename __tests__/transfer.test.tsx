@@ -125,6 +125,7 @@ const mockAccount: Account = {
 	subtype: 'checking',
 	appwriteItemId: 'item-1',
 	shareableId: 'share-1',
+	hasFundingSource: true,
 }
 
 const secondAccount: Account = {

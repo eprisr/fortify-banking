@@ -22,6 +22,7 @@ const fromAccount: Account = {
 	subtype: 'checking',
 	appwriteItemId: 'item-1',
 	shareableId: 'share-1',
+	hasFundingSource: true,
 }
 
 const savingsAccount: Account = {

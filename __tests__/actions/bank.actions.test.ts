@@ -67,6 +67,25 @@ describe('getAccounts', () => {
 		})
 	})
 
+	it('flags an account with no Dwolla funding source as not transferable', async () => {
+		mockGetBanks.mockResolvedValue({
+			success: true,
+			data: [{ ...testBank, fundingSourceUrl: '' }],
+		})
+
+		const result = await getAccounts({ userId: 'user-1' })
+
+		expect(result.data[0]).toMatchObject({ hasFundingSource: false })
+	})
+
+	it('flags an account with a Dwolla funding source as transferable', async () => {
+		mockGetBanks.mockResolvedValue({ success: true, data: [testBank] })
+
+		const result = await getAccounts({ userId: 'user-1' })
+
+		expect(result.data[0]).toMatchObject({ hasFundingSource: true })
+	})
+
 	it('skips a bank with no access token instead of calling Plaid for it', async () => {
 		mockGetBanks.mockResolvedValue({
 			success: true,
@@ -213,6 +232,7 @@ describe('getAccount', () => {
 			id: 'plaid-account-1',
 			institutionId: 'ins_109508',
 			appwriteItemId: 'bank-doc-1',
+			hasFundingSource: true,
 		})
 		// One Plaid-synced transaction (none, by default handler) plus the one
 		// transfer transaction from Appwrite.
