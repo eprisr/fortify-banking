@@ -8,7 +8,7 @@ import {
 	getVerificationStatus,
 	transferFunds,
 } from '@/lib/actions/user.actions'
-import { amountToWords, cn, formatAmount } from '@/lib/utils'
+import { amountToWords, cn, formatAmount, TRANSFER_LIMITS } from '@/lib/utils'
 
 import { AccountPicker, Destination } from './transfers/AccountPicker'
 import { IdentityVerificationForm } from './transfers/IdentityVerificationForm'
@@ -47,7 +47,10 @@ const PaymentTransferForm = ({
 	}, [isDemo, needsBankLink])
 
 	const amount = Number(amountDigits || '0') / 100
-	const limit = verificationStatus === 'verified' ? 10_000 : 5_000
+	const limit =
+		verificationStatus === 'verified'
+			? TRANSFER_LIMITS.verified
+			: TRANSFER_LIMITS.unverified
 	const overLimit = amount > limit
 	const sameAccountConflict =
 		destination?.kind === 'account' &&

@@ -12,6 +12,7 @@ import {
 	parseStringify,
 	passwordField,
 	siteUrl,
+	TRANSFER_LIMITS,
 } from '../utils'
 import { encryptId, decryptId } from '../server/encryption'
 import {
@@ -757,7 +758,26 @@ export const transferFunds = async (
 	const normalizedAmount = amount.toFixed(2)
 
 	try {
+		const loggedIn = await getLoggedInUser()
+		if (!loggedIn) throw new Error('Not signed in')
+
+		const verification = await getVerificationStatus()
+		const verified =
+			verification.success && verification.data.status === 'verified'
+		const limit = verified
+			? TRANSFER_LIMITS.verified
+			: TRANSFER_LIMITS.unverified
+		if (amount > limit) {
+			return {
+				success: false,
+				error: `This exceeds your $${limit.toLocaleString()} ${verified ? 'per-transfer' : 'weekly'} limit`,
+			}
+		}
+
 		const senderBank = await getBank({ documentId: senderBankDocumentId })
+		if (senderBank.userId !== loggedIn.$id) {
+			return { success: false, error: 'Bank not found' }
+		}
 
 		const receiverAccountId = decryptId(receiverShareableId)
 		const receiverBankResult = await getBankByAccountId({

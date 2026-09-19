@@ -22,6 +22,10 @@ export const dwollaHandlers = [
 			}),
 	),
 
+	http.get(`${DWOLLA_BASE}/customers/:customerId`, () =>
+		HttpResponse.json({ status: 'verified' }),
+	),
+
 	http.post(`${DWOLLA_BASE}/on-demand-authorizations`, () =>
 		HttpResponse.json({
 			_links: {
