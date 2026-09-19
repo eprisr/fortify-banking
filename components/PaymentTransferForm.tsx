@@ -27,9 +27,10 @@ const PaymentTransferForm = ({
 	isDemo = false,
 }: PaymentTransferFormProps) => {
 	const router = useRouter()
+	const transferableAccounts = accounts?.filter((a) => a.hasFundingSource) ?? []
 	const [step, setStep] = useState<Step>('entry')
 	const [fromAccount, setFromAccount] = useState<Account | undefined>(
-		accounts?.[0],
+		transferableAccounts[0],
 	)
 	const [destination, setDestination] = useState<Destination | null>(null)
 	const [amountDigits, setAmountDigits] = useState('')
@@ -275,7 +276,7 @@ const PaymentTransferForm = ({
 				<AccountPicker
 					mode="from"
 					label="Choose account"
-					accounts={accounts}
+					accounts={transferableAccounts}
 					value={fromAccount ? { kind: 'account', account: fromAccount } : null}
 					onChange={(d) => d.kind === 'account' && setFromAccount(d.account)}
 				/>
@@ -288,7 +289,7 @@ const PaymentTransferForm = ({
 				<AccountPicker
 					mode="to"
 					label="Choose recipient"
-					accounts={accounts}
+					accounts={transferableAccounts}
 					excludeAccountId={fromAccount?.appwriteItemId}
 					value={destination}
 					onChange={setDestination}

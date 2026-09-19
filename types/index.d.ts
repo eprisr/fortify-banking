@@ -106,6 +106,7 @@ declare type Account = {
 	subtype: string
 	appwriteItemId: string
 	shareableId: string
+	hasFundingSource: boolean
 }
 
 declare type Transaction = {
@@ -425,7 +426,7 @@ declare interface CreateBankAccountProps {
 	userId: string
 	accountId: string
 	bankId: string
-	fundingSourceUrl: string
+	fundingSourceUrl?: string
 	shareableId: string
 }
 

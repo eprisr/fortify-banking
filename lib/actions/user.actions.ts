@@ -23,6 +23,8 @@ import {
 import {
 	AccountType,
 	CountryCode,
+	CreditAccountSubtype,
+	DepositoryAccountSubtype,
 	ProcessorTokenCreateRequest,
 	ProcessorTokenCreateRequestProcessorEnum,
 	Products,
@@ -440,6 +442,10 @@ export const createLinkToken = async (
 			language: 'en',
 			country_codes: ['US'] as CountryCode[],
 			redirect_uri: siteUrl('/oauth'),
+			account_filters: {
+				depository: { account_subtypes: [DepositoryAccountSubtype.All] },
+				credit: { account_subtypes: [CreditAccountSubtype.All] },
+			},
 			...(accessToken && { access_token: accessToken }),
 		}
 
@@ -522,47 +528,54 @@ export const exchangePublicToken = async ({
 			access_token: accessToken,
 		})
 
-		const accountData = accountsResponse.data.accounts.find(
-			(account) => account.type === AccountType.Depository,
+		const eligibleAccounts = accountsResponse.data.accounts.filter(
+			(account) =>
+				account.type === AccountType.Depository ||
+				account.type === AccountType.Credit,
 		)
 
-		if (!accountData) {
+		if (eligibleAccounts.length === 0) {
 			throw new Error(
 				accountsResponse.data.accounts.length === 0
 					? 'No accounts were returned for this bank connection'
-					: 'No eligible checking or savings account was found for this bank connection',
+					: 'No eligible checking, savings, or credit card account was found for this bank connection',
 			)
 		}
 
-		// Create a processor token for Dwolla using the access token and account ID
-		const req: ProcessorTokenCreateRequest = {
-			access_token: accessToken,
-			account_id: accountData.account_id,
-			processor: 'dwolla' as ProcessorTokenCreateRequestProcessorEnum,
+		for (const accountData of eligibleAccounts) {
+			let fundingSourceUrl: string | undefined
+			try {
+				const req: ProcessorTokenCreateRequest = {
+					access_token: accessToken,
+					account_id: accountData.account_id,
+					processor: 'dwolla' as ProcessorTokenCreateRequestProcessorEnum,
+				}
+				const processorTokenResponse =
+					await plaidClient.processorTokenCreate(req)
+				fundingSourceUrl =
+					(await addFundingSource({
+						dwollaCustomerId: user.dwollaCustomerId,
+						processorToken: processorTokenResponse.data.processor_token,
+						bankName: accountData.name,
+					})) ?? undefined
+			} catch (error) {
+				console.warn(
+					`No Dwolla funding source for account ${accountData.account_id} (${accountData.type}/${accountData.subtype}) — linking for display only:`,
+					error,
+				)
+			}
+
+			const bankAccount = await createBankAccount({
+				userId: user.$id,
+				bankId: itemId,
+				accountId: accountData.account_id,
+				accessToken,
+				fundingSourceUrl,
+				shareableId: encryptId(accountData.account_id),
+			})
+
+			if (!bankAccount) throw new Error('Failed to save bank account')
 		}
-
-		const processorTokenResponse = await plaidClient.processorTokenCreate(req)
-		const processorToken = processorTokenResponse.data.processor_token
-
-		// Create a funding source URL for the account using the Dwolla customer ID, processor token, and bank name
-		const fundingSourceUrl = await addFundingSource({
-			dwollaCustomerId: user.dwollaCustomerId,
-			processorToken,
-			bankName: accountData.name,
-		})
-
-		if (!fundingSourceUrl) throw new Error('Failed to link funding source')
-
-		const bankAccount = await createBankAccount({
-			userId: user.$id,
-			bankId: itemId,
-			accountId: accountData.account_id,
-			accessToken,
-			fundingSourceUrl,
-			shareableId: encryptId(accountData.account_id),
-		})
-
-		if (!bankAccount) throw new Error('Failed to save bank account')
 
 		await waitForInitialTransactions(accessToken)
 
