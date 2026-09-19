@@ -49,31 +49,41 @@ const accounts = [checking, savings, credit]
 
 describe('LinkedAccountsList', () => {
 	it('renders every account as a collapsed row by default', () => {
-		render(<LinkedAccountsList accounts={accounts} userName="Jane Doe" />)
+		render(<LinkedAccountsList accounts={accounts} />)
 
 		expect(screen.getByText('Everyday Checking')).toBeInTheDocument()
 		expect(screen.getByText('High-Yield Savings')).toBeInTheDocument()
 		expect(screen.getByText('Signature Credit')).toBeInTheDocument()
-		// The full-card view renders the account holder's name — absent until
-		// a row is selected.
-		expect(screen.queryByText('Jane Doe')).not.toBeInTheDocument()
+		expect(screen.queryByText('Chase')).not.toBeInTheDocument()
 	})
 
 	it('expands the tapped account into a full card and keeps the rest collapsed', async () => {
-		render(<LinkedAccountsList accounts={accounts} userName="Jane Doe" />)
+		render(<LinkedAccountsList accounts={accounts} />)
 
 		await userEvent.click(screen.getByText('Everyday Checking'))
 
-		expect(screen.getByText('Jane Doe')).toBeInTheDocument()
+		expect(
+			screen.getByText('Primary account · opened 2019'),
+		).toBeInTheDocument()
+		expect(screen.getByText('Chase')).toBeInTheDocument()
 		expect(screen.getByText('Available balance')).toBeInTheDocument()
 		expect(screen.getByText('$3,469.52')).toBeInTheDocument()
+		expect(
+			screen.getByText('Direct deposit active · Visa debit'),
+		).toBeInTheDocument()
+		expect(
+			screen.getByRole('button', { name: 'Statements' }),
+		).toBeInTheDocument()
+		expect(
+			screen.getByRole('button', { name: 'Remove account' }),
+		).toBeInTheDocument()
 		// Untouched accounts are still simple rows.
 		expect(screen.getByText('High-Yield Savings')).toBeInTheDocument()
 		expect(screen.getByText('Signature Credit')).toBeInTheDocument()
 	})
 
 	it('switching the selection collapses the previous card and expands the new one', async () => {
-		render(<LinkedAccountsList accounts={accounts} userName="Jane Doe" />)
+		render(<LinkedAccountsList accounts={accounts} />)
 
 		await userEvent.click(screen.getByText('Everyday Checking'))
 		expect(screen.getByText('Available balance')).toBeInTheDocument()
@@ -85,7 +95,7 @@ describe('LinkedAccountsList', () => {
 	})
 
 	it('tapping the expanded card again collapses it back to a row', async () => {
-		render(<LinkedAccountsList accounts={accounts} userName="Jane Doe" />)
+		render(<LinkedAccountsList accounts={accounts} />)
 
 		await userEvent.click(screen.getByText('Everyday Checking'))
 		expect(screen.getByText('Available balance')).toBeInTheDocument()
@@ -93,16 +103,24 @@ describe('LinkedAccountsList', () => {
 		await userEvent.click(screen.getByText('Everyday Checking'))
 
 		expect(screen.queryByText('Available balance')).not.toBeInTheDocument()
-		expect(screen.queryByText('Jane Doe')).not.toBeInTheDocument()
 	})
 
 	it("shows the credit account's available-of-limit line only when expanded", async () => {
-		render(<LinkedAccountsList accounts={accounts} userName="Jane Doe" />)
+		render(<LinkedAccountsList accounts={accounts} />)
 
 		await userEvent.click(screen.getByText('Signature Credit'))
 
 		expect(
 			screen.getByText('$4,830.00 available of $6,000.00 limit'),
 		).toBeInTheDocument()
+	})
+
+	it('clicking a placeholder action button does not collapse the card', async () => {
+		render(<LinkedAccountsList accounts={accounts} />)
+
+		await userEvent.click(screen.getByText('Everyday Checking'))
+		await userEvent.click(screen.getByRole('button', { name: 'Statements' }))
+
+		expect(screen.getByText('Available balance')).toBeInTheDocument()
 	})
 })
