@@ -5,19 +5,16 @@ import { getAccountDisplay } from './display'
 
 interface AccountFullCardProps {
 	account: Account
-	userName: string
 	onCollapse: () => void
 }
 
-export const AccountFullCard = ({
-	account,
-	userName,
-	onCollapse,
-}: AccountFullCardProps) => {
+export const AccountFullCard = ({ account, onCollapse }: AccountFullCardProps) => {
 	const {
 		InstitutionIcon,
 		badgeLabel,
 		rowDescriptor,
+		cardSubtitle,
+		detailLine,
 		balanceLabel,
 		balance,
 		cardBg,
@@ -25,18 +22,16 @@ export const AccountFullCard = ({
 	} = getAccountDisplay(account)
 
 	return (
-		<button
-			type="button"
-			onClick={onCollapse}
-			className={`flex w-full flex-col overflow-hidden rounded-3xl text-left text-paper ${cardBg}`}>
-			<span className={`h-1 w-full ${accentBg}`} />
-			<span className="flex flex-col gap-5 px-5 py-5">
+		<div className={`flex w-full flex-col overflow-hidden rounded-3xl text-paper ${cardBg}`}>
+			<span className={`block h-1 w-full ${accentBg}`} />
+			<button
+				type="button"
+				onClick={onCollapse}
+				className="flex flex-col gap-5 px-5 py-5 text-left">
 				<span className="flex items-start justify-between">
 					<span>
-						<span className="block font-serif text-lg font-bold">
-							{userName}
-						</span>
-						<span className="block text-xs text-paper/70">{account.name}</span>
+						<span className="block text-lg font-bold">{account.name}</span>
+						<span className="block text-xs text-paper/70">{cardSubtitle}</span>
 					</span>
 					<span className="flex flex-col items-end gap-2">
 						<span className="flex items-center gap-1.5 text-xs text-paper/70">
@@ -67,8 +62,26 @@ export const AccountFullCard = ({
 							{formatAmount(account.creditLimit)} limit
 						</span>
 					)}
+					{detailLine && (
+						<span className="text-xs text-paper/70">{detailLine}</span>
+					)}
 				</span>
-			</span>
-		</button>
+			</button>
+
+			<div className="mx-5 border-t border-paper/15" />
+
+			<div className="flex gap-3 px-5 py-4">
+				<button
+					type="button"
+					className="flex-1 rounded-xl border border-paper/20 py-2.5 text-sm font-semibold">
+					Statements
+				</button>
+				<button
+					type="button"
+					className="flex-1 rounded-xl border border-paper/20 py-2.5 text-sm font-semibold">
+					Remove account
+				</button>
+			</div>
+		</div>
 	)
 }

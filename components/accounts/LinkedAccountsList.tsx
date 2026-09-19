@@ -6,13 +6,9 @@ import { AccountRow } from './AccountRow'
 
 interface LinkedAccountsListProps {
 	accounts: Account[]
-	userName: string
 }
 
-export const LinkedAccountsList = ({
-	accounts,
-	userName,
-}: LinkedAccountsListProps) => {
+export const LinkedAccountsList = ({ accounts }: LinkedAccountsListProps) => {
 	const [selectedId, setSelectedId] = useState<string | null>(null)
 
 	return (
@@ -22,7 +18,6 @@ export const LinkedAccountsList = ({
 					<AccountFullCard
 						key={account.appwriteItemId}
 						account={account}
-						userName={userName}
 						onCollapse={() => setSelectedId(null)}
 					/>
 				) : (
