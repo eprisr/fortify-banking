@@ -84,7 +84,7 @@ export const navLinks = [
 export const quickLinks = [
 	{
 		Icon: BiTransferAlt,
-		route: '#',
+		route: '/payment-transfer',
 		label: 'Transfer',
 		toastText: "Transfers aren't available yet.",
 		demoToast: 'Transfers are not available in demo mode.',

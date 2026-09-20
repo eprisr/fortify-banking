@@ -5,28 +5,37 @@ import Link from 'next/link'
 import { IconType } from 'react-icons/lib'
 import { toast } from 'sonner'
 
-const QuickLinks = () => {
+interface QuickLinksProps {
+	isDemoUser?: boolean
+}
+
+const QuickLinks = ({ isDemoUser = false }: QuickLinksProps) => {
 	return (
 		<div>
 			<div className="grid grid-cols-4 gap-2 justify-items-center">
 				{quickLinks.map((link) => {
 					const { Icon, route, label, toastText, demoToast } = link
-					const disabled = route === '#'
+					const demoBlocked = isDemoUser && route !== '#' && !!demoToast
+					const disabled = route === '#' || demoBlocked
+					const message = route === '#' ? toastText : demoToast
+
 					return (
 						<div key={label}>
-							{disabled ? (
-								<button
-									onClick={() => toast.warning(`${toastText}`)}
-									className={`quicklink ${
-										disabled ? 'cursor-default' : 'cursor-pointer'
-									}`}>
-									<QuickLink Icon={Icon} disabled={disabled} label={label} />
-								</button>
-							) : (
-								<Link href={route} className={'quicklink'}>
-									<QuickLink Icon={Icon} disabled={disabled} label={label} />
-								</Link>
-							)}
+							<Link
+								href={disabled ? '#' : route}
+								onClick={
+									disabled
+										? (e) => {
+												e.preventDefault()
+												toast.warning(`${message}`)
+											}
+										: undefined
+								}
+								className={`quicklink ${
+									disabled ? 'cursor-default' : 'cursor-pointer'
+								}`}>
+								<QuickLink Icon={Icon} disabled={disabled} label={label} />
+							</Link>
 						</div>
 					)
 				})}
