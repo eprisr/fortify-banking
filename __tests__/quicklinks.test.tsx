@@ -9,8 +9,12 @@
 
 import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { toast } from 'sonner'
 import QuickLinks from '@/components/QuickLinks'
 import { quickLinks } from '@/constants'
+
+jest.mock('sonner', () => ({ toast: { warning: jest.fn() } }))
 
 describe('QuickLinks', () => {
 	it('renders every quickLinks label', () => {
@@ -66,5 +70,33 @@ describe('QuickLinks', () => {
 			'href',
 			'/payment-transfer',
 		)
+	})
+
+	describe('in demo mode', () => {
+		beforeEach(() => {
+			jest.clearAllMocks()
+		})
+
+		it('blocks a real route with its demo-specific toast instead of navigating', async () => {
+			render(<QuickLinks isDemoUser />)
+
+			const link = screen.getByText('Transfer').closest('a')!
+			expect(link).toHaveAttribute('href', '#')
+			expect(link).toHaveClass('cursor-default')
+
+			await userEvent.click(link)
+
+			expect(toast.warning).toHaveBeenCalledWith(
+				'Transfers are not available in demo mode.',
+			)
+		})
+
+		it('still shows the ordinary "not built yet" toast for a route that is always disabled', async () => {
+			render(<QuickLinks isDemoUser />)
+
+			await userEvent.click(screen.getByText('Pay bill').closest('a')!)
+
+			expect(toast.warning).toHaveBeenCalledWith("Bill pay isn't available yet.")
+		})
 	})
 })

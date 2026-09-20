@@ -77,7 +77,7 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 						totalBanks={accounts?.totalBanks}
 						totalBalance={accounts?.totalBalance}
 					/>
-					<QuickLinks />
+					<QuickLinks isDemoUser={isDemoUser} />
 					<MonthSpend transactions={account?.transactions} />
 					<RecentTransactions transactions={account?.transactions} />
 				</div>
