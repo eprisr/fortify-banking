@@ -75,19 +75,37 @@ describe('/verify-email page', () => {
 		expect(getByText(/email verified/i)).toBeInTheDocument()
 	})
 
-	// Code review finding: there is no session-independent state — a user
-	// who opens the verification link on a different device/browser than
-	// the one they signed up on (no matching session cookie) gets `null`
-	// back from getLoggedInUser() and the page renders nothing at all.
-	it('does not render a blank page when there is no logged-in session', async () => {
+	// Fixed: completeEmailVerification now runs on the userId/secret from the
+	// link itself rather than requiring a session in the clicking browser, so
+	// a user who opens the link on a different device/browser than the one
+	// they signed up on (no matching session cookie) can still complete it.
+	it('completes verification via the link token even with no logged-in session', async () => {
 		;(getLoggedInUser as jest.Mock).mockResolvedValue(null)
+		;(completeEmailVerification as jest.Mock).mockResolvedValue({
+			success: true,
+			data: null,
+		})
 
-		const { container } = await renderVerificationPage({
+		const { getByText } = await renderVerificationPage({
+			userId: 'user-123',
+			secret: 'secret-abc',
+			expire: '2999-01-01 00:00:00',
+		})
+
+		expect(completeEmailVerification).toHaveBeenCalledWith({
 			userId: 'user-123',
 			secret: 'secret-abc',
 		})
+		expect(getByText(/email verified/i)).toBeInTheDocument()
+	})
 
-		expect(container.textContent?.trim()).not.toBe('')
+	it('shows a sign-in prompt (not blank) with no session and no link token', async () => {
+		;(getLoggedInUser as jest.Mock).mockResolvedValue(null)
+
+		const { getByText } = await renderVerificationPage()
+
+		expect(getByText(/not signed in/i)).toBeInTheDocument()
+		expect(completeEmailVerification).not.toHaveBeenCalled()
 	})
 
 	// Code review finding: the page only has two rendered states, expired or

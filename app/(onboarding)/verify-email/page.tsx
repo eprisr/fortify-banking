@@ -13,7 +13,17 @@ const Verification = async ({ searchParams }: SearchParamProps) => {
 	await connection()
 	const loggedIn = await getLoggedInUser()
 
-	if (!loggedIn) {
+	const { userId, secret, expire } = await searchParams
+	const userIdString = userId?.toString()
+	const secretString = secret?.toString()
+	const hasToken = Boolean(userIdString && secretString)
+
+	// Not signed in *and* no verification token in the URL — nothing to do
+	// (someone navigated here directly rather than via an emailed link).
+	// A valid token is completable regardless of login state below: the
+	// browser opening the link is often not the one that's logged in (a
+	// different device, or a mail app's in-app browser).
+	if (!loggedIn && !hasToken) {
 		return (
 			<section className="flex-center w-full h-[calc(100vh-72px)] bg-white">
 				<div className="flex-center flex-col gap-5 text-center">
@@ -38,11 +48,9 @@ const Verification = async ({ searchParams }: SearchParamProps) => {
 		)
 	}
 
-	const email = obscureEmail(loggedIn.email)
+	const email = loggedIn ? obscureEmail(loggedIn.email) : 'your email'
 
-	const { userId, secret, expire } = await searchParams
-
-	let successful = loggedIn.verifiedEmail
+	let successful = loggedIn?.verifiedEmail ?? false
 
 	const expireToTime = expire?.toString().replace('\\', '')
 
@@ -51,9 +59,6 @@ const Verification = async ({ searchParams }: SearchParamProps) => {
 
 	const expired = expireDate < todaysDate
 
-	const userIdString = userId?.toString()
-	const secretString = secret?.toString()
-
 	if (!successful && !expired && userIdString && secretString) {
 		const result = await completeEmailVerification({
 			userId: userIdString,
@@ -61,11 +66,12 @@ const Verification = async ({ searchParams }: SearchParamProps) => {
 		})
 		successful = result.success
 
-		if (!successful) {
+		if (!successful && loggedIn) {
 			// Someone else may have already completed this exact link (e.g. an
 			// email client's link-scanning bot beating the real click) —
 			// re-check the live Appwrite state before treating this as a real
-			// failure.
+			// failure. Only meaningful when this browser has its own session
+			// to re-check against.
 			const refreshed = await getLoggedInUser()
 			successful = !!refreshed?.verifiedEmail
 		}
@@ -125,7 +131,7 @@ const Verification = async ({ searchParams }: SearchParamProps) => {
 						Continue
 					</Link>
 				)}
-				{status !== 'success' && (
+				{status !== 'success' && loggedIn && (
 					<>
 						<div className="w-full">
 							<ResendButton
@@ -137,6 +143,16 @@ const Verification = async ({ searchParams }: SearchParamProps) => {
 							Back to sign in
 						</Link>
 					</>
+				)}
+				{status !== 'success' && !loggedIn && (
+					// verifyEmail() needs a session to know who to send to — this
+					// browser doesn't have one (the link was opened somewhere other
+					// than where the account is signed in), so sign in there first.
+					<Link
+						href="/signin"
+						className="font-semibold w-full inline-flex items-center justify-center rounded-xl px-4 py-4 bg-primary text-white shadow-xl mt-2">
+						Sign in to request a new link
+					</Link>
 				)}
 			</div>
 		</section>

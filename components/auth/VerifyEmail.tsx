@@ -42,6 +42,10 @@ const VerifyEmail = ({ email }: { email: string }) => {
 					<div className="inline-flex h-2 w-2 bg-primary rounded-full animate-pulse mr-2"></div>{' '}
 					<p className="inline-flex">Waiting for verification…</p>
 				</div>
+				<p className="text-ink/60 text-xs">
+					Opened that link in another tab or your email app? You can close it
+					— we'll pick it up automatically here.
+				</p>
 				<ResendButton
 					onResend={() => verifyEmail()}
 					sentLabel="Sent!"
