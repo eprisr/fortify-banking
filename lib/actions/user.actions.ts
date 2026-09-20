@@ -86,7 +86,7 @@ export const signIn = async ({
 			path: '/',
 			httpOnly: true,
 			sameSite: 'strict',
-			secure: true,
+			secure: process.env.NODE_ENV === 'production',
 			expires: new Date(session.expire),
 		})
 		cookieStore.delete(DEMO_MODE_COOKIE)
@@ -295,7 +295,7 @@ export const signUp = async (
 			path: '/',
 			httpOnly: true,
 			sameSite: 'strict',
-			secure: true,
+			secure: process.env.NODE_ENV === 'production',
 			expires: new Date(session.expire),
 		})
 		cookieStore.delete(DEMO_MODE_COOKIE)
@@ -416,7 +416,7 @@ export const enterDemoMode = async () => {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'strict',
-		secure: true,
+		secure: process.env.NODE_ENV === 'production',
 	})
 	redirect('/')
 }
