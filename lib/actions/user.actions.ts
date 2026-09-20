@@ -344,7 +344,7 @@ export const completeEmailVerification = async ({
 	secret: string
 }): Promise<ActionResponse<null>> => {
 	try {
-		const { account } = await createSessionClient()
+		const { account } = await createAdminClient()
 
 		await account.updateEmailVerification({
 			userId: userId,

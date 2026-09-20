@@ -14,9 +14,10 @@ import {
 	completeEmailVerification,
 	verifyEmail,
 } from '@/lib/actions/user.actions'
-import { createSessionClient } from '@/lib/server/appwrite'
+import { createAdminClient, createSessionClient } from '@/lib/server/appwrite'
 
 const mockCreateSessionClient = createSessionClient as jest.Mock
+const mockCreateAdminClient = createAdminClient as jest.Mock
 
 describe('verifyEmail', () => {
 	const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -61,9 +62,13 @@ describe('verifyEmail', () => {
 })
 
 describe('completeEmailVerification', () => {
-	it('verifies a valid secret', async () => {
+	// Uses createAdminClient, not createSessionClient — the userId/secret pair
+	// from the emailed link is the credential. The browser completing the
+	// link is often not the one that's logged in (a different device, or a
+	// mail app's in-app browser with its own cookie jar), same as resetPw.
+	it('verifies a valid secret without requiring an active session', async () => {
 		const updateEmailVerification = jest.fn().mockResolvedValue({})
-		mockCreateSessionClient.mockResolvedValue({
+		mockCreateAdminClient.mockResolvedValue({
 			account: { updateEmailVerification },
 		})
 
@@ -77,13 +82,14 @@ describe('completeEmailVerification', () => {
 			userId: 'user-123',
 			secret: 'good-secret',
 		})
+		expect(mockCreateSessionClient).not.toHaveBeenCalled()
 	})
 
 	// Code review finding: the catch block returns the raw Error/exception
 	// object as `error`, violating the ActionResponse<T> contract every other
 	// action in this file honors (`error` must be a string).
 	it('returns a string error, not the raw exception, on a rejected secret', async () => {
-		mockCreateSessionClient.mockResolvedValue({
+		mockCreateAdminClient.mockResolvedValue({
 			account: {
 				updateEmailVerification: jest
 					.fn()

@@ -1,15 +1,15 @@
 'use client'
 
-import { BaseSyntheticEvent, useState } from 'react'
+import { BaseSyntheticEvent, useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, useFormState, useWatch } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { ChevronLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { signupSchema } from '@/lib/utils'
+import { obscureEmail, signupSchema } from '@/lib/utils'
 import { type SignUpValues } from '@/lib/auth-form-config'
-import { signUp } from '@/lib/actions/user.actions'
+import { getLoggedInUser, signUp } from '@/lib/actions/user.actions'
 import CustomInput from '@/components/CustomInput'
 import PlaidLink from '@/components/PlaidLink'
 import { type Path } from 'react-hook-form'
@@ -17,9 +17,24 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Progress } from '@/components/ui/progress'
 import StepOne from './StepOne'
 import StepTwo from './StepTwo'
+import VerifyEmail from '@/components/auth/VerifyEmail'
 import { useRouter } from 'next/navigation'
 
 const STEP_ONE_FIELDS = Object.keys(signupSchema.shape) as Path<SignUpValues>[]
+const TOTAL_STEPS = 3
+const VERIFY_POLL_MS = 4000
+
+const STEP_COPY: Record<number, { title: string; subtitle: string }> = {
+	1: { title: 'Create your account', subtitle: "Let's get you started." },
+	2: {
+		title: 'Verify your email',
+		subtitle: "We just need to confirm it's really you.",
+	},
+	3: {
+		title: 'Connect your bank',
+		subtitle: 'See your full picture, automatically.',
+	},
+}
 
 const SignUpForm = () => {
 	const router = useRouter()
@@ -69,6 +84,21 @@ const SignUpForm = () => {
 		}
 	}
 
+	useEffect(() => {
+		if (step !== 2 || !user) return
+
+		let cancelled = false
+		const poll = async () => {
+			const loggedIn = await getLoggedInUser()
+			if (!cancelled && loggedIn?.verifiedEmail) setStep(3)
+		}
+		const intervalId = setInterval(poll, VERIFY_POLL_MS)
+		return () => {
+			cancelled = true
+			clearInterval(intervalId)
+		}
+	}, [step, user])
+
 	return (
 		<section className="auth-form">
 			<header className="flex flex-col gap-5 md:gap-8">
@@ -80,29 +110,21 @@ const SignUpForm = () => {
 					</button>
 					<Field orientation="horizontal" className="w-fit">
 						<FieldLabel htmlFor="progress-upload">
-							<span>Step {step} of 2</span>
+							<span>
+								Step {step} of {TOTAL_STEPS}
+							</span>
 						</FieldLabel>
 						<Progress
-							value={(step / 2) * 100}
+							value={(step / TOTAL_STEPS) * 100}
 							id="progress-upload"
 							className="w-10! rounded-sm"
 						/>
 					</Field>
 				</div>
 				<div className="flex flex-col gap-1 md:gap-3">
-					<h1 className="text-3xl font-bold">
-						{step === 1
-							? 'Create your account'
-							: step === 2
-								? 'Connect your bank'
-								: ''}
-					</h1>
+					<h1 className="text-3xl font-bold">{STEP_COPY[step]?.title}</h1>
 					<p className="text-sm text-ink/70 font-serif italic">
-						{step === 1
-							? "Let's get you started."
-							: step === 2
-								? 'See your full picture, automatically.'
-								: ''}
+						{STEP_COPY[step]?.subtitle}
 					</p>
 				</div>
 			</header>
@@ -114,7 +136,10 @@ const SignUpForm = () => {
 						className="flex flex-col grow space-y-5">
 						<div className="flex flex-col grow gap-4">
 							{step === 1 && <StepOne control={control} password={password} />}
-							{step == 2 && <StepTwo />}
+							{step === 2 && user && (
+								<VerifyEmail email={obscureEmail(user.email)} />
+							)}
+							{step === 3 && <StepTwo />}
 							{serverError && <p className="form-message">{serverError}</p>}
 						</div>
 
@@ -127,7 +152,16 @@ const SignUpForm = () => {
 									Continue
 								</Button>
 							)}
-							{step === 2 && user && (
+							{step === 2 && (
+								<Button
+									type="button"
+									onClick={() => setStep(3)}
+									variant="secondary"
+									className="py-4 text-base shadow-xl">
+									Skip for now
+								</Button>
+							)}
+							{step === 3 && user && (
 								<div className="flex flex-col gap-4">
 									<PlaidLink
 										user={user}

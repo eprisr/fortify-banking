@@ -1,10 +1,11 @@
 /**
  * Sign Up Flow Tests
  *
- * Covers: SignUp page (RSC) and SignUpForm's 2-step wizard (account
- * creation, then optional bank connection). Previously had no coverage —
- * StepTwo(old).tsx is confirmed vestigial (per security_hardening_backlog),
- * StepOne.tsx/StepTwo.tsx are the live ones.
+ * Covers: SignUp page (RSC) and SignUpForm's 3-step wizard (account
+ * creation, then optional email verification, then optional bank
+ * connection). Previously had no coverage — StepTwo(old).tsx is confirmed
+ * vestigial (per security_hardening_backlog), StepOne.tsx/StepTwo.tsx are
+ * the live ones.
  *
  * SignUp is an async server component (it awaits next/server's
  * connection()), same pattern as SignIn/ResetPassword.
@@ -15,6 +16,11 @@
  * evidence this is unintentional (a deliberately chrome-free onboarding
  * screen is a legitimate design choice), so it's not treated as a gap here
  * — flagged to the user instead of asserted against.
+ *
+ * VerifyEmail is mocked out the same way PlaidLink is — its own behavior
+ * (sending the email on mount, resend cooldown, etc.) is covered by
+ * VerifyEmail's own test file; here we only care that SignUpForm renders it
+ * at the right step and reacts correctly to verification completing.
  */
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -22,7 +28,7 @@ import '@testing-library/jest-dom'
 import { useRouter } from 'next/navigation'
 import SignUpForm from '@/components/SignUp/SignUpForm'
 import SignUpPage from '@/app/(onboarding)/signup/page'
-import { signUp } from '@/lib/actions/user.actions'
+import { getLoggedInUser, signUp } from '@/lib/actions/user.actions'
 
 jest.mock('next/server', () => ({
 	...jest.requireActual('next/server'),
@@ -31,10 +37,15 @@ jest.mock('next/server', () => ({
 
 jest.mock('@/lib/actions/user.actions', () => ({
 	signUp: jest.fn(),
+	getLoggedInUser: jest.fn(),
 }))
 
 jest.mock('@/components/PlaidLink', () => (props: any) => (
 	<div data-testid="plaid-link" data-props={JSON.stringify(props)} />
+))
+
+jest.mock('@/components/auth/VerifyEmail', () => (props: any) => (
+	<div data-testid="verify-email" data-props={JSON.stringify(props)} />
 ))
 
 const mockPush = jest.fn()
@@ -83,6 +94,10 @@ async function completeStepOne() {
 beforeEach(() => {
 	jest.clearAllMocks()
 	setupRouter()
+	;(getLoggedInUser as jest.Mock).mockResolvedValue({
+		...validUser,
+		verifiedEmail: false,
+	})
 })
 
 describe('SignUp Page component', () => {
@@ -110,10 +125,11 @@ describe('SignUpForm — Step 1 rendering', () => {
 		expect(screen.getByLabelText('Email*')).toBeInTheDocument()
 		expect(screen.getByLabelText('Password*')).toBeInTheDocument()
 		expect(screen.getByRole('checkbox')).toBeInTheDocument()
-		expect(screen.getByText('Step 1 of 2')).toBeInTheDocument()
+		expect(screen.getByText('Step 1 of 3')).toBeInTheDocument()
 	})
 
-	it('does not render step 2 content', () => {
+	it('does not render later-step content', () => {
+		expect(screen.queryByTestId('verify-email')).not.toBeInTheDocument()
 		expect(screen.queryByTestId('plaid-link')).not.toBeInTheDocument()
 		expect(
 			screen.queryByRole('button', { name: /i'll do this later/i }),
@@ -211,31 +227,29 @@ describe('SignUpForm — submitting step 1', () => {
 		)
 	})
 
-	it('advances to step 2 and renders PlaidLink with the created user on success', async () => {
+	it('advances to step 2 (email verification) on success, not straight to PlaidLink', async () => {
 		;(signUp as jest.Mock).mockResolvedValue({ success: true, data: validUser })
 		render(<SignUpForm />)
 
 		await completeStepOne()
 
-		expect(await screen.findByText('Step 2 of 2')).toBeInTheDocument()
+		expect(await screen.findByText('Step 2 of 3')).toBeInTheDocument()
 		expect(screen.queryByLabelText('First Name*')).not.toBeInTheDocument()
-		const plaidLink = screen.getByTestId('plaid-link')
-		const props = JSON.parse(plaidLink.dataset.props!)
-		expect(props).toMatchObject({
-			user: validUser,
-			variant: 'primary',
-			text: 'Connect my bank now',
-			redirectTo: '/confirmation?connected=true',
+		expect(screen.queryByTestId('plaid-link')).not.toBeInTheDocument()
+
+		const verifyEmail = screen.getByTestId('verify-email')
+		expect(JSON.parse(verifyEmail.dataset.props!)).toMatchObject({
+			email: 'j•••••e@example.com',
 		})
 	})
 
-	it('hides the "Sign In" footer once on step 2', async () => {
+	it('hides the "Sign In" footer once past step 1', async () => {
 		;(signUp as jest.Mock).mockResolvedValue({ success: true, data: validUser })
 		render(<SignUpForm />)
 
 		await completeStepOne()
 
-		await screen.findByText('Step 2 of 2')
+		await screen.findByText('Step 2 of 3')
 		expect(
 			screen.queryByRole('link', { name: /sign in/i }),
 		).not.toBeInTheDocument()
@@ -270,26 +284,91 @@ describe('SignUpForm — submitting step 1', () => {
 	})
 })
 
-describe('SignUpForm — step 2', () => {
+describe('SignUpForm — step 2 (email verification)', () => {
 	async function renderAtStepTwo() {
 		;(signUp as jest.Mock).mockResolvedValue({ success: true, data: validUser })
 		render(<SignUpForm />)
 		await completeStepOne()
-		await screen.findByText('Step 2 of 2')
+		await screen.findByText('Step 2 of 3')
 	}
 
-	// Currently failing: "I'll do this later" calls next/navigation's
-	// redirect() from a plain onClick handler (SignUpForm.tsx). redirect()
-	// works by throwing a special error that Next's App Router catches
-	// during rendering via RedirectBoundary — but React error boundaries
-	// don't catch errors thrown from event handlers, only from rendering,
-	// so this throw is never caught and the user isn't navigated (verified
-	// by reading next/navigation's redirect() source: it's an unconditional
-	// throw, no fallback path). router.push (already in scope — used for
-	// the back button above) is the correct tool here. See
-	// component_fixes_deferred memory, queued for a separate branch.
-	it('"I\'ll do this later" navigates to /confirmation', async () => {
+	it('"Skip for now" advances to step 3 (bank connection) without verifying', async () => {
 		await renderAtStepTwo()
+
+		await userEvent.click(
+			screen.getByRole('button', { name: /skip for now/i }),
+		)
+
+		expect(await screen.findByText('Step 3 of 3')).toBeInTheDocument()
+		expect(screen.getByTestId('plaid-link')).toBeInTheDocument()
+	})
+
+	it('auto-advances to step 3 once polling finds verifiedEmail true', async () => {
+		jest.useFakeTimers({ advanceTimers: true })
+		try {
+			;(getLoggedInUser as jest.Mock).mockResolvedValue({
+				...validUser,
+				verifiedEmail: false,
+			})
+			await renderAtStepTwo()
+
+			;(getLoggedInUser as jest.Mock).mockResolvedValue({
+				...validUser,
+				verifiedEmail: true,
+			})
+			await act(async () => {
+				jest.advanceTimersByTime(4000)
+			})
+
+			expect(await screen.findByText('Step 3 of 3')).toBeInTheDocument()
+		} finally {
+			jest.useRealTimers()
+		}
+	})
+
+	it('does not advance while polling still finds verifiedEmail false', async () => {
+		jest.useFakeTimers({ advanceTimers: true })
+		try {
+			await renderAtStepTwo()
+
+			await act(async () => {
+				jest.advanceTimersByTime(4000)
+			})
+
+			expect(screen.getByText('Step 2 of 3')).toBeInTheDocument()
+		} finally {
+			jest.useRealTimers()
+		}
+	})
+})
+
+describe('SignUpForm — step 3 (bank connection)', () => {
+	async function renderAtStepThree() {
+		;(signUp as jest.Mock).mockResolvedValue({ success: true, data: validUser })
+		render(<SignUpForm />)
+		await completeStepOne()
+		await screen.findByText('Step 2 of 3')
+		await userEvent.click(
+			screen.getByRole('button', { name: /skip for now/i }),
+		)
+		await screen.findByText('Step 3 of 3')
+	}
+
+	it('renders PlaidLink with the created user', async () => {
+		await renderAtStepThree()
+
+		const plaidLink = screen.getByTestId('plaid-link')
+		const props = JSON.parse(plaidLink.dataset.props!)
+		expect(props).toMatchObject({
+			user: validUser,
+			variant: 'primary',
+			text: 'Connect my bank now',
+			redirectTo: '/confirmation?connected=true',
+		})
+	})
+
+	it('"I\'ll do this later" navigates to /confirmation', async () => {
+		await renderAtStepThree()
 
 		await userEvent.click(
 			screen.getByRole('button', { name: /i'll do this later/i }),
