@@ -3,6 +3,7 @@
  **/
 jest.mock('@/lib/server/appwrite', () => ({
 	createAdminClient: jest.fn(),
+	createGuestClient: jest.fn(),
 	createSessionClient: jest.fn(),
 }))
 
@@ -14,10 +15,15 @@ import {
 	completeEmailVerification,
 	verifyEmail,
 } from '@/lib/actions/user.actions'
-import { createAdminClient, createSessionClient } from '@/lib/server/appwrite'
+import {
+	createAdminClient,
+	createGuestClient,
+	createSessionClient,
+} from '@/lib/server/appwrite'
 
 const mockCreateSessionClient = createSessionClient as jest.Mock
 const mockCreateAdminClient = createAdminClient as jest.Mock
+const mockCreateGuestClient = createGuestClient as jest.Mock
 
 describe('verifyEmail', () => {
 	const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -62,13 +68,17 @@ describe('verifyEmail', () => {
 })
 
 describe('completeEmailVerification', () => {
-	// Uses createAdminClient, not createSessionClient — the userId/secret pair
-	// from the emailed link is the credential. The browser completing the
-	// link is often not the one that's logged in (a different device, or a
-	// mail app's in-app browser with its own cookie jar), same as resetPw.
-	it('verifies a valid secret without requiring an active session', async () => {
+	// Uses createGuestClient — no session, no API key. The userId/secret pair
+	// from the emailed link is the credential, and this Appwrite endpoint is
+	// scoped to the "public" role: an API-key-authenticated (createAdminClient)
+	// call gets the "applications" role instead and is rejected with "missing
+	// scopes ([public])", regardless of whether the secret itself is valid.
+	// The browser completing the link is often not the one that's logged in
+	// (a different device, or a mail app's in-app browser with its own cookie
+	// jar), same as resetPw — so createSessionClient isn't right either.
+	it('verifies a valid secret without requiring an active session or API key', async () => {
 		const updateEmailVerification = jest.fn().mockResolvedValue({})
-		mockCreateAdminClient.mockResolvedValue({
+		mockCreateGuestClient.mockResolvedValue({
 			account: { updateEmailVerification },
 		})
 
@@ -83,13 +93,14 @@ describe('completeEmailVerification', () => {
 			secret: 'good-secret',
 		})
 		expect(mockCreateSessionClient).not.toHaveBeenCalled()
+		expect(mockCreateAdminClient).not.toHaveBeenCalled()
 	})
 
 	// Code review finding: the catch block returns the raw Error/exception
 	// object as `error`, violating the ActionResponse<T> contract every other
 	// action in this file honors (`error` must be a string).
 	it('returns a string error, not the raw exception, on a rejected secret', async () => {
-		mockCreateAdminClient.mockResolvedValue({
+		mockCreateGuestClient.mockResolvedValue({
 			account: {
 				updateEmailVerification: jest
 					.fn()

@@ -1,7 +1,11 @@
 'use server'
 
 import { AuthenticationFactor, ID, Query } from 'node-appwrite'
-import { createAdminClient, createSessionClient } from '../server/appwrite'
+import {
+	createAdminClient,
+	createGuestClient,
+	createSessionClient,
+} from '../server/appwrite'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import {
@@ -197,7 +201,7 @@ export const resetPw = async ({
 	}
 
 	try {
-		const { account } = await createAdminClient()
+		const { account } = await createGuestClient()
 
 		await account.updateRecovery({
 			userId,
@@ -344,7 +348,7 @@ export const completeEmailVerification = async ({
 	secret: string
 }): Promise<ActionResponse<null>> => {
 	try {
-		const { account } = await createAdminClient()
+		const { account } = await createGuestClient()
 
 		await account.updateEmailVerification({
 			userId: userId,

@@ -23,6 +23,7 @@ jest.mock('@/lib/actions/user.actions', () => ({
 	signIn: jest.fn(),
 	forgotPw: jest.fn(),
 	resetPw: jest.fn(),
+	resendRecoveryLink: jest.fn(),
 }))
 
 const mockPush = jest.fn()
