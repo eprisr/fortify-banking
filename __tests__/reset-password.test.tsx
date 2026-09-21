@@ -54,16 +54,31 @@ describe('Reset Password Flow', () => {
 	describe('ResetPassword Page — link states', () => {
 		// =========================================================================
 
+		// Appwrite's recovery redirect appends `expire` (ISO 8601) alongside
+		// userId/secret — unlike email verification, which gets no such
+		// signal — so this page can show "expired" up front instead of
+		// waiting for a wasted form submission.
 		it('shows the expired-link message when expire is in the past', async () => {
 			await renderResetPage({
 				userId: 'user-123',
 				secret: 'secret-abc',
-				expire: '2000-01-01 00:00:00',
+				expire: '2000-01-01T00:00:00.000Z',
 			})
 			expect(screen.getByText(/link expired/i)).toBeInTheDocument()
 			expect(
 				screen.getByRole('button', { name: /send a new link/i }),
-			).toHaveTextContent(/send a new link/i)
+			).toBeInTheDocument()
+		})
+
+		it('renders the form as usual when expire is in the future', async () => {
+			await renderResetPage({
+				userId: 'user-123',
+				secret: 'secret-abc',
+				expire: '2999-01-01T00:00:00.000Z',
+			})
+			expect(
+				screen.getByRole('button', { name: /reset password/i }),
+			).toBeInTheDocument()
 		})
 
 		it('shows the success message when success=true', async () => {

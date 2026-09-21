@@ -39,20 +39,34 @@ describe('/verify-email page', () => {
 		jest.clearAllMocks()
 	})
 
-	it('shows the expired-link message once the link is past its expiry', async () => {
+	// Regression: Appwrite's verification redirect only ever appends userId
+	// and secret — never an `expire` param — so an `expire` query param (stale
+	// bookmark, hand-crafted URL, etc.) must not be treated as a signal. A
+	// bad/expired secret is only knowable by actually calling
+	// completeEmailVerification and letting Appwrite reject it.
+	it('ignores a stray expire param and still attempts real verification', async () => {
 		;(getLoggedInUser as jest.Mock).mockResolvedValue({
 			email: 'jane@example.com',
 			verifiedEmail: false,
 			userId: 'user-123',
 		})
+		;(completeEmailVerification as jest.Mock).mockResolvedValue({
+			success: false,
+			error: 'This link is invalid or has expired',
+		})
 
-		const { getByText } = await renderVerificationPage({
+		const { getByText, queryByText } = await renderVerificationPage({
 			userId: 'user-123',
 			secret: 'secret-abc',
 			expire: '2000-01-01 00:00:00',
 		})
 
-		expect(getByText(/link expired/i)).toBeInTheDocument()
+		expect(completeEmailVerification).toHaveBeenCalledWith({
+			userId: 'user-123',
+			secret: 'secret-abc',
+		})
+		expect(getByText(/link invalid/i)).toBeInTheDocument()
+		expect(queryByText(/link expired/i)).not.toBeInTheDocument()
 	})
 
 	it('shows the success message once completeEmailVerification succeeds', async () => {
@@ -69,7 +83,6 @@ describe('/verify-email page', () => {
 		const { getByText } = await renderVerificationPage({
 			userId: 'user-123',
 			secret: 'secret-abc',
-			expire: '2999-01-01 00:00:00',
 		})
 
 		expect(getByText(/email verified/i)).toBeInTheDocument()
@@ -89,7 +102,6 @@ describe('/verify-email page', () => {
 		const { getByText } = await renderVerificationPage({
 			userId: 'user-123',
 			secret: 'secret-abc',
-			expire: '2999-01-01 00:00:00',
 		})
 
 		expect(completeEmailVerification).toHaveBeenCalledWith({
@@ -108,11 +120,7 @@ describe('/verify-email page', () => {
 		expect(completeEmailVerification).not.toHaveBeenCalled()
 	})
 
-	// Code review finding: the page only has two rendered states, expired or
-	// successful — any other failure (mismatched/invalid secret, transient
-	// error) falls into neither and renders a blank page with no way to
-	// retry or get back to sign-in.
-	it('does not render a blank page when verification fails for a reason other than expiry', async () => {
+	it('does not render a blank page when verification fails', async () => {
 		;(getLoggedInUser as jest.Mock).mockResolvedValue({
 			email: 'jane@example.com',
 			verifiedEmail: false,
@@ -126,7 +134,6 @@ describe('/verify-email page', () => {
 		const { container } = await renderVerificationPage({
 			userId: 'user-123',
 			secret: 'bad-secret',
-			expire: '2999-01-01 00:00:00',
 		})
 
 		expect(container.textContent?.trim()).not.toBe('')

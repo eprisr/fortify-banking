@@ -19,11 +19,6 @@ export type ResetParams = {
 	secret: string | undefined
 }
 
-export type ResetStatus = {
-	expired: boolean | undefined
-	success: boolean | undefined
-}
-
 export const AUTH_SCHEMAS = {
 	signin: signinSchema,
 	'forgot-pw': forgotPwSchema,

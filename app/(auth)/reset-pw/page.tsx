@@ -1,11 +1,15 @@
 import { connection } from 'next/server'
 import AuthForm from '@/components/AuthForm'
-import ResendButton from '@/components/ResendButton'
-import Image from 'next/image'
 import Link from 'next/link'
-import React from 'react'
 import { Check, Clock } from 'lucide-react'
 import { resendRecoveryLink } from '@/lib/actions/user.actions'
+import ResendButton from '@/components/ResendButton'
+
+function isExpired(expire: string | undefined) {
+	if (!expire) return false
+	const expireDate = new Date(expire)
+	return !isNaN(expireDate.getTime()) && expireDate < new Date()
+}
 
 const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 	await connection()
@@ -13,21 +17,14 @@ const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 	const { userId, secret, expire, success } = await searchParams
 
 	const successful = success === 'true'
-
-	const expireToTime = expire?.toString().replace('\\', '')
-
-	const expireDate = new Date(`${expireToTime!}`)
-	const todaysDate = new Date()
-
-	const expired = expireDate < todaysDate
+	const expired = isExpired(expire?.toString())
 
 	const userIdString = userId?.toString()
 	const secretString = secret?.toString()
 
 	return (
 		<section className="flex flex-col justify-center w-full h-[calc(100vh-72px)] bg-white">
-      {(expired || successful) && (
-        // TODO: Turn into a component!!! Shared w/ verify email
+			{expired || successful ? (
 				<div className="flex-center flex-col gap-5 text-center">
 					<div
 						className={`flex items-center justify-center h-13 w-13 rounded-full ${successful ? 'bg-semantic-success/10' : 'bg-semantic-danger/10'}`}>
@@ -52,7 +49,9 @@ const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 					{expired && !successful && (
 						<div className="w-full mt-5">
 							<ResendButton
-								onResend={resendRecoveryLink.bind(null, { userId: userIdString! })}
+								onResend={resendRecoveryLink.bind(null, {
+									userId: userIdString!,
+								})}
 								sentLabel="New link sent — check your email."
 								disabled={!userIdString}
 							/>
@@ -60,12 +59,11 @@ const ResetPassword = async ({ searchParams }: SearchParamProps) => {
 					)}
 					<Link
 						href="/signin"
-						className={`font-semibold text-primary ${success && 'w-full inline-flex items-center justify-center  rounded-xl px-4 py-4 bg-primary text-white shadow-xl mt-2'}`}>
+						className={`font-semibold text-primary ${successful && 'w-full inline-flex items-center justify-center  rounded-xl px-4 py-4 bg-primary text-white shadow-xl mt-2'}`}>
 						Back to sign in
 					</Link>
 				</div>
-			)}
-			{!expired && !successful && (
+			) : (
 				<AuthForm
 					type="reset-pw"
 					resetParams={{ userId: userIdString, secret: secretString }}
