@@ -147,9 +147,12 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 						/>
 					</header>
 
-					<div className="flex flex-center w-10 h-10 justify-self-end ml-auto bg-cloud/70 rounded-full">
+					<Link
+						href="/notifications"
+						aria-label="Notifications"
+						className="flex flex-center w-10 h-10 justify-self-end ml-auto bg-cloud/70 rounded-full">
 						<BiBell className="w-5 h-5" />
-					</div>
+					</Link>
 				</nav>
 			) : (
 				<nav className="px-6 py-4 gap-4 font-semibold">
