@@ -1,7 +1,7 @@
 # Fortify Banking — Roadmap
 
 **Status:** Draft v1
-**Last updated:** 2026-09-19
+**Last updated:** 2026-09-21
 
 ---
 
@@ -32,7 +32,7 @@ Same status vocabulary as the landing page and case study, so there's one shared
 
 ---
 
-## Stage 1.5 — Transfers (fix + overhaul) — ✅ done
+## Stage 1.5 — Transfers (fix + overhaul)
 
 **Depends on:** nothing. **Blocks:** Stage 2 — bill pay extends `PaymentTransferForm`, so it can't safely start until this form actually works and reflects the current design system.
 
@@ -40,15 +40,46 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 
 **Scope amended 2026-09-17 ([ADR-014](decisions/ADR-014_Transfer-Rebuild.md)):** the Dwolla audit found that no two organically-signed-up users can transfer to each other — every customer is created `unverified` and nothing upgrades that. Fixing this requires the KYC/verification flow, so Stage 3's "Verification flow (KYC)" sub-feature is pulled forward into this stage rather than duplicated later. Stage 3 keeps the top-up/withdrawal work, still gated on Checkout.com credentials.
 
+**Scope amended again 2026-09-21 (financial core architecture, `fortify-security-backlog.md`):** fixing transfers on top of the current architecture would mean redoing the work once the real backing infrastructure exists, so that infrastructure is being built as part of this stage rather than after it. This is the biggest single scope amendment this stage has had — it turns "fix the transfer form" into "fix the transfer form on top of a real ledger," and is why this stage now spans four new ADRs (015–018) instead of one.
+
 | Sub-feature | Status | Done means |
 |---|---|---|
-| Bug fixes | 🟢 Live | Every transfer path (own accounts, to others) completes end-to-end — root-caused and fixed a bug where `senderBank.userId.$id`/`receiverBank.userId.$id` silently evaluated to `undefined` (`userId` is a plain string, not an expanded relationship) so `createTransaction` failed its required-field validation on every transfer ever attempted. Confirmed working against a live Dwolla sandbox + Appwrite for all three scenarios: self-transfer, P2P to a verified user, P2P to an unverified user (KYC flow) |
-| Verification flow (KYC) | 🟢 Live | *(moved from Stage 3)* Real CIP data collection (name, DOB, address, SSN — last 4 digits first, escalating to full 9 only if Dwolla requests a retry), upgrades a Dwolla customer from `unverified` to `verified`. Confirmed live: an unverified sender is routed to this step before a P2P transfer completes, and the transfer proceeds automatically once verification succeeds |
-| Design system migration | 🟢 Live | Matches current tokens (Ink/Paper/Cloud/Plum/Gold/Sage/Terracotta, current type scale). Design-system pass also fixed a duplicated `CTA_BUTTON` constant, inconsistent `font-serif` on recipient names, and a flat heading hierarchy on the "link a bank" screen |
-| Test coverage | 🟢 Live | Jest/RTL/MSW at both the component (`transfer.test.tsx`, `account-picker.test.tsx`, `identity-verification-form.test.tsx`) and server-action layers, covering all three manually-tested scenarios plus the ownership and tiered-limit checks below. Full suite green apart from the same 4 pre-existing, unrelated failing suites |
-| ADR-007 risk check | 🟢 Live | The new KYC and recipient-search-by-email surfaces held up cleanly — narrow DTOs only, server-side re-validation, no enumeration difference between "no such user" and "user has no linked bank." The audit did find two real gaps in `transferFunds` itself: (1) **critical** — `senderBankDocumentId` had no check tying it to the authenticated caller, so any signed-in user could name another user's bank document ID as their funding source; a prior code comment claiming "Dwolla's own requirements are the real security boundary" was wrong and is corrected. (2) the verified/unverified per-transfer limit was enforced only in the UI, not on the server. Both fixed same-day — see [ADR-014](decisions/ADR-014_Transfer-Rebuild.md#risk-check-adr-007-pattern-2026-09-19) |
+| Bug fixes | ⚪ Planned | Every transfer path (own accounts, to others) completes end-to-end with no known bugs — specifics TBD as they're logged |
+| Verification flow (KYC) | ⚪ Planned | *(moved from Stage 3)* Real CIP data collection (name, DOB, address, SSN), upgrades a Dwolla customer from `unverified` to `verified` — required before a P2P transfer to another user can complete at all |
+| Design system migration | ⚪ Planned | Matches current tokens (Ink/Paper/Cloud/Plum/Gold/Sage/Terracotta, current type scale) rather than the pre-overhaul styling it still carries |
+| **Ledger vs. Balance decision** | ⚪ Planned | *(new)* ADR settling whether the PostgreSQL ledger below is the source of truth for balances or a shadow ledger mirroring Dwolla. Blocks the ledger sub-feature below — building it before deciding this risks building the wrong thing |
+| **PostgreSQL double-entry ledger** | ⚪ Planned | *(new, [ADR-015](decisions/ADR-015_Financial-Core-Isolation.md))* Dedicated Postgres instance, atomic writes with row-level locks, balances as computed derivations of postings rather than mutable numbers. Appwrite scoped back to auth/profile/session/Realtime only |
+| **Secrets manager migration** | ⚪ Planned | *(new, ADR-015)* Plaid access tokens, Dwolla OAuth credentials, and any private keys move out of Appwrite document collections into Doppler or AWS Secrets Manager |
+| **Transaction state machine + idempotency** | ⚪ Planned | *(new, [ADR-016](decisions/ADR-016_State-Machine-Idempotency.md))* Every transaction modeled as `initiated → pending_clearing → settled/returned/failed`, no backward or out-of-order transitions. Idempotency keys generated client-side and propagated to Dwolla/Checkout, so a retried request returns the existing record instead of double-charging |
+| **Queue workers (Redis/BullMQ)** | ⚪ Planned | *(new, ADR-016)* Webhook handlers become thin — verify signature, enqueue, return 200 — with the real processing decoupled into workers, so a network drop mid-transfer doesn't corrupt state |
+| **Plaid Signal risk gating** | ⚪ Planned | *(new, [ADR-017](decisions/ADR-017_Fraud-Risk-Layer.md))* Every Dwolla ACH debit scored for NSF/return risk before submission. Confirmed available in the current Plaid sandbox, no partnership gate |
+| **Velocity limits** | ⚪ Planned | *(new, ADR-017)* Hourly/daily/rolling-30-day transfer limits plus new-account cooling periods, aimed at ACH return codes R01/R02/R10 |
+| **Nightly reconciliation** | ⚪ Planned | *(new, [ADR-018](decisions/ADR-018_Reconciliation-FinOps.md))* Batch job pulling Dwolla/Checkout settlement reports, 3-way matching against ledger postings, unmatched records routed to an exception queue rather than force-balanced |
+| Test coverage | ⚪ Planned | Jest/RTL/MSW + Playwright, same bar as the rest of the app — likely absent or stale given the component predates current conventions, now also covering the state machine and idempotency paths |
+| ADR-007 risk check | ⚪ Planned | This is the exact flow ADR-007 originally found leaking data on — re-verify the fix still holds after any changes here, don't assume it's untouched. The Stage 1 check just proved this kind of audit finds real things, not just checkbox-fills it. Also covers the new KYC data path, the new recipient-search-by-email surface, and the new ledger/secrets-manager surface |
 
-**Stage done when:** both transfer paths (self-transfer and P2P to another user) work reliably end-to-end and visually match the rest of the app, with test coverage at parity with everything built since. **This bar is now met.**
+**Stage done when:** both transfer paths (self-transfer and P2P to another user) work reliably end-to-end and visually match the rest of the app, running on the isolated ledger with idempotent, state-machine-governed writes, with test coverage at parity with everything built since. Full architecture detail lives in `fortify-security-backlog.md`, not duplicated here.
+
+---
+
+## Stage 1.6 — Notification center
+
+**Depends on:** nothing. No Dwolla or Plaid dependency, same as MFA setup.
+
+**Added 2026-09-20**, out of a design conversation about onboarding friction. Verifying email at sign-up raised the question of how much nudging is too much, which led to a decision about surfacing the "MFA isn't on" reminder without turning it into forced friction, the whole point of making MFA contextual in Stage 1. A notification feed does that job without contradicting the decision, a persistent banner would.
+
+| Sub-feature | Status | Done means |
+|---|---|---|
+| Bell icon entry point | ⚪ Planned | Bell icon on Home, with an unread-count badge when there's anything unread |
+| Notification list | ⚪ Planned | Tapping the bell opens the center. Items show an icon, title, description, relative timestamp, and read or unread state, grouped into New and Earlier |
+| Mark all as read | ⚪ Planned | One tap clears every unread item and removes the badge |
+| Link to notification preferences | ⚪ Planned | A way in from the center to the existing Notifications settings screen, so the feed and its preferences aren't two disconnected places |
+| Empty state | ⚪ Planned | A "you're all caught up" state when there's nothing to show |
+| First real content, MFA reminder | ⚪ Planned | The center's flagship use case. A passive nudge to enable MFA, generated from live account state rather than a static message, so it disappears the moment MFA is actually turned on |
+
+**Stage done when:** the bell icon, list, mark all as read, and link to preferences all work end to end, seeded with the MFA reminder as real content.
+
+**Decision:** the notification center and the sample data banner (on the disconnected and expired home states) stay separate, they solve different problems. The banner is a persistent state indicator, true on every screen for as long as the account has no real data. The center is a feed of transient nudges, read once and moved along. Folding them together would either make the sample data warning vanish the moment it's "read," which is wrong since it's still true, or make the MFA nudge nag every screen forever, which undoes the contextual MFA decision from Stage 1. Worth its own line since it looks redundant at a glance and isn't.
 
 ---
 
@@ -72,6 +103,8 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 **Depends on:** Stage 1 (Settings must exist to house the verification entry point) and Stage 1.5 (Verified Customer status, per the amendment below).
 
 **Verification flow (KYC) moved to Stage 1.5** ([ADR-014](decisions/ADR-014_Transfer-Rebuild.md), 2026-09-17) — P2P transfer can't work without it, so it shipped earlier rather than being duplicated here. This stage now just consumes the Verified Customer status that Stage 1.5 produces; it no longer builds the verification flow itself.
+
+**Note (2026-09-21):** top-up and withdrawal both move money through the same ledger, state machine, and Plaid Signal gating built in Stage 1.5 — this stage doesn't add new infrastructure, just new transaction types running through what already exists by the time this starts.
 
 | Sub-feature | Status | Done means |
 |---|---|---|
@@ -127,7 +160,8 @@ One post per stage, published when that stage closes — same checkpoint as the 
 | Stage | Working title | Angle |
 |---|---|---|
 | 1 — Settings | *Building Fortify: Settings, and the Two Decisions It Was Blocking* | Why a page can be "built" and a feature not "done" — the KYC-deferral and contextual-MFA decisions finally landing somewhere. Now that this stage is closed, this post has its ending: the ADR-007 check that found a real leak, not a clean pass |
-| 1.5 — Transfers fix + overhaul | *Building Fortify: Fixing What I Started With* | Honest post about revisiting "done" work that wasn't — the gap between a component existing and a component actually working, and why it matters enough to stop and fix before building on top of it |
+| 1.5 — Transfers fix + overhaul | *Building Fortify: Fixing What I Started With* | Honest post about revisiting "done" work that wasn't — the gap between a component existing and a component actually working, and why it matters enough to stop and fix before building on top of it. Given the 2026-09-21 scope amendment, this is now also the ledger/idempotency/reconciliation post — consider splitting into two if it runs long, the "fixing what I started with" story and the "building a real financial core" story are honestly different posts |
+| 1.6 — Notification center | *Building Fortify: Nudging Without Nagging* | A security reminder and a "you're viewing sample data" disclaimer look like the same kind of message and aren't. Why keeping MFA contextual instead of mandatory is what forced the two apart, one becomes a feed item, the other stays a persistent banner |
 | 2 — Bill pay | *Building Fortify: Bill Pay* | Extending an existing form vs. forking a new one — the actual call made, and why |
 | 3 — Top-up, withdrawal | *Building Fortify: Money In, Money Out* | The Dwolla Balance model, why Checkout.com over Stripe, Push-to-Card as a "free" upgrade — this is the richest stage, split into two posts if it runs long rather than cramming it |
 | 4 — Forecasting | *Building Fortify: Know Before Friday* | The flagship post. The spreadsheet origin, the recurring-rule-plus-exceptions model, why manual beat auto-detected. Likely the strongest piece — give it room, consider two parts (data model, then the UI) rather than rushing one |
@@ -146,7 +180,7 @@ Walking through the app as the persona, in order, to sanity-check that the stage
 2. **Guest exploration.** Tries the dashboard via guest mode before handing over any real information. *(Live — Guest Mode, ADR-006.)*
 3. **Sign-up and account linking.** Creates an account, links her bank via Plaid. No KYC friction here — that's deferred by design. *(Live.)*
 4. **Everyday check-in.** Opens the app the way she always did with her old bank app — checks the balance, glances at spending by category. *(Live.)*
-5. **First transfer.** Moves money to savings, or pays a friend back — the latter now hits a verification prompt the first time, since Dwolla won't move money between two unverified users. *(Stage 1.5 — exists, but broken and pre-overhaul; not actually live yet despite earlier planning treating it as done. KYC verification moved here per ADR-014.)*
+5. **First transfer.** Moves money to savings, or pays a friend back — the latter now hits a verification prompt the first time, since Dwolla won't move money between two unverified users. *(Stage 1.5 — exists, but broken and pre-overhaul; not actually live yet despite earlier planning treating it as done. KYC verification moved here per ADR-014, and the transfer itself now runs on the new ledger/state-machine architecture per the 2026-09-21 amendment.)*
 6. **Paying rent.** Uses bill pay instead of leaving the app. *(Stage 2.)*
 7. **Wants to add a cushion.** Tries to top up before a big expense — already Verified from the transfer flow, so no repeat KYC friction here, straight to tops up. *(Stage 3 — this is the moment the Settings/KYC/top-up decisions all connect.)*
 8. **Needs cash same-day.** Withdraws via push-to-card instead of waiting on a standard transfer. *(Stage 3.)*
@@ -159,7 +193,8 @@ Step 9 is the one to protect. If time pressure ever forces a cut, everything exc
 
 ## Open items being tracked
 
-The risk-watch and ready-vs-done questions are resolved — folded into the stages above rather than sitting here as separate suggestions. Two remain genuinely open:
+The risk-watch and ready-vs-done questions are resolved — folded into the stages above rather than sitting here as separate suggestions. Three remain genuinely open:
 
 1. **Changelog.** One line per stage shipped, date + link to its blog post/ADR. Source the content from git history — `git log` for the raw commit trail since the last entry, or Claude Code, since it sits directly in the local repo with terminal access and can draft the entry from actual commits/diffs at the point a stage closes, rather than reconstructing it from memory later.
 2. **Usage instrumentation.** Deliberately deferred — planned for launch once the major features (transfer, forecasting, etc.) are complete, not before.
+3. **Ledger vs. Balance authority.** Whether the new PostgreSQL ledger (Stage 1.5) is the source of truth for balances or a shadow ledger mirroring Dwolla for audit purposes. Needs its own ADR before that ledger gets built — see `fortify-security-backlog.md` and `prd.md` §10.
