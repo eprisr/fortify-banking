@@ -2,7 +2,7 @@
 
 **Status:** Draft v1
 **Owner:** Epris Richardson
-**Last updated:** 2026-09-19
+**Last updated:** 2026-09-21
 
 ---
 
@@ -106,6 +106,7 @@ Ranked by the priority you set, grouped into what's real (Dwolla-backed) vs. sim
 - Phase 2 — account top-ups (both ACH pull and card-funded via Checkout.com) and withdrawals (both ACH-out and Push-to-Card)
 - Forecasting — manual recurring items + exceptions across checking, savings, credit, and Balance, projected balance, danger-point highlight, upcoming bills
 - Settings — contextual Verified Customer/KYC, contextual MFA
+- **Financial core architecture** — an isolated PostgreSQL double-entry ledger, idempotency keys and a deterministic transaction state machine, decoupled queue workers (Redis/BullMQ) for external events, Plaid Signal risk scoring ahead of every ACH debit, nightly reconciliation against Dwolla/Checkout settlement reports, and secrets (Plaid/Dwolla credentials, keys) moved out of Appwrite into a dedicated secrets manager. Full detail in `fortify-security-backlog.md`; folded into Stage 1.5 on the roadmap rather than a separate stage, since transfers are what this architecture actually governs.
 
 **Simulated / documented only — the actual stack boundary, not a scope cut:**
 - Currency exchange — Airwallex named as the production path, not built, since it's the one feature with no natural pairing to the existing Dwolla-centered stack (unlike Checkout.com, which already threads through Push-to-Card)
@@ -132,6 +133,8 @@ This is required by the feature set — top-ups and Push-to-Card withdrawals bot
 
 **Verification trigger, updated (ADR-014):** verification isn't only a top-up-time prompt. The transfer-flow audit found that Dwolla creates every customer `unverified` by default and nothing upgrades that on its own — which means two organically-signed-up users can never complete a P2P transfer to each other without it. So verification is now triggered from three places, built once: Settings, first P2P transfer attempt, and first top-up attempt. This pulled the verification build earlier in the roadmap (into the transfers fix/overhaul stage) rather than leaving it gated behind top-up, since P2P transfer is Phase 1 and top-up is Phase 2.
 
+**Open question, added 2026-09-21:** a new PostgreSQL double-entry ledger is being built alongside the Dwolla Balance model (see `fortify-security-backlog.md`), and whether it's the source of truth for balances or a shadow ledger mirroring Dwolla for audit/reconciliation hasn't been decided yet. This needs its own ADR before that ledger gets built, since it changes what "the balance" actually means throughout the app.
+
 ## 8. What "High-End" Means Operationally
 
 Ties back to the existing design system so this doesn't stay abstract:
@@ -156,6 +159,7 @@ Ties back to the existing design system so this doesn't stay abstract:
 
 - **Recurring-transaction detection** for the forecasting feature needs either a real pattern-matching approach or believable seeded mock data — decide before starting Phase 1's data model, since transaction schema should support this from day one even if the detection logic comes later.
 - **Recipient-to-recipient transfers** assume the recipient is already a Dwolla customer — worth deciding early whether "transfers to others" in the demo means another Fortify user, or an external payee, since that changes the onboarding flow you need to mock.
+- **Ledger vs. Balance authority** — whether the new PostgreSQL double-entry ledger (§6, `fortify-security-backlog.md`) is the source of truth for user balances or a shadow ledger mirroring Dwolla for audit purposes. Not yet decided; needs its own ADR before Phase 1 of that architecture work starts.
 
 **Resolved:** Verified Customer / CIP-KYC onboarding is deferred, not part of sign-up. It lives as an option in Settings, and is also triggered contextually the first time a user attempts a P2P transfer or a top-up — clicking either prompts identity verification to unlock the feature if not already verified (updated per ADR-014 — P2P was added as a trigger once the audit showed unverified customers can't transfer to each other at all). This mirrors the existing MFA pattern (contextual setup at point of need, not front-loaded at sign-up) and keeps the sign-up mockups already built as-is, with no new step required.
 
