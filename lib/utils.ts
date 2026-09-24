@@ -120,6 +120,23 @@ export const formatDateTime = (dateString: Date) => {
 	}
 }
 
+export function formatRelativeTime(dateString: string): string {
+	const diffMs = Date.now() - new Date(dateString).getTime()
+	const minutes = Math.floor(diffMs / 60_000)
+	const hours = Math.floor(diffMs / 3_600_000)
+	const days = Math.floor(diffMs / 86_400_000)
+
+	if (minutes < 1) return 'Just now'
+	if (minutes < 60) return `${minutes}m ago`
+	if (hours < 24) return `${hours}h ago`
+	if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`
+
+	return new Date(dateString).toLocaleDateString('en-US', {
+		month: 'short',
+		day: 'numeric',
+	})
+}
+
 export function getCurrentMonthName(): string {
 	return new Date().toLocaleString('default', { month: 'long' })
 }

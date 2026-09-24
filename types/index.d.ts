@@ -223,6 +223,32 @@ declare type VerifyIdentityParams = {
 	ssn: string
 }
 
+declare type NotificationChannel = 'in_app' | 'push' | 'email'
+
+declare type AppNotification = {
+	$id: string
+	$createdAt: string
+	userId: string
+	type: string
+	channel: NotificationChannel
+	title: string
+	body: string
+	actionHref?: string
+	actionLabel?: string
+	read: boolean
+}
+
+declare type NotifyParams = {
+	userId: string
+	type: string
+	title: string
+	body: string
+	actionHref?: string
+	actionLabel?: string
+	/** Defaults to 'in_app' — the only channel actually delivered today. */
+	channel?: NotificationChannel
+}
+
 declare interface CreditCardProps {
 	account: Account
 	userName: string
@@ -311,6 +337,7 @@ declare interface NavbarProps {
 	user?: User
 	type: string
 	pageTitle?: string
+	hasUnreadNotifications?: boolean
 }
 
 declare interface TransactionsProps {

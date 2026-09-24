@@ -1,39 +1,81 @@
 /**
  * user.actions.ts — enableMFA, disableMFA, generateRecoveryCodes.
+ *
+ * enableMFA calls getLoggedInUser() internally (to resolve the users-table
+ * row's own $id for resolveNotificationsByType — see the comment at its
+ * call site: that $id is NOT the same as the Appwrite Auth account's $id,
+ * and using the wrong one was a real bug caught after a real signup).
+ * getLoggedInUser needs cookies() + createSessionClient().account.get() +
+ * createAdminClient().table.listRows() (getUserInfo), same as
+ * notification.actions.test.ts's signIn() helper.
  **/
+jest.mock('next/headers', () => ({ cookies: jest.fn() }))
+
 jest.mock('@/lib/server/appwrite', () => ({
 	createAdminClient: jest.fn(),
 	createSessionClient: jest.fn(),
+}))
+
+jest.mock('@/lib/actions/notification.actions', () => ({
+	notify: jest.fn(),
+	resolveNotificationsByType: jest.fn(),
 }))
 
 // jest.setup.tsx globally jest.mocks this module (for the component test
 // suite's benefit) — undo that here so the real actions run.
 jest.unmock('@/lib/actions/user.actions')
 
+import { cookies } from 'next/headers'
 import {
 	disableMFA,
 	enableMFA,
 	generateRecoveryCodes,
 } from '@/lib/actions/user.actions'
-import { createSessionClient } from '@/lib/server/appwrite'
+import { createAdminClient, createSessionClient } from '@/lib/server/appwrite'
+import { resolveNotificationsByType } from '@/lib/actions/notification.actions'
 
+const mockCookies = cookies as unknown as jest.Mock
+const mockCreateAdminClient = createAdminClient as jest.Mock
 const mockCreateSessionClient = createSessionClient as jest.Mock
+const mockResolveNotificationsByType = resolveNotificationsByType as jest.Mock
+
+// The users-table row for the signed-in user — its own $id ('row-1') is
+// what enableMFA should pass to resolveNotificationsByType, not the auth
+// account's $id ('auth-1').
+const userRow = { $id: 'row-1', userId: 'auth-1' }
+
+beforeEach(() => {
+	jest.clearAllMocks()
+	mockResolveNotificationsByType.mockResolvedValue({ success: true, data: null })
+	mockCookies.mockResolvedValue({ get: jest.fn().mockReturnValue(undefined) })
+	mockCreateAdminClient.mockResolvedValue({
+		table: {
+			listRows: jest.fn().mockResolvedValue({ rows: [userRow], total: 1 }),
+		},
+	})
+})
 
 describe('enableMFA', () => {
-	it('turns MFA on', async () => {
+	it("turns MFA on and resolves the notification using the user row's own $id, not the auth account's $id", async () => {
 		const updateMFA = jest.fn().mockResolvedValue({})
-		mockCreateSessionClient.mockResolvedValue({ account: { updateMFA } })
+		const get = jest.fn().mockResolvedValue({ $id: 'auth-1' })
+		mockCreateSessionClient.mockResolvedValue({ account: { updateMFA, get } })
 
 		const result = await enableMFA()
 
 		expect(result).toEqual({ success: true, data: null })
 		expect(updateMFA).toHaveBeenCalledWith({ mfa: true })
+		expect(mockResolveNotificationsByType).toHaveBeenCalledWith({
+			userId: 'row-1',
+			type: 'security_mfa',
+		})
 	})
 
 	it('reports failure when updateMFA rejects', async () => {
 		mockCreateSessionClient.mockResolvedValue({
 			account: {
 				updateMFA: jest.fn().mockRejectedValue(new Error('network error')),
+				get: jest.fn().mockResolvedValue({ $id: 'auth-1' }),
 			},
 		})
 
@@ -43,6 +85,17 @@ describe('enableMFA', () => {
 			success: false,
 			error: 'Failed to enable multi-factor authentication',
 		})
+		expect(mockResolveNotificationsByType).not.toHaveBeenCalled()
+	})
+
+	it('still reports success if resolving the notification fails — MFA is already on by then', async () => {
+		const updateMFA = jest.fn().mockResolvedValue({})
+		const get = jest.fn().mockRejectedValue(new Error('session hiccup'))
+		mockCreateSessionClient.mockResolvedValue({ account: { updateMFA, get } })
+
+		const result = await enableMFA()
+
+		expect(result).toEqual({ success: true, data: null })
 	})
 })
 

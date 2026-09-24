@@ -28,12 +28,28 @@ import { redirect } from 'next/navigation'
 import Home from '@/app/(root)/(with-nav)/page'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
 import { getAccounts, getAccount } from '@/lib/actions/bank.actions'
+import { getUnreadNotificationCount } from '@/lib/actions/notification.actions'
 
 // ---------------------------------------------------------------------------
 // Module mocks
 // ---------------------------------------------------------------------------
 
-jest.mock('@/components/Navbar', () => () => <nav data-testid="navbar" />)
+jest.mock(
+	'@/components/Navbar',
+	() =>
+		function MockNavbar({
+			hasUnreadNotifications,
+		}: {
+			hasUnreadNotifications?: boolean
+		}) {
+			return (
+				<nav
+					data-testid="navbar"
+					data-has-unread-notifications={String(!!hasUnreadNotifications)}
+				/>
+			)
+		},
+)
 
 jest.mock(
 	'@/components/PlaidLink',
@@ -93,6 +109,10 @@ jest.mock('@/lib/actions/user.actions', () => ({
 jest.mock('@/lib/actions/bank.actions', () => ({
 	getAccounts: jest.fn(),
 	getAccount: jest.fn(),
+}))
+
+jest.mock('@/lib/actions/notification.actions', () => ({
+	getUnreadNotificationCount: jest.fn(),
 }))
 
 // ---------------------------------------------------------------------------
@@ -184,6 +204,10 @@ describe('Home Page', () => {
 		;(getAccount as jest.Mock).mockResolvedValue({
 			transactions: mockTransactions,
 		})
+		;(getUnreadNotificationCount as jest.Mock).mockResolvedValue({
+			success: true,
+			data: 0,
+		})
 	})
 
 	// =========================================================================
@@ -198,6 +222,48 @@ describe('Home Page', () => {
 		it('renders the Navbar', async () => {
 			await renderHome()
 			expect(screen.getByTestId('navbar')).toBeInTheDocument()
+		})
+
+		it('flags unread notifications when there is at least one unread', async () => {
+			;(getUnreadNotificationCount as jest.Mock).mockResolvedValue({
+				success: true,
+				data: 2,
+			})
+
+			await renderHome()
+
+			expect(screen.getByTestId('navbar')).toHaveAttribute(
+				'data-has-unread-notifications',
+				'true',
+			)
+		})
+
+		it('shows no unread indicator when there are no unread notifications', async () => {
+			;(getUnreadNotificationCount as jest.Mock).mockResolvedValue({
+				success: true,
+				data: 0,
+			})
+
+			await renderHome()
+
+			expect(screen.getByTestId('navbar')).toHaveAttribute(
+				'data-has-unread-notifications',
+				'false',
+			)
+		})
+
+		it('shows no unread indicator when the count fetch fails, rather than defaulting to true', async () => {
+			;(getUnreadNotificationCount as jest.Mock).mockResolvedValue({
+				success: false,
+				error: 'boom',
+			})
+
+			await renderHome()
+
+			expect(screen.getByTestId('navbar')).toHaveAttribute(
+				'data-has-unread-notifications',
+				'false',
+			)
 		})
 
 		it('renders the AccountBox with the correct totalBanks', async () => {

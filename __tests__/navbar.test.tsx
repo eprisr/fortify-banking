@@ -65,6 +65,29 @@ describe('Navbar', () => {
 			expect(screen.queryByText(/!$/)).not.toBeInTheDocument()
 		})
 
+		it('links the bell icon to /notifications', () => {
+			render(<Navbar type="main" user={mockUser} />)
+			expect(screen.getByLabelText('Notifications')).toHaveAttribute(
+				'href',
+				'/notifications',
+			)
+		})
+
+		it('shows no unread dot by default', () => {
+			const { container } = render(<Navbar type="main" user={mockUser} />)
+			expect(container.querySelector('.bg-destructive')).not.toBeInTheDocument()
+		})
+
+		it('shows an unread dot on the bell when hasUnreadNotifications is true', () => {
+			const { container } = render(
+				<Navbar type="main" user={mockUser} hasUnreadNotifications />,
+			)
+			expect(
+				screen.getByLabelText('Notifications').querySelector('.bg-destructive'),
+			).toBeInTheDocument()
+			expect(container.querySelector('.bg-destructive')).toBeInTheDocument()
+		})
+
 		it('opens the menu sheet and shows profile details, nav links, and Footer', async () => {
 			render(<Navbar type="main" user={mockUser} />)
 
