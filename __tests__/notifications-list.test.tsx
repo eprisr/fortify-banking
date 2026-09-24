@@ -154,4 +154,16 @@ describe('NotificationsList', () => {
 			screen.queryByRole('button', { name: 'Mark all as read' }),
 		).not.toBeInTheDocument()
 	})
+
+	it('shows the "you\'re all caught up" empty state when there are no notifications', () => {
+		render(<NotificationsList notifications={[]} />)
+
+		expect(screen.getByText("You're all caught up")).toBeInTheDocument()
+	})
+
+	it('does not show the empty state once there is at least one notification', () => {
+		render(<NotificationsList notifications={[welcomeNotification]} />)
+
+		expect(screen.queryByText("You're all caught up")).not.toBeInTheDocument()
+	})
 })
