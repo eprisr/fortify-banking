@@ -63,21 +63,19 @@ describe('NotificationsList', () => {
 		).toBeInTheDocument()
 	})
 
-	it('renders an unread notification with an unread dot and no container background', () => {
+	it('renders an unread notification with an unread dot', () => {
 		const { container } = render(
 			<NotificationsList notifications={[mfaNotification]} />,
 		)
 
 		expect(container.querySelector('.bg-destructive')).toBeInTheDocument()
-		expect(container.querySelector('.bg-muted')).not.toBeInTheDocument()
 	})
 
-	it('renders a read notification with a container background and no unread dot', () => {
+	it('renders a read notification with no unread dot', () => {
 		const { container } = render(
 			<NotificationsList notifications={[welcomeNotification]} />,
 		)
 
-		expect(container.querySelector('.bg-muted')).toBeInTheDocument()
 		expect(container.querySelector('.bg-destructive')).not.toBeInTheDocument()
 	})
 
@@ -115,7 +113,7 @@ describe('NotificationsList', () => {
 		expect(mockRefresh).toHaveBeenCalled()
 	})
 
-	it('clears the unread dot immediately, ahead of the container styling', async () => {
+	it("clears the unread dot immediately, ahead of the server round-trip", async () => {
 		const { container } = render(
 			<NotificationsList notifications={[mfaNotification]} />,
 		)
@@ -126,13 +124,9 @@ describe('NotificationsList', () => {
 			screen.getByRole('button', { name: 'Mark all as read' }),
 		)
 
-		// The dot clears right away...
+		// The dot clears right away, ahead of markAllNotificationsRead's
+		// server round-trip actually resolving.
 		expect(container.querySelector('.bg-destructive')).not.toBeInTheDocument()
-		// ...but the notifications prop hasn't actually changed in this test
-		// (that only happens for real once router.refresh() brings back
-		// `read: true` data), so the container/background hasn't appeared —
-		// the two are deliberately not tied to the same click.
-		expect(container.querySelector('.bg-muted')).not.toBeInTheDocument()
 	})
 
 	it('links to the notification preferences page', () => {

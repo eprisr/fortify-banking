@@ -1,11 +1,18 @@
 'use client'
 
-import { Bell, ChevronLeft, Moon, Settings, Shield } from 'lucide-react'
+import {
+	Bell,
+	ChevronLeft,
+	CircleCheck,
+	Moon,
+	Settings,
+	Shield,
+} from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { markAllNotificationsRead } from '@/lib/actions/notification.actions'
-import { cn, formatRelativeTime } from '@/lib/utils'
+import { formatRelativeTime } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
 interface NotificationsListProps {
@@ -60,10 +67,12 @@ export const NotificationsList = ({
 				{unread.length > 0 && (
 					<button
 						type="button"
+						aria-label="Mark all as read"
+						title="Mark all as read"
 						disabled={isMarking}
 						onClick={handleMarkAllRead}
-						className="text-sm font-semibold text-primary disabled:opacity-50">
-						Mark all as read
+						className="text-primary disabled:opacity-50">
+						<CircleCheck className="size-6" />
 					</button>
 				)}
 			</div>
