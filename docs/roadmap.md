@@ -1,7 +1,7 @@
 # Fortify Banking — Roadmap
 
 **Status:** Draft v1
-**Last updated:** 2026-09-21
+**Last updated:** 2026-09-24
 
 ---
 
@@ -62,22 +62,26 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 
 ---
 
-## Stage 1.6 — Notification center
+## Stage 1.6 — Notification center — ✅ done
 
 **Depends on:** nothing. No Dwolla or Plaid dependency, same as MFA setup.
 
 **Added 2026-09-20**, out of a design conversation about onboarding friction. Verifying email at sign-up raised the question of how much nudging is too much, which led to a decision about surfacing the "MFA isn't on" reminder without turning it into forced friction, the whole point of making MFA contextual in Stage 1. A notification feed does that job without contradicting the decision, a persistent banner would.
 
+**Built on a real store, not just a UI.** Backed by an Appwrite `Notification` collection and a single `notify()` chokepoint that everything else calls through — today it only writes the in-app row, but when push/email are added later, that's the one place that changes, not every call site. Schema already carries a `channel` field (`in_app`/`push`/`email`) for exactly that.
+
 | Sub-feature | Status | Done means |
 |---|---|---|
-| Bell icon entry point | ⚪ Planned | Bell icon on Home, with an unread-count badge when there's anything unread |
-| Notification list | ⚪ Planned | Tapping the bell opens the center. Items show an icon, title, description, relative timestamp, and read or unread state, grouped into New and Earlier |
-| Mark all as read | ⚪ Planned | One tap clears every unread item and removes the badge |
-| Link to notification preferences | ⚪ Planned | A way in from the center to the existing Notifications settings screen, so the feed and its preferences aren't two disconnected places |
-| Empty state | ⚪ Planned | A "you're all caught up" state when there's nothing to show |
-| First real content, MFA reminder | ⚪ Planned | The center's flagship use case. A passive nudge to enable MFA, generated from live account state rather than a static message, so it disappears the moment MFA is actually turned on |
+| Bell icon entry point | 🟢 Live | Bell icon on Home, with an unread-count badge (server-computed) when there's anything unread |
+| Notification list | 🟢 Live | Tapping the bell opens the center. Items show an icon, title, description, relative timestamp, and read or unread state, grouped into New and Earlier by real `read` state |
+| Mark all as read | 🟢 Live | One tap clears every unread item and removes the badge. The unread dot clears immediately on click (optimistic, local state) independent of the server round-trip that persists it for real — the two are deliberately decoupled so the UI never feels laggy |
+| Link to notification preferences | 🟢 Live | A way in from the center to the existing Notifications settings screen, so the feed and its preferences aren't two disconnected places |
+| Empty state | 🟢 Live | A "you're all caught up" state when there's nothing to show |
+| First real content, MFA reminder | 🟢 Live | A real notification row created at signup (not a `!user.mfa`-derived banner computed at render time — that approach had no persisted read state, so "mark as read" didn't survive a reload). `enableMFA()` resolves it for real the moment MFA is actually turned on |
 
-**Stage done when:** the bell icon, list, mark all as read, and link to preferences all work end to end, seeded with the MFA reminder as real content.
+**Real bug caught and fixed, same shape as the earlier transfer-flow bug:** `notify()` was tagging rows with the Appwrite Auth account's `$id` instead of the `users`-table row's own `$id` — every other read path in the app (`getNotifications`, `getAccounts`, `getBanks`) keys off the latter. Notifications were being written to the database but could never match a read query, so they silently never appeared. Fixed at both call sites (`signUp`, `enableMFA`) and repaired the affected live rows.
+
+**Stage done when:** the bell icon, list, mark all as read, and link to preferences all work end to end, seeded with the MFA reminder as real content. **This bar is now met.**
 
 **Decision:** the notification center and the sample data banner (on the disconnected and expired home states) stay separate, they solve different problems. The banner is a persistent state indicator, true on every screen for as long as the account has no real data. The center is a feed of transient nudges, read once and moved along. Folding them together would either make the sample data warning vanish the moment it's "read," which is wrong since it's still true, or make the MFA nudge nag every screen forever, which undoes the contextual MFA decision from Stage 1. Worth its own line since it looks redundant at a glance and isn't.
 
