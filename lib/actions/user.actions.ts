@@ -41,6 +41,7 @@ import {
 	updateDwollaCustomer,
 } from './dwolla.actions'
 import { createTransaction } from './transaction.actions'
+import { notify, resolveNotificationsByType } from './notification.actions'
 import { DEMO_MODE_COOKIE, DEMO_USER, isDemoUserId } from '../demo-data'
 
 const {
@@ -299,6 +300,22 @@ export const signUp = async (
 			expires: new Date(session.expire),
 		})
 		cookieStore.delete(DEMO_MODE_COOKIE)
+
+		await notify({
+			userId: newUserAccount.$id,
+			type: 'welcome',
+			title: 'Welcome to Fortify',
+			body: "Here's a quick look at what you can do first.",
+		})
+
+		await notify({
+			userId: newUserAccount.$id,
+			type: 'security_mfa',
+			title: 'Add extra security to your account',
+			body: 'Turn on two-factor authentication to help protect transfers and other sensitive actions.',
+			actionHref: '/settings',
+			actionLabel: 'Turn on',
+		})
 
 		return { success: true, data: parseStringify(newUser) }
 	} catch (error: any) {
@@ -936,6 +953,21 @@ export const enableMFA = async (): Promise<ActionResponse<null>> => {
 		const { account } = await createSessionClient()
 
 		await account.updateMFA({ mfa: true })
+
+		// Best-effort and fully isolated from the outer try/catch — a hiccup
+		// here must never report failure for an MFA toggle that actually
+		// succeeded. This is what actually clears the security nudge for
+		// good, instead of a `!user.mfa` check that only hid it until the
+		// next page load.
+		try {
+			const { $id: userId } = await account.get()
+			await resolveNotificationsByType({ userId, type: 'security_mfa' })
+		} catch (notificationError) {
+			console.error(
+				'Failed to resolve the security notification after enabling MFA: ',
+				notificationError,
+			)
+		}
 
 		return { success: true, data: null }
 	} catch (error: any) {

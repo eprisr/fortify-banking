@@ -5,6 +5,7 @@ import PlaidLink from '@/components/PlaidLink'
 import QuickLinks from '@/components/QuickLinks'
 import { RecentTransactions } from '@/components/RecentTransactions'
 import { getAccount, getAccounts } from '@/lib/actions/bank.actions'
+import { getUnreadNotificationCount } from '@/lib/actions/notification.actions'
 import { getLoggedInUser } from '@/lib/actions/user.actions'
 import { isDemoUserId } from '@/lib/demo-data'
 import { CreditCard, TriangleAlert } from 'lucide-react'
@@ -17,6 +18,10 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 	const isDemoUser = isDemoUserId(loggedIn?.$id)
 
 	const accounts = await getAccounts({ userId: loggedIn?.$id })
+	const unreadCount = await getUnreadNotificationCount({
+		userId: loggedIn.$id,
+	})
+	const hasUnreadNotifications = unreadCount.success && unreadCount.data > 0
 
 	const accountsData = accounts?.data
 	const emptyAccount = accounts === 'UPDATE_MODE' || accounts?.totalBanks === 0
@@ -33,7 +38,11 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 
 	return (
 		<>
-			<Navbar user={loggedIn} type="main" />
+			<Navbar
+				user={loggedIn}
+				type="main"
+				hasUnreadNotifications={hasUnreadNotifications}
+			/>
 			<section>
 				<div className="home-content">
 					{(emptyAccount || demoAccount) && (

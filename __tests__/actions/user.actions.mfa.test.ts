@@ -6,6 +6,11 @@ jest.mock('@/lib/server/appwrite', () => ({
 	createSessionClient: jest.fn(),
 }))
 
+jest.mock('@/lib/actions/notification.actions', () => ({
+	notify: jest.fn(),
+	resolveNotificationsByType: jest.fn(),
+}))
+
 // jest.setup.tsx globally jest.mocks this module (for the component test
 // suite's benefit) — undo that here so the real actions run.
 jest.unmock('@/lib/actions/user.actions')
@@ -16,24 +21,37 @@ import {
 	generateRecoveryCodes,
 } from '@/lib/actions/user.actions'
 import { createSessionClient } from '@/lib/server/appwrite'
+import { resolveNotificationsByType } from '@/lib/actions/notification.actions'
 
 const mockCreateSessionClient = createSessionClient as jest.Mock
+const mockResolveNotificationsByType = resolveNotificationsByType as jest.Mock
+
+beforeEach(() => {
+	jest.clearAllMocks()
+	mockResolveNotificationsByType.mockResolvedValue({ success: true, data: null })
+})
 
 describe('enableMFA', () => {
-	it('turns MFA on', async () => {
+	it('turns MFA on and resolves the pending security notification', async () => {
 		const updateMFA = jest.fn().mockResolvedValue({})
-		mockCreateSessionClient.mockResolvedValue({ account: { updateMFA } })
+		const get = jest.fn().mockResolvedValue({ $id: 'user-1' })
+		mockCreateSessionClient.mockResolvedValue({ account: { updateMFA, get } })
 
 		const result = await enableMFA()
 
 		expect(result).toEqual({ success: true, data: null })
 		expect(updateMFA).toHaveBeenCalledWith({ mfa: true })
+		expect(mockResolveNotificationsByType).toHaveBeenCalledWith({
+			userId: 'user-1',
+			type: 'security_mfa',
+		})
 	})
 
 	it('reports failure when updateMFA rejects', async () => {
 		mockCreateSessionClient.mockResolvedValue({
 			account: {
 				updateMFA: jest.fn().mockRejectedValue(new Error('network error')),
+				get: jest.fn().mockResolvedValue({ $id: 'user-1' }),
 			},
 		})
 
@@ -43,6 +61,17 @@ describe('enableMFA', () => {
 			success: false,
 			error: 'Failed to enable multi-factor authentication',
 		})
+		expect(mockResolveNotificationsByType).not.toHaveBeenCalled()
+	})
+
+	it('still reports success if resolving the notification fails — MFA is already on by then', async () => {
+		const updateMFA = jest.fn().mockResolvedValue({})
+		const get = jest.fn().mockRejectedValue(new Error('session hiccup'))
+		mockCreateSessionClient.mockResolvedValue({ account: { updateMFA, get } })
+
+		const result = await enableMFA()
+
+		expect(result).toEqual({ success: true, data: null })
 	})
 })
 

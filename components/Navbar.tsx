@@ -21,7 +21,12 @@ import { useMobileContainer } from './mobile-container'
 import { ChevronRight } from 'lucide-react'
 import { Button } from './ui/button'
 
-const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
+const Navbar = ({
+	user,
+	type,
+	pageTitle = '',
+	hasUnreadNotifications = false,
+}: NavbarProps) => {
 	const userEmail = obscureEmail(user!.email)
 	const container = useMobileContainer()
 	let path
@@ -150,8 +155,11 @@ const Navbar = ({ user, type, pageTitle = '' }: NavbarProps) => {
 					<Link
 						href="/notifications"
 						aria-label="Notifications"
-						className="flex flex-center w-10 h-10 justify-self-end ml-auto bg-cloud/70 rounded-full">
+						className="relative flex flex-center w-10 h-10 justify-self-end ml-auto bg-cloud/70 rounded-full">
 						<BiBell className="w-5 h-5" />
+						{hasUnreadNotifications && (
+							<span className="absolute top-2 right-2 size-2 rounded-full bg-destructive" />
+						)}
 					</Link>
 				</nav>
 			) : (

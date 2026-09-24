@@ -1,20 +1,41 @@
 'use client'
 
-import { ChevronLeft, Moon, Settings, Shield } from 'lucide-react'
+import { Bell, ChevronLeft, Moon, Settings, Shield } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { markAllNotificationsRead } from '@/lib/actions/notification.actions'
+import { formatRelativeTime } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
 interface NotificationsListProps {
-	showMfaNotification: boolean
+	notifications: AppNotification[]
 }
 
-export const NotificationsList = ({
-	showMfaNotification,
-}: NotificationsListProps) => {
+const iconForType = (type: string) => {
+	switch (type) {
+		case 'welcome':
+			return { Icon: Moon, badgeClass: 'bg-gold/15 text-gold' }
+		case 'security_mfa':
+			return { Icon: Shield, badgeClass: 'bg-plum-tint text-primary' }
+		default:
+			return { Icon: Bell, badgeClass: 'bg-accent text-accent-foreground' }
+	}
+}
+
+export const NotificationsList = ({ notifications }: NotificationsListProps) => {
 	const router = useRouter()
-	const [mfaUnread, setMfaUnread] = useState(showMfaNotification)
+	const [isMarking, setIsMarking] = useState(false)
+
+	const unread = notifications.filter((n) => !n.read)
+	const read = notifications.filter((n) => n.read)
+
+	const handleMarkAllRead = async () => {
+		setIsMarking(true)
+		await markAllNotificationsRead()
+		setIsMarking(false)
+		router.refresh()
+	}
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -28,66 +49,38 @@ export const NotificationsList = ({
 
 			<div className="flex items-center justify-between">
 				<h1 className="text-3xl font-bold text-foreground">Notifications</h1>
-				{showMfaNotification && (
+				{unread.length > 0 && (
 					<button
 						type="button"
-						onClick={() => setMfaUnread(false)}
-						className="text-sm font-semibold text-primary">
+						disabled={isMarking}
+						onClick={handleMarkAllRead}
+						className="text-sm font-semibold text-primary disabled:opacity-50">
 						Mark all as read
 					</button>
 				)}
 			</div>
 
-			{showMfaNotification && (
+			{unread.length > 0 && (
 				<div className="flex flex-col gap-2">
 					<p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
 						New
 					</p>
-					<div className="relative flex gap-3 rounded-2xl bg-muted p-4">
-						{mfaUnread && (
-							<span className="absolute top-4 right-4 size-2 rounded-full bg-destructive" />
-						)}
-						<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-plum-tint text-primary">
-							<Shield className="size-5" />
-						</span>
-						<div className="flex flex-col gap-2 pr-4">
-							<div>
-								<p className="text-sm font-bold text-foreground">
-									Add extra security to your account
-								</p>
-								<p className="text-sm text-muted-foreground">
-									Turn on two-factor authentication to help protect transfers
-									and other sensitive actions.
-								</p>
-							</div>
-							<p className="text-xs text-muted-foreground">2 days ago</p>
-							<Button asChild className="w-fit rounded-full px-5">
-								<Link href="/settings">Turn on</Link>
-							</Button>
-						</div>
-					</div>
+					{unread.map((notification) => (
+						<NotificationRow key={notification.$id} notification={notification} unread />
+					))}
 				</div>
 			)}
 
-			<div className="flex flex-col gap-2">
-				<p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-					Earlier
-				</p>
-				<div className="flex gap-3 rounded-2xl bg-muted p-4">
-					<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
-						<Moon className="size-5" />
-					</span>
-					<div className="flex flex-col gap-1">
-						<p className="text-sm font-bold text-foreground">
-							Welcome to Fortify
-						</p>
-						<p className="text-sm text-muted-foreground">
-							Here&apos;s a quick look at what you can do first.
-						</p>
-						<p className="text-xs text-muted-foreground">5 days ago</p>
-					</div>
+			{read.length > 0 && (
+				<div className="flex flex-col gap-2">
+					<p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+						Earlier
+					</p>
+					{read.map((notification) => (
+						<NotificationRow key={notification.$id} notification={notification} />
+					))}
 				</div>
-			</div>
+			)}
 
 			<Link
 				href="/notifications/preferences"
@@ -95,6 +88,44 @@ export const NotificationsList = ({
 				<Settings className="size-4" />
 				Manage notification preferences
 			</Link>
+		</div>
+	)
+}
+
+const NotificationRow = ({
+	notification,
+	unread = false,
+}: {
+	notification: AppNotification
+	unread?: boolean
+}) => {
+	const { Icon, badgeClass } = iconForType(notification.type)
+
+	return (
+		<div className="relative flex gap-3 rounded-2xl bg-muted p-4">
+			{unread && (
+				<span className="absolute top-4 right-4 size-2 rounded-full bg-destructive" />
+			)}
+			<span
+				className={`flex size-10 shrink-0 items-center justify-center rounded-full ${badgeClass}`}>
+				<Icon className="size-5" />
+			</span>
+			<div className="flex flex-col gap-2 pr-4">
+				<div>
+					<p className="text-sm font-bold text-foreground">{notification.title}</p>
+					<p className="text-sm text-muted-foreground">{notification.body}</p>
+				</div>
+				<p className="text-xs text-muted-foreground">
+					{formatRelativeTime(notification.$createdAt)}
+				</p>
+				{notification.actionHref && notification.actionLabel && (
+					<Button asChild className="w-fit rounded-full px-5">
+						<Link href={notification.actionHref}>
+							{notification.actionLabel}
+						</Link>
+					</Button>
+				)}
+			</div>
 		</div>
 	)
 }
