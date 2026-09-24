@@ -301,15 +301,20 @@ export const signUp = async (
 		})
 		cookieStore.delete(DEMO_MODE_COOKIE)
 
+		// newUser.$id, not newUserAccount.$id — the notification's userId has
+		// to match what every read path (getNotifications, getAccounts, ...)
+		// keys off, which is the users-table row's own $id, not the Appwrite
+		// Auth account's $id. Same two-IDs-per-user shape that caused the
+		// senderBank.userId.$id transfer bug.
 		await notify({
-			userId: newUserAccount.$id,
+			userId: newUser.$id,
 			type: 'welcome',
 			title: 'Welcome to Fortify',
 			body: "Here's a quick look at what you can do first.",
 		})
 
 		await notify({
-			userId: newUserAccount.$id,
+			userId: newUser.$id,
 			type: 'security_mfa',
 			title: 'Add extra security to your account',
 			body: 'Turn on two-factor authentication to help protect transfers and other sensitive actions.',
@@ -959,9 +964,19 @@ export const enableMFA = async (): Promise<ActionResponse<null>> => {
 		// succeeded. This is what actually clears the security nudge for
 		// good, instead of a `!user.mfa` check that only hid it until the
 		// next page load.
+		//
+		// getLoggedInUser(), not account.get() — the latter's $id is the
+		// Appwrite Auth account id, but notify()/getNotifications key
+		// notifications off the users-table row's own $id (same distinction
+		// as the signUp() notify() calls above).
 		try {
-			const { $id: userId } = await account.get()
-			await resolveNotificationsByType({ userId, type: 'security_mfa' })
+			const loggedIn = await getLoggedInUser()
+			if (loggedIn) {
+				await resolveNotificationsByType({
+					userId: loggedIn.$id,
+					type: 'security_mfa',
+				})
+			}
 		} catch (notificationError) {
 			console.error(
 				'Failed to resolve the security notification after enabling MFA: ',

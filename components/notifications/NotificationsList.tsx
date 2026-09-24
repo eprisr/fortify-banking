@@ -3,9 +3,9 @@
 import { Bell, ChevronLeft, Moon, Settings, Shield } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { markAllNotificationsRead } from '@/lib/actions/notification.actions'
-import { formatRelativeTime } from '@/lib/utils'
+import { cn, formatRelativeTime } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
 interface NotificationsListProps {
@@ -23,14 +23,22 @@ const iconForType = (type: string) => {
 	}
 }
 
-export const NotificationsList = ({ notifications }: NotificationsListProps) => {
+export const NotificationsList = ({
+	notifications,
+}: NotificationsListProps) => {
 	const router = useRouter()
 	const [isMarking, setIsMarking] = useState(false)
+	const [dotsDismissed, setDotsDismissed] = useState(false)
 
 	const unread = notifications.filter((n) => !n.read)
 	const read = notifications.filter((n) => n.read)
 
+	useEffect(() => {
+		if (unread.length === 0 && dotsDismissed) setDotsDismissed(false)
+	}, [unread.length, dotsDismissed])
+
 	const handleMarkAllRead = async () => {
+		setDotsDismissed(true)
 		setIsMarking(true)
 		await markAllNotificationsRead()
 		setIsMarking(false)
@@ -66,7 +74,12 @@ export const NotificationsList = ({ notifications }: NotificationsListProps) => 
 						New
 					</p>
 					{unread.map((notification) => (
-						<NotificationRow key={notification.$id} notification={notification} unread />
+						<NotificationRow
+							key={notification.$id}
+							notification={notification}
+							unread
+							showDot={!dotsDismissed}
+						/>
 					))}
 				</div>
 			)}
@@ -77,7 +90,10 @@ export const NotificationsList = ({ notifications }: NotificationsListProps) => 
 						Earlier
 					</p>
 					{read.map((notification) => (
-						<NotificationRow key={notification.$id} notification={notification} />
+						<NotificationRow
+							key={notification.$id}
+							notification={notification}
+						/>
 					))}
 				</div>
 			)}
@@ -95,16 +111,18 @@ export const NotificationsList = ({ notifications }: NotificationsListProps) => 
 const NotificationRow = ({
 	notification,
 	unread = false,
+	showDot = unread,
 }: {
 	notification: AppNotification
 	unread?: boolean
+	showDot?: boolean
 }) => {
 	const { Icon, badgeClass } = iconForType(notification.type)
 
 	return (
-		<div className="relative flex gap-3 rounded-2xl bg-muted p-4">
-			{unread && (
-				<span className="absolute top-4 right-4 size-2 rounded-full bg-destructive" />
+		<div className="flex gap-3 py-1">
+			{showDot && (
+				<span className="mt-2 size-2 shrink-0 rounded-full bg-destructive" />
 			)}
 			<span
 				className={`flex size-10 shrink-0 items-center justify-center rounded-full ${badgeClass}`}>
@@ -112,7 +130,9 @@ const NotificationRow = ({
 			</span>
 			<div className="flex flex-col gap-2 pr-4">
 				<div>
-					<p className="text-sm font-bold text-foreground">{notification.title}</p>
+					<p className="text-sm font-bold text-foreground">
+						{notification.title}
+					</p>
 					<p className="text-sm text-muted-foreground">{notification.body}</p>
 				</div>
 				<p className="text-xs text-muted-foreground">
