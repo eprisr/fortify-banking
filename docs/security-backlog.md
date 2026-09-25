@@ -28,7 +28,7 @@ A resilient financial architecture separates user identity from the transaction 
 
 - **Strict state transition logic.** Model every transaction as an explicit finite state machine (`initiated`, `pending_clearing`, `settled`, `returned`, `failed`). Prevent any worker or process from applying backward or out-of-order state transitions.
 - **Universal idempotency.** Generate unique idempotency keys for every client action and propagate them downstream to Dwolla transfer requests and Checkout charges. If a mobile client retries a network request mid-drop, the backend returns the existing transaction record rather than initiating a duplicate charge.
-- **Decoupled queue workers.** Process external events via a dedicated queue (Redis with BullMQ) or scheduled polling workers. If webhooks stay at the network edge, keep their handlers thin: verify the cryptographic signature, write the payload to a persistent queue, and return an immediate HTTP 200.
+- **Decoupled queue workers.** Process external events via a dedicated queue (Redis with BullMQ) or scheduled polling workers. If webhooks stay at the network edge, keep their handlers thin: verify the cryptographic signature, write the payload to a persistent queue, and return an immediate HTTP 200. **Resolved via ADR-017: Upstash (Redis + QStash), not BullMQ** — BullMQ needs an always-on worker process, a second hosting model this app's serverless deployment doesn't naturally support; QStash delivers queued jobs via HTTP to an existing API route instead.
 
 ## Phase 3 — Pre-Transaction Risk Controls (Fraud Layer)
 
