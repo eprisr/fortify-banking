@@ -10,18 +10,13 @@
 
 A resilient financial architecture separates user identity from the transaction ledger, treats all external payment rails as fundamentally asynchronous, and assumes network drops and settlement discrepancies will occur. This document is the target architecture that gets Fortify from an MVP sandbox to something that behaves like a production financial system, and it's real build work, not a documented-only item like Airwallex.
 
-**Open question, not yet decided:** how the new Postgres ledger relates to Dwolla's own Balance. Two real options, and this needs to be settled before Phase 1 is built since it changes what the ledger is actually for:
-
-1. **Postgres is the source of truth** — Fortify computes and owns balances internally from ledger postings; Dwolla Balance becomes just the funding rail underneath it, not what the app displays or trusts.
-2. **Postgres mirrors Dwolla for audit** — Dwolla Balance stays authoritative for actual funds; Postgres is an internal shadow ledger for reconciliation, dispute resolution, and catching drift, not the number shown to users.
-
-This should get its own ADR before Phase 1 starts, since it determines whether the double-entry ledger is load-bearing or advisory.
+**Resolved 2026-09-24 — [ADR-015](decisions/ADR-015_Ledger-vs-Balance-Authority.md).** How the new Postgres ledger relates to Dwolla's own Balance was open between two options — Postgres as source of truth for balances, vs. Postgres as a shadow ledger mirroring Dwolla for audit — and needed settling before Phase 1 since it changes what the ledger is actually for. Decided: **Dwolla stays authoritative for actual fund balances; Postgres is a shadow ledger** — a queryable, application-owned record of what Fortify's systems understood to have happened, feeding forecasting/state-tracking/audit and checked against Dwolla's settlement data by Phase 4's reconciliation job, not competing with Dwolla for "truth about dollars." Fortify holds no money-transmission license and never custodies funds independently of Dwolla, so treating its own database as authoritative would have misrepresented what's actually true and reintroduced the exact phantom-balance risk this backlog exists to close.
 
 ---
 
 ## Phase 1 — Isolate the Financial Core (Data Architecture)
 
-**→ ADR-015** *(numbering assumes ADR-014 is still the most recent in the repo — confirm before filing, since this session doesn't have a live view of `docs/decisions/`)*
+**→ ADR-016** *(shifted from the originally-proposed ADR-015 — that number went to the [Ledger vs. Balance Authority](decisions/ADR-015_Ledger-vs-Balance-Authority.md) decision this phase depends on, filed 2026-09-24)*
 
 - **Role separation.** Keep Appwrite dedicated to customer authentication, profile data, session handling, and frontend Realtime WebSocket subscriptions.
 - **Isolated ledger database.** Deploy a dedicated PostgreSQL instance exclusively for the double-entry ledger. All financial writes must execute inside atomic SQL transactions with row-level locks, ensuring user balances remain strictly computed derivations of past postings rather than mutable numbers.
@@ -29,7 +24,7 @@ This should get its own ADR before Phase 1 starts, since it determines whether t
 
 ## Phase 2 — Deterministic State Machine and Event Management (Integration Architecture)
 
-**→ ADR-016**
+**→ ADR-017**
 
 - **Strict state transition logic.** Model every transaction as an explicit finite state machine (`initiated`, `pending_clearing`, `settled`, `returned`, `failed`). Prevent any worker or process from applying backward or out-of-order state transitions.
 - **Universal idempotency.** Generate unique idempotency keys for every client action and propagate them downstream to Dwolla transfer requests and Checkout charges. If a mobile client retries a network request mid-drop, the backend returns the existing transaction record rather than initiating a duplicate charge.
@@ -37,14 +32,14 @@ This should get its own ADR before Phase 1 starts, since it determines whether t
 
 ## Phase 3 — Pre-Transaction Risk Controls (Fraud Layer)
 
-**→ ADR-017**
+**→ ADR-018**
 
 - **Automated risk scoring.** Gate every Dwolla ACH debit behind Plaid Signal. Evaluate risk tiers and NSF probabilities programmatically, rejecting or holding high-risk transfers before submitting them to NACHA rails. *(Confirmed available in the existing Plaid sandbox — no partnership gate, unlike Wise/Currencycloud.)*
 - **Platform velocity limits.** Enforce application-level velocity rules (hourly, daily, rolling 30-day) alongside new-account cooling periods to mitigate exposure to ACH return codes R01, R02, and R10.
 
 ## Phase 4 — Automated Reconciliation and Audit Trails (FinOps Layer)
 
-**→ ADR-018**
+**→ ADR-019**
 
 - **Nightly report ingestion.** Schedule batch jobs to pull daily settlement and fee summaries via Dwolla and Checkout reporting APIs.
 - **Multi-pass matching.** Reconcile gross customer payments against net bank deposits by isolating interchange and payment processing fees into explicit expense accounts.
