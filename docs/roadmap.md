@@ -21,7 +21,7 @@ Same status vocabulary as the landing page and case study, so there's one shared
 
 Stage numbers stay as they are, since links and ADRs point at them. What changes is the order the work gets done in. The goal is to protect Stage 4, the stage the whole project is positioned on, and to get the project finished.
 
-1. **CI/CD** ([ADR-021](decisions/ADR-021_CI-CD-Pipeline.md)). Lint, type check, Jest and a production build on every pull request. E2E stays manual or nightly for now.
+1. **CI/CD** ([ADR-021](decisions/ADR-021_CI-CD-Pipeline.md)). **Done.** Lint, build, type check and Jest run on every pull request, and a passing check is required to merge to `main`. E2E stays manual or nightly for now.
 2. **Stage 1.5 core.** The transfer bug fixes, KYC and design-system migration are already done ([ADR-014](decisions/ADR-014_Transfer-Rebuild.md)). What's left is ADR-016 (ledger and secrets) and ADR-017 (state machine and queue).
 3. **Stage 1.7, Desktop and responsive layout** ([ADR-020](decisions/ADR-020_Responsive-Layout.md)). Done before forecasting so the chart and upcoming-bills views are designed once, at full width.
 4. **Stage 4, Forecasting.** Starts as soon as the ledger exists. The recurring-rule and date math can be built earlier, since it's pure logic.
@@ -114,7 +114,7 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 | Retire the phone frame | ⚪ Planned | `MobileContainer` and its portal context removed from the three route layouts and the five components that use it. Sheets and dialogs portal normally |
 | Existing screens reflow | ⚪ Planned | Every screen that exists today works at desktop and tablet widths, using the real design tokens, not the prototype's placeholder palette |
 | Desktop overlays | ⚪ Planned | Flows that are bottom sheets on mobile (connect a bank, account options) become centered modals on desktop |
-| Test coverage | ⚪ Planned | Navbar and layout tests updated for the new shell. The navbar suite is one of four already failing on `main`, so it gets fixed here or in CI setup |
+| Test coverage | ⚪ Planned | Navbar and layout tests updated for the new shell. The navbar suite was one of four failing on `main`, and it was fixed as part of the CI work ([ADR-021](decisions/ADR-021_CI-CD-Pipeline.md)). Update it again for the new shell |
 | ADR-007 risk check | ⚪ Planned | Layout work should not change data access, but confirm no component picked up a new client-side fetch while being moved |
 
 **Stage done when:** every existing screen is usable on a laptop, tablet and phone without the phone frame, and the Stage 4 views can be built at full width from the start.

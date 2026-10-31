@@ -64,7 +64,7 @@ I built a layout prototype in Claude to test the shape of this. It's a reference
 
 **Risks:**
 - Scope creep. "Make it work on desktop" can turn into a redesign. The bar is that every existing screen is usable at desktop and tablet widths, not that each one gets a new desktop layout.
-- Four Jest suites already fail on `main`, and the navbar suite is one of them. It sits right in the path of this work, so it gets fixed here or during the CI setup in ADR-021.
+- Four Jest suites already fail on `main`, and the navbar suite is one of them. It sits right in the path of this work, so it needed fixing either way. That happened during the CI setup in ADR-021, and the suite will need updating again for the new shell.
 - Capacitor stays in the repo as a dev testing aid, and as a door left open to shipping a native app later. Removing the frame doesn't affect it, but a native build would eventually want its own look at layout.
 
 ---

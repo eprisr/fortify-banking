@@ -75,7 +75,29 @@ Use **GitHub Actions** with one workflow that runs on every pull request and on 
 
 ## Consequences (Actual)
 
-*To be filled in once the pipeline is running and required.*
+The pipeline is running and required on `main`. It was built with Claude Code, and the checks were green before it was turned on, as the decision said. Several things went differently than I expected.
+
+### What had to be fixed first
+
+- **The Navbar crash was real.** `Navbar` read `user!.email` before checking that a user existed, so the transaction history page, which renders the sub navbar with no user, crashed on render. Fixed.
+- **Plaid errors were invisible.** `PlaidLink` rendered its error message in a branch that could never run, so a failed bank link showed the user nothing. The failing plaidlink suite found it. Fixed.
+- **Jest never exited.** `jest.polyfills.js` installed Node's `MessageChannel`, and once React's scheduler used the ports they kept the process alive. That's why the full run hung for so long on a clean machine. With the ports unref'd, the full run takes about 19 seconds.
+- **`.env.test` was missing the Appwrite table IDs.** On a clean machine every table ID was undefined, so the transfer tests got the wrong rows. This is the clean-machine failure I guessed at in the risks above.
+- **Some tests were just stale.** The demo cookie test, the navbar menu tests (masked email), and the reset-password and verify-email tests (missing props).
+- **Lint took more than a one-line fix.** ESLint 10 was newer than the plugins in `eslint-config-next` support, so it's pinned to `^9.39`. The repo-wide `ajv` override broke ESLint, which needs ajv 6, and the override had to be named explicitly before `npm ci` worked on a fresh clone. `eslint.config.mjs` also used `FlatCompat` from packages that were never installed. With lint working, 24 real errors came out.
+- **`.env.example` listed two wrong variable names.**
+
+### How it's set up
+
+- One workflow, `.github/workflows/ci.yml`. It runs install, lint, build, type check and Jest with coverage off, on every pull request and every push to `main`. A newer push cancels the older run, and it times out at 15 minutes.
+- **The build did need environment variables,** which was the risk I flagged. The Dwolla and Plaid SDKs validate their config when the module loads, so CI uses placeholder values. None of them are real credentials, and the pipeline still uses no secrets.
+- **The gate is a repository ruleset, not classic branch protection.** The ruleset, named "main – require CI", applies to the default branch. It requires the "Lint, build, type check, test" check to pass, requires the branch to be up to date, and blocks deletion and force pushes. Admins can bypass it, but only when merging a pull request. In practice, I now work through pull requests.
+- End-to-end tests stay out, as decided.
+
+### Still open
+
+- `npm test` locally still runs with coverage on, because that's in the Jest config. Only CI turns it off.
+- There's no E2E workflow yet. It needs its own workflow with secrets, and the Doppler move in ADR-016 would be the time to wire that up.
 
 ---
 
