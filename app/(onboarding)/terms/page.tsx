@@ -24,8 +24,8 @@ const Terms = () => {
 			</p>
 			<p className="font-serif italic text-ink/70">
 				This agreement explains how Fortify works, what we ask of you as a
-				member, and what you can expect from us in return. We've tried to write
-				it plainly — but it's still a contract, so please read it.
+				member, and what you can expect from us in return. We&apos;ve tried to write
+				it plainly — but it&apos;s still a contract, so please read it.
 			</p>
 			<hr className="border-[0.5] border-t-primary/20 mt-4 mb-8" />
 			<ol className="list-decimal list-inside leading-6 marker:text-base marker:font-heading marker:font-bold marker:text-primary">
@@ -44,7 +44,7 @@ const Terms = () => {
 						Your Account
 					</span>{' '}
 					<br />
-					You're responsible for keeping your login credentials, device, and
+					You&apos;re responsible for keeping your login credentials, device, and
 					biometric access secure. Notify us immediately if you suspect
 					unauthorized access to your account. Fortify may suspend account
 					access temporarily if we detect unusual or potentially fraudulent
@@ -67,7 +67,7 @@ const Terms = () => {
 						</p>
 						<p>
 							You can disconnect a linked bank account at any time from
-							Settings. Disconnecting doesn't delete your Fortify account or
+							Settings. Disconnecting doesn&apos;t delete your Fortify account or
 							transaction history.
 						</p>
 					</div>
@@ -79,7 +79,7 @@ const Terms = () => {
 					<br />
 					Fortify does not charge monthly maintenance fees. Standard ACH
 					transfers are free; expedited transfers may incur a fee, disclosed to
-					you before you confirm the transaction. We'll never change your fee
+					you before you confirm the transaction. We&apos;ll never change your fee
 					structure without notifying you at least 30 days in advance.
 				</li>
 				<li className="mb-4">
@@ -92,11 +92,11 @@ const Terms = () => {
 							Using Fortify for illegal transactions, money laundering, or fraud
 						</li>
 						<li>
-							Attempting to access another member's account without
+							Attempting to access another member&apos;s account without
 							authorization
 						</li>
 						<li>
-							Reverse engineering or interfering with Fortify's systems or
+							Reverse engineering or interfering with Fortify&apos;s systems or
 							security
 						</li>
 					</ul>

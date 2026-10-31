@@ -189,7 +189,7 @@ const Landing = () => {
 								<p className="font-bold text-black-2">
 									240+ people on the waitlist
 								</p>
-								<p>Join them — it's free</p>
+								<p>Join them — it&apos;s free</p>
 							</div>
 						</div>
 					</div>
@@ -242,7 +242,7 @@ const Landing = () => {
 						</h2>
 						<p className="max-w-[40ch] mx-auto lg:mx-0">
 							Handing over access to your finances requires real trust. Every
-							technical decision — from Plaid's read-only OAuth to Dwolla's ACH
+							technical decision — from Plaid&apos;s read-only OAuth to Dwolla&apos;s ACH
 							infrastructure — was made with that in mind.
 						</p>
 						<div className="flex flex-wrap justify-center lg:justify-start gap-4 mt-6">
@@ -312,7 +312,7 @@ const Landing = () => {
 							Ready to see where your money really goes?
 						</h2>
 						<p className="text-15 leading-7 text-gray-200 max-w-[44ch]">
-							Join the early access list. We're onboarding users in small
+							Join the early access list. We&apos;re onboarding users in small
 							batches — no spam, just a heads-up when your spot is ready.
 						</p>
 						<div className="w-full">

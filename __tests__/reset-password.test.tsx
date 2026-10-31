@@ -40,7 +40,10 @@ function setupRouter() {
 
 async function renderResetPage(searchParams: Record<string, string> = {}) {
 	return render(
-		await ResetPasswordPage({ searchParams: Promise.resolve(searchParams) }),
+		await ResetPasswordPage({
+			params: Promise.resolve({}),
+			searchParams: Promise.resolve(searchParams),
+		}),
 	)
 }
 

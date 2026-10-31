@@ -86,7 +86,7 @@ const MonthSpend = ({ transactions = [] }: TransactionTableProps) => {
 
 	return (
 		<div>
-			<p className="font-heading font-semibold">{currMonthName}'s Spending</p>
+			<p className="font-heading font-semibold">{currMonthName}&apos;s Spending</p>
 			<Card className="overflow-visible shadow-card rounded-lg ring-0 mt-5">
 				<CardHeader>
 					<CardTitle className="text-xs! text-ink/70 font-sans">

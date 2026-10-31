@@ -1,0 +1,66 @@
+# ADR-021: one workflow, run on every pull request and every push to main.
+# Nothing here needs a real secret. Jest runs on MSW mocks and .env.test, and
+# the build only needs placeholder values so SDK clients can be constructed.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer push to the same branch or PR cancels the older run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, build, type check, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Placeholders, not credentials. The Dwolla and Plaid SDKs validate their
+    # config when the module loads, so `next build` fails without these.
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_APPWRITE_ENDPOINT: https://appwrite.invalid/v1
+      NEXT_PUBLIC_APPWRITE_PROJECT_ID: ci-placeholder
+      APPWRITE_KEY: ci-placeholder
+      PLAID_CLIENT_ID: ci-placeholder
+      PLAID_SECRET: ci-placeholder
+      PLAID_ENV: sandbox
+      DWOLLA_KEY: ci-placeholder
+      DWOLLA_SECRET: ci-placeholder
+      DWOLLA_ENV: sandbox
+      ACCOUNT_ID_ENCRYPTION_KEY: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=' # 32 zero bytes, base64
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # Runs before the type check because it generates next-env.d.ts, which
+      # holds the image and SVG module types tsc needs.
+      - name: Build
+        run: npm run build
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Test
+        run: npx jest --coverage=false

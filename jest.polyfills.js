@@ -7,7 +7,43 @@
  */
 const { TextDecoder, TextEncoder } = require('node:util')
 const { ReadableStream, TransformStream, WritableStream } = require('node:stream/web')
-const { MessageChannel, MessagePort, BroadcastChannel } = require('node:worker_threads')
+const {
+	MessageChannel: NodeMessageChannel,
+	MessagePort,
+	BroadcastChannel,
+} = require('node:worker_threads')
+
+// React's scheduler prefers MessageChannel when it exists. Node's ports are
+// ref'd by default, so the port React opens keeps the event loop alive and
+// Jest never exits after a suite that renders React ("Jest did not exit one
+// second after the test run has completed"). unref() keeps the ports working
+// without holding the process open. Assigning onmessage re-refs a Node port,
+// so the unref has to be re-applied after every assignment, not just once.
+const unrefOnMessage = (port) => {
+	const descriptor = Object.getOwnPropertyDescriptor(
+		Object.getPrototypeOf(port),
+		'onmessage',
+	)
+	Object.defineProperty(port, 'onmessage', {
+		configurable: true,
+		get() {
+			return descriptor.get.call(port)
+		},
+		set(handler) {
+			descriptor.set.call(port, handler)
+			port.unref()
+		},
+	})
+	port.unref()
+}
+
+class MessageChannel extends NodeMessageChannel {
+	constructor() {
+		super()
+		unrefOnMessage(this.port1)
+		unrefOnMessage(this.port2)
+	}
+}
 
 Object.defineProperties(globalThis, {
 	TextDecoder: { value: TextDecoder },

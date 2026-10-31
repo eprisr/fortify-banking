@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { markAllNotificationsRead } from '@/lib/actions/notification.actions'
 import { formatRelativeTime } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -40,9 +40,10 @@ export const NotificationsList = ({
 	const unread = notifications.filter((n) => !n.read)
 	const read = notifications.filter((n) => n.read)
 
-	useEffect(() => {
-		if (unread.length === 0 && dotsDismissed) setDotsDismissed(false)
-	}, [unread.length, dotsDismissed])
+	// Once the refreshed list has no unread items, reset the optimistic flag so
+	// future unread items show their dots. Adjusted during render rather than in
+	// an effect (https://react.dev/learn/you-might-not-need-an-effect).
+	if (unread.length === 0 && dotsDismissed) setDotsDismissed(false)
 
 	const handleMarkAllRead = async () => {
 		setDotsDismissed(true)
