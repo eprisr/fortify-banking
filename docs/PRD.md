@@ -106,6 +106,7 @@ Ranked by the priority you set, grouped into what's real (Dwolla-backed) vs. sim
 - Phase 2 — account top-ups (both ACH pull and card-funded via Checkout.com) and withdrawals (both ACH-out and Push-to-Card)
 - Forecasting — manual recurring items + exceptions across checking, savings, credit, and Balance, projected balance, danger-point highlight, upcoming bills
 - Settings — contextual Verified Customer/KYC, contextual MFA
+- Responsive layout (added 2026-10-31) — the app works as a full web application on desktop, tablet and phone widths, not inside a fixed phone-width frame. Roadmap Stage 1.7, ADR-020 (pending)
 - **Financial core architecture** — an isolated PostgreSQL double-entry ledger (a shadow ledger — Dwolla stays authoritative for actual fund balances, per [ADR-015](decisions/ADR-015_Ledger-vs-Balance-Authority.md)), idempotency keys and a deterministic transaction state machine, decoupled async processing (Upstash QStash, per [ADR-017](decisions/ADR-017_State-Machine-Idempotency.md)) for external events, Plaid Signal risk scoring ahead of every ACH debit, nightly reconciliation against Dwolla/Checkout settlement reports, and secrets (Plaid/Dwolla credentials, keys) moved out of Appwrite into a dedicated secrets manager. Full detail in `docs/security-backlog.md`; folded into Stage 1.5 on the roadmap rather than a separate stage, since transfers are what this architecture actually governs.
 
 **Simulated / documented only — the actual stack boundary, not a scope cut:**
