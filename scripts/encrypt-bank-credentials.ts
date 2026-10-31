@@ -4,12 +4,22 @@
  *
  * New rows are already encrypted on write, and reads accept legacy plaintext,
  * so the app works before, during and after this runs. Run it once per
- * environment (dev, preview, production).
+ * environment (dev, preview, production). Dry run is the default and writes
+ * nothing; add --apply to write.
  *
- *   Dry run (default, writes nothing):
- *     doppler run -- npm run backfill:bank-credentials
- *   Apply:
- *     doppler run -- npm run backfill:bank-credentials -- --apply
+ *   Local dev (reads .env.local, like `next dev`):
+ *     npm run backfill:bank-credentials
+ *     npm run backfill:bank-credentials -- --apply
+ *
+ *   Preview or production (values come from Vercel):
+ *     vercel env pull .env.backfill.production --environment=production
+ *     npx tsx --env-file=.env.backfill.production scripts/encrypt-bank-credentials.ts
+ *     npx tsx --env-file=.env.backfill.production scripts/encrypt-bank-credentials.ts --apply
+ *     rm .env.backfill.production
+ *
+ *   `vercel env pull` leaves variables marked Sensitive in Vercel empty. The
+ *   script stops and names any that are missing; fill those in by hand. The
+ *   pulled file is git-ignored (.env*), but delete it when done.
  *
  * Safe to re-run: already-encrypted values are skipped. Never prints
  * credential values, only row IDs and counts.
