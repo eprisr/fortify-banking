@@ -27,7 +27,7 @@ const Navbar = ({
 	pageTitle = '',
 	hasUnreadNotifications = false,
 }: NavbarProps) => {
-	const userEmail = obscureEmail(user!.email)
+	const userEmail = user?.email ? obscureEmail(user.email) : ''
 	const container = useMobileContainer()
 	let path
 
