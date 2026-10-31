@@ -81,6 +81,16 @@ The backlog's "never store Plaid/Dwolla credentials in Appwrite" goal actually c
 
 *To be filled in after implementation.* Provisioning Neon and Doppler requires account creation outside this session's reach — both need to exist, with connection details available, before the schema/migration code and the `encryption.ts` extension can actually be built and run.
 
+### Provider review, 2026-10-31
+
+I went back over the Neon choice after seeing Supabase listed in the Vercel marketplace, and I'm staying with Neon. Nothing is provisioned yet, so this is a review and not a change.
+
+- **The Supabase objection above is the weaker half of the reasoning.** Supabase can be used as plain Postgres, so "extra surface" isn't a strong reason by itself. The better reasons for Neon are branching per environment and the serverless fit. Either would have worked for this ledger.
+- **The two free tiers fail in different ways.** Neon's free plan scales compute to zero after five minutes idle, and it only suspends compute when a monthly quota runs out (100 CU-hours per project, with 1 GB of storage per project). Supabase's free plan pauses a project after a week of low activity, and has a 500 MB database. Paid Supabase projects don't pause for inactivity. A portfolio project that gets quiet traffic is more likely to hit the Supabase pause than the Neon quota. These numbers come from the vendors' pages on this date and will change.
+- **Quotas are per project.** The ledger should be its own Neon project, separate from anything the portfolio site uses, so it gets its own CU-hours and storage. Branches inside a project share that project's budget, so dev and preview branches count against the same CU-hours.
+- **Things that keep the database awake burn CU-hours.** Uptime monitors, polling and anything else that pings the database constantly should stay away from it. The nightly reconciliation job (ADR-019) and QStash deliveries (ADR-017) wake it briefly, which is fine.
+- **Open question: the Vercel marketplace.** A marketplace integration can inject `DATABASE_URL` into Vercel directly. This ADR makes Doppler the source of truth for secrets, so I need to decide which one owns that value before provisioning.
+
 ---
 
 ## References
