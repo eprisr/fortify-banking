@@ -114,5 +114,5 @@ Test coverage held throughout. The full Jest suite plus `tsc --noEmit` confirmed
 ## References
 
 - [Appwrite Models.Token documentation](https://appwrite.io/docs/references/cloud/models/token)
-- [ADR-001: Appwrite over Supabase and Firebase](ADR-001-appwrite-vs-supabase-firebase.md)
+- [ADR-001: Appwrite over Supabase and Firebase](ADR-001_Appwrite-vs-Supabase-Firebase.md)
 - Security backlog surfaced during reset-pw resend work, 2026-08-24

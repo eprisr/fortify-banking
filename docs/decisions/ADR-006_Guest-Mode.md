@@ -69,5 +69,5 @@ The banner pattern is used by enough financial apps (Plaid's own demos included)
 
 ## References
 
-- [ADR-005: Auth refactor](ADR-005-auth-refactor.md) — guest mode was first scoped as part of the auth refactor and deferred
+- [ADR-005: Auth refactor](ADR-005_Auth-Refactor.md) — guest mode was first scoped as part of the auth refactor and deferred
 - [Plaid Link documentation](https://plaid.com/docs/link/)

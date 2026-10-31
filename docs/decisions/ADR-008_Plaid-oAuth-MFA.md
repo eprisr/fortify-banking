@@ -122,6 +122,6 @@ Disabling MFA server-side for affected accounts to unblock the original incident
 ## References
 - [Appwrite MFA Documentation](https://appwrite.io/docs/products/auth/mfa)
 - [Plaid OAuth Guide](https://plaid.com/docs/link/oauth/)
-- [ADR-003: Separating bank linking from payment processing](ADR-003-plaid-dwolla-pattern.md)
-- [ADR-007: Security hardening pass](ADR-007-security-hardening.md)
-- [ADR-011: Device trust for MFA](ADR-011-device-trust.md)
+- [ADR-003: Separating bank linking from payment processing](ADR-003_Plaid-Dwolla-Pattern.md)
+- [ADR-007: Security hardening pass](ADR-007_Security-Hardening.md)
+- [ADR-011: Device trust for MFA](ADR-011_Device-Trust-MFA.md)

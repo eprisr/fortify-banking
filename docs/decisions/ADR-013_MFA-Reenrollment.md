@@ -126,6 +126,6 @@ Two existing `generateRecoveryCodes()` assertions updated for the new response s
 ---
 
 ## References
-- [ADR-008: Plaid OAuth and Appwrite MFA](ADR-008-plaid-oauth-mfa.md)
-- [ADR-011: Device Trust for MFA (Rejected)](ADR-011-device-trust.md)
+- [ADR-008: Plaid OAuth and Appwrite MFA](ADR-008_Plaid-oAuth-MFA.md)
+- [ADR-011: Device Trust for MFA (Rejected)](ADR-011_Device-Trust-MFA.md)
 - [Appwrite MFA Documentation](https://appwrite.io/docs/products/auth/mfa)

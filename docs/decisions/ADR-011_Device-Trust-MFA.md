@@ -87,7 +87,7 @@ See [ADR-012](ADR-012_Persistent-Session-Cookie.md) for the lighter-weight fix t
 ---
 
 ## References
-- [ADR-008: Plaid OAuth and Appwrite MFA](ADR-008-plaid-oauth-mfa.md)
+- [ADR-008: Plaid OAuth and Appwrite MFA](ADR-008_Plaid-oAuth-MFA.md)
 - [ADR-012: Persistent Session Cookie](ADR-012_Persistent-Session-Cookie.md)
 - [Appwrite User Preferences Documentation](https://appwrite.io/docs/products/auth/preferences)
 - [Appwrite MFA Documentation](https://appwrite.io/docs/products/auth/mfa)
