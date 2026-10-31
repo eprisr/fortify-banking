@@ -20,7 +20,7 @@ A resilient financial architecture separates user identity from the transaction 
 
 - **Role separation.** Keep Appwrite dedicated to customer authentication, profile data, session handling, and frontend Realtime WebSocket subscriptions.
 - **Isolated ledger database.** Deploy a dedicated PostgreSQL instance exclusively for the double-entry ledger. All financial writes must execute inside atomic SQL transactions with row-level locks, ensuring user balances remain strictly computed derivations of past postings rather than mutable numbers.
-- **Secret management.** Never store Plaid access tokens, Dwolla OAuth credentials, or private keys inside Appwrite document collections. Keep them in an encrypted secrets manager (Doppler or AWS Secrets Manager), accessible only by trusted backend workers.
+- **Secret management.** Never store Plaid access tokens, Dwolla OAuth credentials, or private keys inside Appwrite document collections. Keep them in an encrypted secrets manager (Doppler or AWS Secrets Manager), accessible only by trusted backend workers. **Resolved via ADR-016, amended 2026-10-31: no separate secrets manager.** Per-row credentials (`Bank.accessToken`, `Bank.fundingSourceUrl`) are encrypted at rest with the existing AES-256-GCM pattern. App-wide keys stay in Vercel environment variables.
 
 ## Phase 2 — Deterministic State Machine and Event Management (Integration Architecture)
 
@@ -59,14 +59,14 @@ A resilient financial architecture separates user identity from the transaction 
 | Risk & fraud | None | Plaid Signal | Added to the existing Plaid integration to score NSF probabilities and unauthorized return risk before submitting transfers to Dwolla |
 | Card acquiring | Checkout.com | Checkout.com | Retained purely for processing incoming card transactions, card issuing stays out of scope |
 | Financial reconciliation | None | Custom FinOps worker in PostgreSQL | Nightly batch jobs ingesting Dwolla and Checkout settlement files to run 3-way matching across ledger accounts, gross amounts, and net processor fees |
-| Secret management | Local config / Appwrite vars | Doppler or AWS Secrets Manager | Isolates private keys, Plaid credentials, and Dwolla OAuth secrets away from frontend and general application containers |
+| Secret management | Local config / Appwrite vars | Encrypted per-row credentials, app-wide keys in Vercel environment variables (see ADR-016 amendment) | Isolates private keys, Plaid credentials, and Dwolla OAuth secrets away from frontend and general application containers |
 
 ### Key additions to provision
 
 - **PostgreSQL** — houses the financial accounts, journal entries, and postings tables. Sole source of truth for user balances (pending the open question above), fully separated from Appwrite document collections.
 - **Upstash (Redis + QStash)** — replaces the originally planned BullMQ. Delivers queued jobs to an API route, with no always-on worker to host. Handles scheduled jobs, status polling, and retry logic, preventing dropped transfers or duplicate database writes during provider outages.
 - **Plaid Signal** — adds predictive ACH return scoring without a new vendor, contract, or separate client SDK.
-- **Secrets manager** — centralizes and encrypts access tokens, database connection strings, and webhook signing secrets outside application repositories.
+- **Credential encryption (replaced the originally planned secrets manager)** — encrypts access tokens, database connection strings, and webhook signing secrets outside application repositories.
 
 ### Scope adjustments to existing tools
 
