@@ -1,7 +1,7 @@
 # Fortify Banking — Security & Architecture Backlog
 
 **Status:** Approved for build, folded into Stage 1.5 on the roadmap
-**Last updated:** 2026-09-21
+**Last updated:** 2026-10-31
 **Referenced from:** `fortify-checklist.md`'s Security section
 
 ---
@@ -53,7 +53,7 @@ A resilient financial architecture separates user identity from the transaction 
 |---|---|---|---|
 | Ledger & accounting | Appwrite Databases | PostgreSQL | Offloads balance tracking from document storage to an immutable, append-only double-entry ledger with row-level locks and ACID guarantees |
 | Auth & client sync | Appwrite (all-in-one) | Appwrite (scoped) | Retained strictly for user authentication, profile data, session management, and client WebSocket events via Appwrite Realtime |
-| Async processing | Appwrite Functions | Redis + BullMQ (or background cron) | Replaces public HTTP webhooks with background polling or an edge queue sink, enforcing idempotency and safe state machine transitions |
+| Async processing | Appwrite Functions | Upstash QStash (replaced the original Redis + BullMQ plan, see ADR-017) | Replaces public HTTP webhooks with background polling or an edge queue sink, enforcing idempotency and safe state machine transitions |
 | ACH rail | Dwolla | Dwolla | Unchanged for ACH payment initiation, but transfers are now gated by pre-flight risk checks and managed by state machine logic |
 | Account linking | Plaid (Link & Auth) | Plaid (Link & Auth) | Unchanged for instant bank account credentialing and processor token generation |
 | Risk & fraud | None | Plaid Signal | Added to the existing Plaid integration to score NSF probabilities and unauthorized return risk before submitting transfers to Dwolla |
@@ -64,7 +64,7 @@ A resilient financial architecture separates user identity from the transaction 
 ### Key additions to provision
 
 - **PostgreSQL** — houses the financial accounts, journal entries, and postings tables. Sole source of truth for user balances (pending the open question above), fully separated from Appwrite document collections.
-- **Redis and BullMQ** — manages scheduled jobs, status polling, and retry logic, preventing dropped transfers or duplicate database writes during provider outages.
+- **Upstash (Redis + QStash)** — replaces the originally planned BullMQ. Delivers queued jobs to an API route, with no always-on worker to host. Handles scheduled jobs, status polling, and retry logic, preventing dropped transfers or duplicate database writes during provider outages.
 - **Plaid Signal** — adds predictive ACH return scoring without a new vendor, contract, or separate client SDK.
 - **Secrets manager** — centralizes and encrypts access tokens, database connection strings, and webhook signing secrets outside application repositories.
 
