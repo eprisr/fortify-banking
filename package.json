@@ -8,6 +8,7 @@
 		"start": "next start",
 		"lint": "eslint .",
 		"typecheck": "tsc --noEmit",
+		"backfill:bank-credentials": "tsx scripts/encrypt-bank-credentials.ts",
 		"test": "jest",
 		"test:watch": "jest --watch",
 		"pretest:e2e": "npm run build",
@@ -87,6 +88,7 @@
 		"tailwindcss": "^4.2.0",
 		"ts-jest": "^29.4.6",
 		"ts-node": "^10.9.2",
+		"tsx": "^4.23.15",
 		"typescript": "^5",
 		"typescript-eslint": "^8.56.0"
 	},
