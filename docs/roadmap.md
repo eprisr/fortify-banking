@@ -21,9 +21,9 @@ Same status vocabulary as the landing page and case study, so there's one shared
 
 Stage numbers stay as they are, since links and ADRs point at them. What changes is the order the work gets done in. The goal is to protect Stage 4, the stage the whole project is positioned on, and to get the project finished.
 
-1. **CI/CD** (ADR-021, pending). Lint, type check, Jest and a production build on every pull request. E2E stays manual or nightly for now.
-2. **Stage 1.5 core.** Transfer bug fixes, KYC, design-system migration, then ADR-016 (ledger and secrets) and ADR-017 (state machine and queue).
-3. **Stage 1.7, Desktop and responsive layout** (ADR-020, pending). Done before forecasting so the chart and upcoming-bills views are designed once, at full width.
+1. **CI/CD** ([ADR-021](decisions/ADR-021_CI-CD-Pipeline.md)). Lint, type check, Jest and a production build on every pull request. E2E stays manual or nightly for now.
+2. **Stage 1.5 core.** The transfer bug fixes, KYC and design-system migration are already done ([ADR-014](decisions/ADR-014_Transfer-Rebuild.md)). What's left is ADR-016 (ledger and secrets) and ADR-017 (state machine and queue).
+3. **Stage 1.7, Desktop and responsive layout** ([ADR-020](decisions/ADR-020_Responsive-Layout.md)). Done before forecasting so the chart and upcoming-bills views are designed once, at full width.
 4. **Stage 4, Forecasting.** Starts as soon as the ledger exists. The recurring-rule and date math can be built earlier, since it's pure logic.
 5. **Rest of Stage 1.5, then Stage 2 and Stage 3.** ADR-018 (Signal and velocity limits) first, since everything after it moves money, then bill pay, then top-up and withdrawal.
 6. **ADR-019 reconciliation, last.** If time forces a cut, this is the first candidate to move to documented-only. The PRD (section 6) currently lists the financial core as real, so that would be a scope amendment, not a quiet drop.
@@ -59,9 +59,9 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 
 | Sub-feature | Status | Done means |
 |---|---|---|
-| Bug fixes | ⚪ Planned | Every transfer path (own accounts, to others) completes end-to-end with no known bugs — specifics TBD as they're logged |
-| Verification flow (KYC) | ⚪ Planned | *(moved from Stage 3)* Real CIP data collection (name, DOB, address, SSN), upgrades a Dwolla customer from `unverified` to `verified` — required before a P2P transfer to another user can complete at all |
-| Design system migration | ⚪ Planned | Matches current tokens (Ink/Paper/Cloud/Plum/Gold/Sage/Terracotta, current type scale) rather than the pre-overhaul styling it still carries |
+| Bug fixes | 🟢 Live | Every transfer path (own accounts, to others) completes end-to-end with no known bugs — specifics TBD as they're logged | *Shipped and manually tested end to end against the Dwolla sandbox, with Jest coverage, per [ADR-014](decisions/ADR-014_Transfer-Rebuild.md).*
+| Verification flow (KYC) | 🟢 Live | *(moved from Stage 3)* Real CIP data collection (name, DOB, address, SSN), upgrades a Dwolla customer from `unverified` to `verified` — required before a P2P transfer to another user can complete at all | *Shipped per ADR-014. Upgrade from `unverified` to `verified` tested against the Dwolla sandbox.*
+| Design system migration | 🟢 Live | Matches current tokens (Ink/Paper/Cloud/Plum/Gold/Sage/Terracotta, current type scale) rather than the pre-overhaul styling it still carries | *Done in the design-system pass at the end of ADR-014.*
 | **Ledger vs. Balance decision** | 🟢 Live | *([ADR-015](decisions/ADR-015_Ledger-vs-Balance-Authority.md), decided 2026-09-24)* Dwolla stays authoritative for actual fund balances; the PostgreSQL ledger below is a shadow ledger — Fortify's own queryable record of what it understood to have happened, feeding forecasting/state-tracking/audit and checked against Dwolla by the reconciliation job, not competing with Dwolla for "truth about dollars" |
 | **PostgreSQL double-entry ledger** | ⚪ Planned | *(new, [ADR-016](decisions/ADR-016_Financial-Core-Isolation.md))* Dedicated Postgres instance, atomic writes with row-level locks, shadow-ledger postings per ADR-015 rather than mutable balance numbers. Appwrite scoped back to auth/profile/session/Realtime only |
 | **Secrets manager migration** | ⚪ Planned | *(new, ADR-016)* App-wide credentials (Plaid/Dwolla/Appwrite keys, encryption key) move into Doppler. Per-row secrets (`Bank.accessToken`, `Bank.fundingSourceUrl`) aren't a Doppler fit — those get encrypted at rest instead, extending the existing AES-256-GCM pattern from ADR-007 |
@@ -70,8 +70,8 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 | **Plaid Signal risk gating** | ⚪ Planned | *(new, [ADR-018](decisions/ADR-018_Fraud-Risk-Layer.md))* Every Dwolla ACH debit scored for NSF/return risk before submission. Confirmed available in the current Plaid sandbox, no partnership gate |
 | **Velocity limits** | ⚪ Planned | *(new, ADR-018)* Hourly/daily/rolling-30-day transfer limits plus new-account cooling periods, aimed at ACH return codes R01/R02/R10 |
 | **Nightly reconciliation** | ⚪ Planned | *(new, [ADR-019](decisions/ADR-019_Reconciliation-FinOps.md))* Batch job pulling Dwolla/Checkout settlement reports, 3-way matching against ledger postings, unmatched records routed to an exception queue rather than force-balanced |
-| Test coverage | ⚪ Planned | Jest/RTL/MSW + Playwright, same bar as the rest of the app — likely absent or stale given the component predates current conventions, now also covering the state machine and idempotency paths |
-| ADR-007 risk check | ⚪ Planned | This is the exact flow ADR-007 originally found leaking data on — re-verify the fix still holds after any changes here, don't assume it's untouched. The Stage 1 check just proved this kind of audit finds real things, not just checkbox-fills it. Also covers the new KYC data path, the new recipient-search-by-email surface, and the new ledger/secrets-manager surface |
+| Test coverage | ⚪ Planned | Jest/RTL/MSW + Playwright, same bar as the rest of the app — likely absent or stale given the component predates current conventions, now also covering the state machine and idempotency paths | *Partly done: component and server-action tests exist for the transfer flow (ADR-014). State machine and idempotency coverage still to come. Some of the existing transfer tests currently fail on a clean clone, see [ADR-021](decisions/ADR-021_CI-CD-Pipeline.md).*
+| ADR-007 risk check | ⚪ Planned | This is the exact flow ADR-007 originally found leaking data on — re-verify the fix still holds after any changes here, don't assume it's untouched. The Stage 1 check just proved this kind of audit finds real things, not just checkbox-fills it. Also covers the new KYC data path, the new recipient-search-by-email surface, and the new ledger/secrets-manager surface | *Partly done: the KYC and recipient-search surfaces were checked on 2026-09-19 and found two real gaps in `transferFunds`, both fixed (ADR-014). The ledger and secrets-manager surface is still to do.*
 
 **Stage done when:** both transfer paths (self-transfer and P2P to another user) work reliably end-to-end and visually match the rest of the app, running on the isolated ledger with idempotent, state-machine-governed writes, with test coverage at parity with everything built since. Full architecture detail lives in `docs/security-backlog.md`, not duplicated here.
 
@@ -106,7 +106,7 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 
 **Depends on:** nothing functionally. Sequenced after the Stage 1.5 core and before Stage 4 (see Build order).
 
-**Added 2026-10-31.** The app currently runs inside a fixed phone-width frame, a shortcut taken in September to avoid responsive work. The app now needs to work fully as a web application on a laptop, so that shortcut is being retired. The decision is recorded in ADR-020 (pending). The phone-frame container and the portal-context workaround it required (used by `Navbar`, `TwoFactorDisableControl`, `AccountOptionsSheet`, `AccountPicker` and the shared sheet and dialog components) go away as part of this stage.
+**Added 2026-10-31.** The app currently runs inside a fixed phone-width frame, a shortcut taken in September to avoid responsive work. The app now needs to work fully as a web application on a laptop, so that shortcut is being retired. The decision is recorded in [ADR-020](decisions/ADR-020_Responsive-Layout.md). The phone-frame container and the portal-context workaround it required (used by `Navbar`, `TwoFactorDisableControl`, `AccountOptionsSheet`, `AccountPicker` and the shared sheet and dialog components) go away as part of this stage.
 
 | Sub-feature | Status | Done means |
 |---|---|---|
@@ -221,7 +221,7 @@ Walking through the app as the persona, in order, to sanity-check that the stage
 2. **Guest exploration.** Tries the dashboard via guest mode before handing over any real information. *(Live — Guest Mode, ADR-006.)*
 3. **Sign-up and account linking.** Creates an account, links her bank via Plaid. No KYC friction here — that's deferred by design. *(Live.)*
 4. **Everyday check-in.** Opens the app the way she always did with her old bank app — checks the balance, glances at spending by category. *(Live.)*
-5. **First transfer.** Moves money to savings, or pays a friend back — the latter now hits a verification prompt the first time, since Dwolla won't move money between two unverified users. *(Stage 1.5 — exists, but broken and pre-overhaul; not actually live yet despite earlier planning treating it as done. KYC verification moved here per ADR-014, and the transfer itself now runs on the new ledger/state-machine architecture per the 2026-09-21 amendment.)*
+5. **First transfer.** Moves money to savings, or pays a friend back, and the latter hits a verification prompt the first time, since Dwolla won't move money between two unverified users. *(Stage 1.5. The flow works end to end and the verification step is built, per ADR-014. What remains is running it on the new ledger and state-machine architecture.)*
 6. **Paying rent.** Uses bill pay instead of leaving the app. *(Stage 2.)*
 7. **Wants to add a cushion.** Tries to top up before a big expense — already Verified from the transfer flow, so no repeat KYC friction here, straight to tops up. *(Stage 3 — this is the moment the Settings/KYC/top-up decisions all connect.)*
 8. **Needs cash same-day.** Withdraws via push-to-card instead of waiting on a standard transfer. *(Stage 3.)*
