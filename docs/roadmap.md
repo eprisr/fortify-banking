@@ -1,7 +1,7 @@
 # Fortify Banking — Roadmap
 
 **Status:** Draft v1
-**Last updated:** 2026-09-24
+**Last updated:** 2026-10-31
 
 ---
 
@@ -14,6 +14,21 @@ Same status vocabulary as the landing page and case study, so there's one shared
 - ⚪ **Planned** — scoped, not started
 
 **A stage is not "done" because its page exists.** A stage is done when every sub-feature listed under it is Live, functioning end-to-end — that's the one bar, not a separate "ready" gate and a separate "done" gate. The page shell is infrastructure — necessary, but it's the container, not the content. Settings is the clearest example: the route/layout/nav can be 🟢 while everything it's meant to hold is still ⚪.
+
+---
+
+## Build order (amended 2026-10-31)
+
+Stage numbers stay as they are, since links and ADRs point at them. What changes is the order the work gets done in. The goal is to protect Stage 4, the stage the whole project is positioned on, and to get the project finished.
+
+1. **CI/CD** ([ADR-021](decisions/ADR-021_CI-CD-Pipeline.md)). **Done.** Lint, build, type check and Jest run on every pull request, and a passing check is required to merge to `main`. E2E stays manual or nightly for now.
+2. **Stage 1.5 core.** The transfer bug fixes, KYC and design-system migration are already done ([ADR-014](decisions/ADR-014_Transfer-Rebuild.md)). What's left is ADR-016 (ledger and secrets) and ADR-017 (state machine and queue).
+3. **Stage 1.7, Desktop and responsive layout** ([ADR-020](decisions/ADR-020_Responsive-Layout.md)). Done before forecasting so the chart and upcoming-bills views are designed once, at full width.
+4. **Stage 4, Forecasting.** Starts as soon as the ledger exists. The recurring-rule and date math can be built earlier, since it's pure logic.
+5. **Rest of Stage 1.5, then Stage 2 and Stage 3.** ADR-018 (Signal and velocity limits) first, since everything after it moves money, then bill pay, then top-up and withdrawal.
+6. **ADR-019 reconciliation, last.** If time forces a cut, this is the first candidate to move to documented-only. The PRD (section 6) currently lists the financial core as real, so that would be a scope amendment, not a quiet drop.
+
+Stage 1.5 stays open until its remaining rows are Live, even though forecasting starts before it closes. Stage 2 still depends on Stage 1.5.
 
 ---
 
@@ -44,9 +59,9 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 
 | Sub-feature | Status | Done means |
 |---|---|---|
-| Bug fixes | ⚪ Planned | Every transfer path (own accounts, to others) completes end-to-end with no known bugs — specifics TBD as they're logged |
-| Verification flow (KYC) | ⚪ Planned | *(moved from Stage 3)* Real CIP data collection (name, DOB, address, SSN), upgrades a Dwolla customer from `unverified` to `verified` — required before a P2P transfer to another user can complete at all |
-| Design system migration | ⚪ Planned | Matches current tokens (Ink/Paper/Cloud/Plum/Gold/Sage/Terracotta, current type scale) rather than the pre-overhaul styling it still carries |
+| Bug fixes | 🟢 Live | Every transfer path (own accounts, to others) completes end-to-end with no known bugs — specifics TBD as they're logged | *Shipped and manually tested end to end against the Dwolla sandbox, with Jest coverage, per [ADR-014](decisions/ADR-014_Transfer-Rebuild.md).*
+| Verification flow (KYC) | 🟢 Live | *(moved from Stage 3)* Real CIP data collection (name, DOB, address, SSN), upgrades a Dwolla customer from `unverified` to `verified` — required before a P2P transfer to another user can complete at all | *Shipped per ADR-014. Upgrade from `unverified` to `verified` tested against the Dwolla sandbox.*
+| Design system migration | 🟢 Live | Matches current tokens (Ink/Paper/Cloud/Plum/Gold/Sage/Terracotta, current type scale) rather than the pre-overhaul styling it still carries | *Done in the design-system pass at the end of ADR-014.*
 | **Ledger vs. Balance decision** | 🟢 Live | *([ADR-015](decisions/ADR-015_Ledger-vs-Balance-Authority.md), decided 2026-09-24)* Dwolla stays authoritative for actual fund balances; the PostgreSQL ledger below is a shadow ledger — Fortify's own queryable record of what it understood to have happened, feeding forecasting/state-tracking/audit and checked against Dwolla by the reconciliation job, not competing with Dwolla for "truth about dollars" |
 | **PostgreSQL double-entry ledger** | ⚪ Planned | *(new, [ADR-016](decisions/ADR-016_Financial-Core-Isolation.md))* Dedicated Postgres instance, atomic writes with row-level locks, shadow-ledger postings per ADR-015 rather than mutable balance numbers. Appwrite scoped back to auth/profile/session/Realtime only |
 | **Secrets manager migration** | ⚪ Planned | *(new, ADR-016)* App-wide credentials (Plaid/Dwolla/Appwrite keys, encryption key) move into Doppler. Per-row secrets (`Bank.accessToken`, `Bank.fundingSourceUrl`) aren't a Doppler fit — those get encrypted at rest instead, extending the existing AES-256-GCM pattern from ADR-007 |
@@ -55,8 +70,8 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 | **Plaid Signal risk gating** | ⚪ Planned | *(new, [ADR-018](decisions/ADR-018_Fraud-Risk-Layer.md))* Every Dwolla ACH debit scored for NSF/return risk before submission. Confirmed available in the current Plaid sandbox, no partnership gate |
 | **Velocity limits** | ⚪ Planned | *(new, ADR-018)* Hourly/daily/rolling-30-day transfer limits plus new-account cooling periods, aimed at ACH return codes R01/R02/R10 |
 | **Nightly reconciliation** | ⚪ Planned | *(new, [ADR-019](decisions/ADR-019_Reconciliation-FinOps.md))* Batch job pulling Dwolla/Checkout settlement reports, 3-way matching against ledger postings, unmatched records routed to an exception queue rather than force-balanced |
-| Test coverage | ⚪ Planned | Jest/RTL/MSW + Playwright, same bar as the rest of the app — likely absent or stale given the component predates current conventions, now also covering the state machine and idempotency paths |
-| ADR-007 risk check | ⚪ Planned | This is the exact flow ADR-007 originally found leaking data on — re-verify the fix still holds after any changes here, don't assume it's untouched. The Stage 1 check just proved this kind of audit finds real things, not just checkbox-fills it. Also covers the new KYC data path, the new recipient-search-by-email surface, and the new ledger/secrets-manager surface |
+| Test coverage | ⚪ Planned | Jest/RTL/MSW + Playwright, same bar as the rest of the app — likely absent or stale given the component predates current conventions, now also covering the state machine and idempotency paths | *Partly done: component and server-action tests exist for the transfer flow (ADR-014). State machine and idempotency coverage still to come. Some of the existing transfer tests currently fail on a clean clone, see [ADR-021](decisions/ADR-021_CI-CD-Pipeline.md).*
+| ADR-007 risk check | ⚪ Planned | This is the exact flow ADR-007 originally found leaking data on — re-verify the fix still holds after any changes here, don't assume it's untouched. The Stage 1 check just proved this kind of audit finds real things, not just checkbox-fills it. Also covers the new KYC data path, the new recipient-search-by-email surface, and the new ledger/secrets-manager surface | *Partly done: the KYC and recipient-search surfaces were checked on 2026-09-19 and found two real gaps in `transferFunds`, both fixed (ADR-014). The ledger and secrets-manager surface is still to do.*
 
 **Stage done when:** both transfer paths (self-transfer and P2P to another user) work reliably end-to-end and visually match the rest of the app, running on the isolated ledger with idempotent, state-machine-governed writes, with test coverage at parity with everything built since. Full architecture detail lives in `docs/security-backlog.md`, not duplicated here.
 
@@ -84,6 +99,27 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 **Stage done when:** the bell icon, list, mark all as read, and link to preferences all work end to end, seeded with the MFA reminder as real content. **This bar is now met.**
 
 **Decision:** the notification center and the sample data banner (on the disconnected and expired home states) stay separate, they solve different problems. The banner is a persistent state indicator, true on every screen for as long as the account has no real data. The center is a feed of transient nudges, read once and moved along. Folding them together would either make the sample data warning vanish the moment it's "read," which is wrong since it's still true, or make the MFA nudge nag every screen forever, which undoes the contextual MFA decision from Stage 1. Worth its own line since it looks redundant at a glance and isn't.
+
+---
+
+## Stage 1.7 — Desktop and responsive layout
+
+**Depends on:** nothing functionally. Sequenced after the Stage 1.5 core and before Stage 4 (see Build order).
+
+**Added 2026-10-31.** The app currently runs inside a fixed phone-width frame, a shortcut taken in September to avoid responsive work. The app now needs to work fully as a web application on a laptop, so that shortcut is being retired. The decision is recorded in [ADR-020](decisions/ADR-020_Responsive-Layout.md). The phone-frame container and the portal-context workaround it required (used by `Navbar`, `TwoFactorDisableControl`, `AccountOptionsSheet`, `AccountPicker` and the shared sheet and dialog components) go away as part of this stage.
+
+| Sub-feature | Status | Done means |
+|---|---|---|
+| Responsive app shell | ⚪ Planned | Sidebar and top bar on desktop, slim icon rail on tablet, bottom tabs on mobile. Breakpoints settled in ADR-020 |
+| Retire the phone frame | ⚪ Planned | `MobileContainer` and its portal context removed from the three route layouts and the five components that use it. Sheets and dialogs portal normally |
+| Existing screens reflow | ⚪ Planned | Every screen that exists today works at desktop and tablet widths, using the real design tokens, not the prototype's placeholder palette |
+| Desktop overlays | ⚪ Planned | Flows that are bottom sheets on mobile (connect a bank, account options) become centered modals on desktop |
+| Test coverage | ⚪ Planned | Navbar and layout tests updated for the new shell. The navbar suite was one of four failing on `main`, and it was fixed as part of the CI work ([ADR-021](decisions/ADR-021_CI-CD-Pipeline.md)). Update it again for the new shell |
+| ADR-007 risk check | ⚪ Planned | Layout work should not change data access, but confirm no component picked up a new client-side fetch while being moved |
+
+**Stage done when:** every existing screen is usable on a laptop, tablet and phone without the phone frame, and the Stage 4 views can be built at full width from the start.
+
+**Note:** Capacitor stays in the repo as a dev testing aid, and as a door left open to shipping a native app later. Removing the phone frame doesn't affect it.
 
 ---
 
@@ -127,7 +163,7 @@ Existing, but not actually done — `PaymentTransferForm`, `Contacts`, and `Conf
 
 ## Stage 4 — Forecasting (the differentiator)
 
-**Depends on:** ideally after Stage 2–3, since realistic transaction/balance data makes the forecast meaningful. Could start in parallel if mock data is good enough, but the honest version needs real activity to project against.
+**Depends on (amended 2026-10-31):** the Stage 1.5 core, at minimum the ADR-016 ledger, since ADR-015 says forecasting needs locally queryable history, and Stage 1.7 so the chart and bills views are designed once at full width. It no longer waits for Stages 2 and 3. It ships against seeded demo data (including recurring items in guest mode) and whatever real accounts are linked, and gets more believable as Stages 2 and 3 add real activity.
 
 **Account scope (added 2026-09-18):** checking, savings, credit, and Dwolla Balance all feed the forecast — the projected balance line is a blend across every schedule-driven account the user has linked, not checking alone. Investment accounts are excluded from the forecast calculation entirely; they're market-driven, not schedule-driven, so blending them into a projected balance would misrepresent what the forecast is actually predicting. If an investment account is linked at all, it's shown as a separate net-worth figure, never folded into the runway number.
 
@@ -166,6 +202,7 @@ One post per stage, published when that stage closes — same checkpoint as the 
 | 1 — Settings | *Building Fortify: Settings, and the Two Decisions It Was Blocking* | Why a page can be "built" and a feature not "done" — the KYC-deferral and contextual-MFA decisions finally landing somewhere. Now that this stage is closed, this post has its ending: the ADR-007 check that found a real leak, not a clean pass |
 | 1.5 — Transfers fix + overhaul | *Building Fortify: Fixing What I Started With* | Honest post about revisiting "done" work that wasn't — the gap between a component existing and a component actually working, and why it matters enough to stop and fix before building on top of it. Given the 2026-09-21 scope amendment, this is now also the ledger/idempotency/reconciliation post — consider splitting into two if it runs long, the "fixing what I started with" story and the "building a real financial core" story are honestly different posts |
 | 1.6 — Notification center | *Building Fortify: Nudging Without Nagging* | A security reminder and a "you're viewing sample data" disclaimer look like the same kind of message and aren't. Why keeping MFA contextual instead of mandatory is what forced the two apart, one becomes a feed item, the other stays a persistent banner |
+| 1.7 — Desktop and responsive layout | *Building Fortify: Retiring the Phone Frame* | A shortcut taken on purpose in September, and what it cost to take it back out. Why the portal workaround existed and why it goes away |
 | 2 — Bill pay | *Building Fortify: Bill Pay* | Extending an existing form vs. forking a new one — the actual call made, and why |
 | 3 — Top-up, withdrawal | *Building Fortify: Money In, Money Out* | The Dwolla Balance model, why Checkout.com over Stripe, Push-to-Card as a "free" upgrade — this is the richest stage, split into two posts if it runs long rather than cramming it |
 | 4 — Forecasting | *Building Fortify: Know Before Friday* | The flagship post. The spreadsheet origin, the recurring-rule-plus-exceptions model, why manual beat auto-detected. Likely the strongest piece — give it room, consider two parts (data model, then the UI) rather than rushing one |
@@ -184,7 +221,7 @@ Walking through the app as the persona, in order, to sanity-check that the stage
 2. **Guest exploration.** Tries the dashboard via guest mode before handing over any real information. *(Live — Guest Mode, ADR-006.)*
 3. **Sign-up and account linking.** Creates an account, links her bank via Plaid. No KYC friction here — that's deferred by design. *(Live.)*
 4. **Everyday check-in.** Opens the app the way she always did with her old bank app — checks the balance, glances at spending by category. *(Live.)*
-5. **First transfer.** Moves money to savings, or pays a friend back — the latter now hits a verification prompt the first time, since Dwolla won't move money between two unverified users. *(Stage 1.5 — exists, but broken and pre-overhaul; not actually live yet despite earlier planning treating it as done. KYC verification moved here per ADR-014, and the transfer itself now runs on the new ledger/state-machine architecture per the 2026-09-21 amendment.)*
+5. **First transfer.** Moves money to savings, or pays a friend back, and the latter hits a verification prompt the first time, since Dwolla won't move money between two unverified users. *(Stage 1.5. The flow works end to end and the verification step is built, per ADR-014. What remains is running it on the new ledger and state-machine architecture.)*
 6. **Paying rent.** Uses bill pay instead of leaving the app. *(Stage 2.)*
 7. **Wants to add a cushion.** Tries to top up before a big expense — already Verified from the transfer flow, so no repeat KYC friction here, straight to tops up. *(Stage 3 — this is the moment the Settings/KYC/top-up decisions all connect.)*
 8. **Needs cash same-day.** Withdraws via push-to-card instead of waiting on a standard transfer. *(Stage 3.)*
@@ -197,7 +234,9 @@ Step 9 is the one to protect. If time pressure ever forces a cut, everything exc
 
 ## Open items being tracked
 
-The risk-watch and ready-vs-done questions are resolved — folded into the stages above rather than sitting here as separate suggestions. The ledger-authority question is now resolved too ([ADR-015](decisions/ADR-015_Ledger-vs-Balance-Authority.md), 2026-09-24 — shadow ledger, Dwolla stays authoritative). Two remain genuinely open:
+The risk-watch and ready-vs-done questions are resolved — folded into the stages above rather than sitting here as separate suggestions. The ledger-authority question is now resolved too ([ADR-015](decisions/ADR-015_Ledger-vs-Balance-Authority.md), 2026-09-24 — shadow ledger, Dwolla stays authoritative). These remain open:
 
 1. **Changelog.** One line per stage shipped, date + link to its blog post/ADR. Source the content from git history — `git log` for the raw commit trail since the last entry, or Claude Code, since it sits directly in the local repo with terminal access and can draft the entry from actual commits/diffs at the point a stage closes, rather than reconstructing it from memory later.
 2. **Usage instrumentation.** Deliberately deferred — planned for launch once the major features (transfer, forecasting, etc.) are complete, not before.
+3. **Checkout.com sandbox credentials.** Needs a yes or no soon. If they can't be had, card-funded top-up and the Checkout side of reconciliation move to documented-only, which is a PRD section 6 amendment.
+4. **Where recurring items live.** ADR-016 scopes Appwrite to auth, profile, session and Realtime, and the Postgres ledger holds postings. Recurring items and their exceptions need a stated home. Decide during the Stage 4 data-model work, and file an ADR if the answer isn't obvious.

@@ -25,6 +25,7 @@ const OAuthLink = () => {
 		// Plaid redirected back to (carries the oauth_state_id param Link
 		// needs to resume the flow). Both reference browser globals, so they
 		// have to be read client-side inside an effect, not during render.
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- browser-only globals; reading them during render breaks SSR hydration
 		setLinkToken(sessionStorage.getItem('link_token') ?? '')
 		setReceivedRedirectUri(window.location.href)
 		getLoggedInUser().then(setUser)

@@ -12,6 +12,7 @@ import '@testing-library/jest-dom'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Navbar from '@/components/Navbar'
+import { navLinks } from '@/constants'
 
 jest.mock('@/components/PlaidLink', () => () => (
 	<div data-testid="plaid-link">Plaid Link</div>
@@ -97,7 +98,9 @@ describe('Navbar', () => {
 			expect(
 				within(dialog).getByText(`Welcome, ${mockUser.firstName}`),
 			).toBeInTheDocument()
-			expect(within(dialog).getByText(mockUser.email)).toBeInTheDocument()
+			// The menu shows a masked email, never the raw address.
+			expect(within(dialog).getByText('t•••••t@example.com')).toBeInTheDocument()
+			expect(within(dialog).queryByText(mockUser.email)).not.toBeInTheDocument()
 			expect(within(dialog).getByTestId('footer')).toBeInTheDocument()
 		})
 
@@ -105,13 +108,18 @@ describe('Navbar', () => {
 			render(<Navbar type="main" user={mockUser} />)
 			await userEvent.click(screen.getByText('TU'))
 
+			// Derived from navLinks so enabling or commenting out a link in
+			// constants doesn't leave this test asserting a stale menu.
 			const dialog = await screen.findByRole('dialog')
-			expect(within(dialog).getByText('ACCOUNT')).toBeInTheDocument()
-			expect(within(dialog).getByText('PREFERENCES')).toBeInTheDocument()
-			expect(within(dialog).getByText('SUPPORT')).toBeInTheDocument()
-			expect(within(dialog).getByText('Linked Accounts')).toBeInTheDocument()
-			expect(within(dialog).getByText('Dark Mode')).toBeInTheDocument()
-			expect(within(dialog).getByText('Send Feedback')).toBeInTheDocument()
+			const categories = new Set(navLinks.map(({ category }) => category))
+			for (const category of categories) {
+				expect(
+					within(dialog).getByText(category.toUpperCase()),
+				).toBeInTheDocument()
+			}
+			for (const { label } of navLinks) {
+				expect(within(dialog).getByText(label)).toBeInTheDocument()
+			}
 		})
 
 		it('falls back to the sub-navbar layout when type is "main" but there is no user', () => {
@@ -165,6 +173,13 @@ describe('Navbar', () => {
 				'href',
 				'/forgot-password',
 			)
+		})
+
+		// Regression: Navbar read user!.email before checking for a user, so this
+		// page (which renders the sub navbar with no user) crashed on render.
+		it('renders the Transaction history sub navbar without a user', () => {
+			render(<Navbar type="sub" pageTitle="Transaction history" />)
+			expect(screen.getByText('Transaction history')).toBeInTheDocument()
 		})
 
 		it('defaults to "/" for any other page title', () => {

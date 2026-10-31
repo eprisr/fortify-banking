@@ -1,26 +1,33 @@
-import { FlatCompat } from '@eslint/eslintrc'
-import js from '@eslint/js'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import nextVitals from 'eslint-config-next/core-web-vitals'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-const compat = new FlatCompat({
-	baseDirectory: __dirname,
-	recommendedConfig: js.configs.recommended,
-})
-
+// eslint-config-next 16 ships native flat config, so FlatCompat (and the
+// @eslint/eslintrc and @eslint/js packages it needed) are no longer required.
 const eslintConfig = [
-	// This recreates your "next/core-web-vitals" extension
-	...compat.extends('next/core-web-vitals'),
+	...nextVitals,
 	{
-		// Ignores should be handled here instead of .eslintignore
-		ignores: ['.next/*', 'node_modules/*', 'dist/*'],
+		ignores: [
+			'.next/**',
+			'node_modules/**',
+			'dist/**',
+			'coverage/**',
+			'playwright-report/**',
+			'test-results/**',
+			'mobile-www/**',
+			'ios/**',
+			'android/**',
+			'next-env.d.ts',
+		],
 	},
 	{
 		rules: {
 			// Add any custom banking app overrides here
+		},
+	},
+	{
+		// jest.mock factories return inline components; display names add nothing there.
+		files: ['__tests__/**', 'jest.setup.tsx'],
+		rules: {
+			'react/display-name': 'off',
 		},
 	},
 ]

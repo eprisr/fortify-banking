@@ -30,7 +30,10 @@ async function renderVerificationPage(
 	searchParams: Record<string, string> = {},
 ) {
 	return render(
-		await VerificationPage({ searchParams: Promise.resolve(searchParams) }),
+		await VerificationPage({
+			params: Promise.resolve({}),
+			searchParams: Promise.resolve(searchParams),
+		}),
 	)
 }
 

@@ -54,4 +54,4 @@ Zod remains in place for all other field validation throughout the app.
 
 ## References
 - [Appwrite Password Security Documentation](https://appwrite.io/docs/products/auth/security)
-- [ADR-007: Security hardening pass](ADR-007-security-hardening.md)
+- [ADR-007: Security hardening pass](ADR-007_Security-Hardening.md)

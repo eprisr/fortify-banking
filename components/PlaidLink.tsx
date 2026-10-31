@@ -69,7 +69,7 @@ const PlaidLink = ({
 			router.refresh()
 			router.push(redirectTo)
 		},
-		[user, redirectTo],
+		[user, redirectTo, router],
 	)
 
 	const onExit: PlaidLinkOnExit = (err) => {
@@ -105,17 +105,18 @@ const PlaidLink = ({
 				<p className="form-message mt-1">
 					Bank connections aren&apos;t available in demo mode.
 				</p>
-			) : isDemo === false ? (
-				<PlaidButton
-					variant={variant}
-					text={text}
-					handleOpen={handleOpen}
-					isDemo={isDemo}
-					ready={ready}
-					className={className}
-				/>
 			) : (
-				error && <p className="form-message mt-1">{error}</p>
+				<>
+					<PlaidButton
+						variant={variant}
+						text={text}
+						handleOpen={handleOpen}
+						isDemo={isDemo}
+						ready={ready}
+						className={className}
+					/>
+					{error && <p className="form-message mt-1">{error}</p>}
+				</>
 			)}
 		</>
 	)

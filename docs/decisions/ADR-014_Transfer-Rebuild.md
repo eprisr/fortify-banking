@@ -102,7 +102,7 @@ The lesson from item 1 generalizes beyond this ADR: a code comment asserting "X 
 ---
 
 ## References
-- [ADR-002: Dwolla over Stripe](ADR-002-dwolla-vs-stripe.md)
-- [ADR-003: Plaid + Dwolla pattern](ADR-003-plaid-dwolla-pattern.md)
-- [ADR-007: Security hardening pass](ADR-007-security-hardening.md)
+- [ADR-002: Dwolla over Stripe](ADR-002_Dwolla-vs-Stripe.md)
+- [ADR-003: Plaid + Dwolla pattern](ADR-003_Plaid-Dwolla-Pattern.md)
+- [ADR-007: Security hardening pass](ADR-007_Security-Hardening.md)
 - [Dwolla P2P Transfer Documentation](https://developers.dwolla.com/docs/balance/send-money)

@@ -125,5 +125,5 @@ The biggest gap between plan and reality isn't a shortfall, it's that the plan's
 
 ## References
 
-- [ADR-001: Appwrite over Supabase and Firebase](ADR-001-appwrite-vs-supabase-firebase.md)
+- [ADR-001: Appwrite over Supabase and Firebase](ADR-001_Appwrite-vs-Supabase-Firebase.md)
 - Repository: [github.com/eprisr/fortify-banking](https://github.com/eprisr/fortify-banking)

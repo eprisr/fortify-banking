@@ -79,5 +79,5 @@ Both cookie-setting call sites in `lib/actions/user.actions.ts`: `signIn()` and 
 
 ## References
 - [ADR-011: Device Trust — "Remember This Device" for MFA](ADR-011_Device-Trust-MFA.md)
-- [ADR-008: Plaid OAuth and Appwrite MFA](ADR-008-plaid-oauth-mfa.md)
+- [ADR-008: Plaid OAuth and Appwrite MFA](ADR-008_Plaid-oAuth-MFA.md)
 - [Appwrite Auth Security — session length](https://appwrite.io/docs/products/auth/security)
