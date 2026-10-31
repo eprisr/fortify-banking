@@ -176,7 +176,7 @@ const SignUpForm = () => {
 										disabled={isLoading}
 										variant="secondary"
 										className="py-4 text-base shadow-xl">
-										I'll do this later
+										I&apos;ll do this later
 									</Button>
 								</div>
 							)}

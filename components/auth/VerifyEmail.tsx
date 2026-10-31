@@ -44,7 +44,7 @@ const VerifyEmail = ({ email }: { email: string }) => {
 				</div>
 				<p className="text-ink/60 text-xs">
 					Opened that link in another tab or your email app? You can close it
-					— we'll pick it up automatically here.
+					— we&apos;ll pick it up automatically here.
 				</p>
 				<ResendButton
 					onResend={() => verifyEmail()}
