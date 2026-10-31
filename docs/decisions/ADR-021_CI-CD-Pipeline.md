@@ -39,7 +39,7 @@ Use **GitHub Actions** with one workflow that runs on every pull request and on 
 
 **The failing checks get fixed first.** I won't make the pipeline required while it's red. A pipeline that fails on day one trains me to ignore it. The lint script, the two type errors and the four failing Jest suites are fixed before the checks become required.
 
-**End-to-end tests stay out for now.** The Playwright journeys hit the real Plaid sandbox, so they need credentials, and they're slower and flakier than the rest. They get their own workflow later, run manually or nightly, with secrets stored in GitHub Actions secrets. When ADR-016 moves credentials into Doppler, that workflow can pull from Doppler instead.
+**End-to-end tests stay out for now.** The Playwright journeys hit the real Plaid sandbox, so they need credentials, and they're slower and flakier than the rest. They get their own workflow later, run manually or nightly, with secrets stored in GitHub Actions secrets. ADR-016 dropped Doppler, so GitHub secrets stay the home for those values.
 
 ---
 
@@ -98,11 +98,11 @@ The pipeline is running and required on `main`. It was built with Claude Code, a
 ### Still open
 
 - `npm test` locally still runs with coverage on, because that's in the Jest config. Only CI turns it off. At 37 seconds it isn't a real problem now, so this is a choice, not a fix I owe.
-- There's no E2E workflow yet. It needs its own workflow with secrets, and the Doppler move in ADR-016 would be the time to wire that up.
+- There's no E2E workflow yet. It needs its own workflow with secrets, stored in GitHub Actions secrets.
 
 ---
 
 ## References
 - [ADR-004: Testing strategy](ADR-004_Testing-Strategy.md)
-- [ADR-016: Financial core isolation](ADR-016_Financial-Core-Isolation.md), for the Doppler plan
+- [ADR-016: Financial core isolation](ADR-016_Financial-Core-Isolation.md), which dropped Doppler in its amendment
 - [ADR-020: Responsive layout](ADR-020_Responsive-Layout.md)
