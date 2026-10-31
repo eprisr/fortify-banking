@@ -22,6 +22,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    # Disposable Postgres for the ledger tests (ADR-016). Same major version
+    # as Neon's default. The suite drops and rebuilds its schema each run.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ledger_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     # Placeholders, not credentials. The Dwolla and Plaid SDKs validate their
     # config when the module loads, so `next build` fails without these.
     env:
@@ -36,6 +53,7 @@ jobs:
       DWOLLA_KEY: ci-placeholder
       DWOLLA_SECRET: ci-placeholder
       DWOLLA_ENV: sandbox
+      TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/ledger_test
       ACCOUNT_ID_ENCRYPTION_KEY: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=' # 32 zero bytes, base64
 
     steps:

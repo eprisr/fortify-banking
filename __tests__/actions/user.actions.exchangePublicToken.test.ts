@@ -26,6 +26,10 @@ import { server } from '../../test/msw/server'
 import { PLAID_BASE } from '../../test/msw/handlers/plaid'
 import { DWOLLA_BASE } from '../../test/msw/handlers/dwolla'
 import { decryptId } from '@/lib/server/encryption'
+import {
+	decryptCredential,
+	isEncryptedCredential,
+} from '@/lib/server/bank-credentials'
 
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }))
 
@@ -104,9 +108,18 @@ describe('exchangePublicToken — happy path', () => {
 			userId: 'user-123',
 			bankId: 'item-sandbox-test-id', // from the default Plaid exchange handler
 			accountId: 'plaid-account-1', // from the default Plaid accounts/get handler
-			accessToken: 'access-sandbox-test-token',
-			fundingSourceUrl: `${DWOLLA_BASE}/funding-sources/funding-source-for-dwolla-customer-1`,
 		})
+		// Plaid/Dwolla credentials are encrypted at rest (ADR-016 §3): never
+		// written in plaintext, and they decrypt back to the real values.
+		expect(isEncryptedCredential(savedRow.accessToken)).toBe(true)
+		expect(isEncryptedCredential(savedRow.fundingSourceUrl)).toBe(true)
+		expect(savedRow.accessToken).not.toContain('access-sandbox-test-token')
+		expect(decryptCredential(savedRow.accessToken)).toBe(
+			'access-sandbox-test-token',
+		)
+		expect(decryptCredential(savedRow.fundingSourceUrl)).toBe(
+			`${DWOLLA_BASE}/funding-sources/funding-source-for-dwolla-customer-1`,
+		)
 		// shareableId is the account_id encrypted, not stored/passed in plaintext
 		expect(savedRow.shareableId).not.toBe('plaid-account-1')
 		expect(decryptId(savedRow.shareableId)).toBe('plaid-account-1')

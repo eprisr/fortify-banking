@@ -19,6 +19,7 @@ import {
 	TRANSFER_LIMITS,
 } from '../utils'
 import { encryptId, decryptId } from '../server/encryption'
+import { decryptBankRow, encryptBankRow } from '../server/bank-credentials'
 import {
 	emailField,
 	firstIssueMessage,
@@ -500,17 +501,18 @@ export const createBankAccount = async ({
 			databaseId: DATABASE_ID!,
 			tableId: BANK_COLLECTION_ID!,
 			rowId: ID.unique(),
-			data: {
+			// Plaid/Dwolla credentials are encrypted at rest (ADR-016 §3).
+			data: encryptBankRow({
 				userId,
 				bankId,
 				accountId,
 				accessToken,
 				fundingSourceUrl,
 				shareableId,
-			},
+			}),
 		})
 
-		return parseStringify(bankAccount)
+		return parseStringify(decryptBankRow(bankAccount))
 	} catch (error) {
 		console.error('Appwrite createBankAccount failed:', error)
 		return null
@@ -623,7 +625,7 @@ export const getBanks = async ({ userId }: getBanksProps) => {
 			queries: [Query.equal('userId', [userId])],
 		})
 
-		return { success: true, data: parseStringify(banks.rows) }
+		return { success: true, data: parseStringify(banks.rows.map(decryptBankRow)) }
 	} catch (error) {
 		console.error('Get Banks Error: ', error)
 		return { success: false, error: 'Failed to fetch bank accounts' }
@@ -641,7 +643,7 @@ export const getBank = async ({ documentId }: getBankProps) => {
 
 		if (!bank.rows[0]) throw new Error(`Bank not found: ${documentId}`)
 
-		return parseStringify(bank.rows[0])
+		return parseStringify(decryptBankRow(bank.rows[0]))
 	} catch (error) {
 		console.error('Get Bank Error: ', error)
 		throw error
@@ -661,7 +663,7 @@ export const getBankByAccountId = async ({
 
 		if (bank.total !== 1) return { success: false, error: 'Bank not found' }
 
-		return { success: true, data: parseStringify(bank.rows[0]) }
+		return { success: true, data: parseStringify(decryptBankRow(bank.rows[0])) }
 	} catch (error) {
 		console.error('Get Bank Error: ', error)
 		return { success: false, error: 'Internal server error' }

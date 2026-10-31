@@ -18,6 +18,7 @@ import { HttpResponse, http } from 'msw'
 import { server } from '../../test/msw/server'
 import { DWOLLA_BASE } from '../../test/msw/handlers/dwolla'
 import { encryptId } from '@/lib/server/encryption'
+import { encryptBankRow } from '@/lib/server/bank-credentials'
 
 jest.mock('next/headers', () => ({ cookies: jest.fn() }))
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }))
@@ -166,6 +167,33 @@ describe('transferFunds — happy path', () => {
 		expect(result).toEqual({ success: true, data: null })
 		expect(mockCreateTransaction).toHaveBeenCalledWith(
 			expect.objectContaining({ note: undefined }),
+		)
+	})
+})
+
+describe('transferFunds — encrypted bank credentials (ADR-016)', () => {
+	it('decrypts stored funding source URLs before sending them to Dwolla', async () => {
+		mockTable({
+			sender: encryptBankRow(senderBankRow),
+			receiver: encryptBankRow(receiverBankRow),
+		})
+		let dwollaBody: any
+		server.use(
+			http.post(`${DWOLLA_BASE}/transfers`, async ({ request }) => {
+				dwollaBody = await request.json()
+				return new HttpResponse(null, {
+					status: 201,
+					headers: { Location: `${DWOLLA_BASE}/transfers/transfer-123` },
+				})
+			}),
+		)
+
+		const result = await transferFunds(validParams())
+
+		expect(result).toEqual({ success: true, data: null })
+		expect(dwollaBody._links.source.href).toBe(senderBankRow.fundingSourceUrl)
+		expect(dwollaBody._links.destination.href).toBe(
+			receiverBankRow.fundingSourceUrl,
 		)
 	})
 })
