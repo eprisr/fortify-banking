@@ -1,7 +1,7 @@
 # ADR-016: Financial Core Isolation
 
 **Date:** 2026-09-25
-**Status:** Accepted
+**Status:** Accepted (amended 2026-10-31, Doppler dropped, see Amendment below)
 **Author:** Epris R.
 
 ---
@@ -36,6 +36,8 @@ Chosen over Supabase (bundles auth/storage/realtime features Appwrite already co
 - All writes happen inside one SQL transaction per journal entry, with row-level locks (`SELECT ... FOR UPDATE`) on every account a posting touches, so concurrent transfers can't race past each other mid-write.
 
 ### 3. Credential isolation — Doppler, plus reusing the existing encryption pattern
+
+*Amended 2026-10-31. The Doppler half of this section was dropped, see the Amendment below. The encryption half stands.*
 
 The backlog's "never store Plaid/Dwolla credentials in Appwrite" goal actually covers two different problems that need two different fixes:
 
@@ -77,9 +79,33 @@ The backlog's "never store Plaid/Dwolla credentials in Appwrite" goal actually c
 
 ---
 
+## Amendment, Doppler dropped (2026-10-31)
+
+When I reread this ADR, I noticed the alternatives table compares Doppler with AWS Secrets Manager and never with leaving the secrets in Vercel environment variables, which is what the app already does. I should have tested that option first. The backlog assumed a secrets manager was needed, and I went straight to picking one.
+
+The real security problem here was Plaid and Dwolla credentials sitting in plaintext in Appwrite. The per-row encryption in section 3 fixes that, and it stays. The app-wide keys were never in Appwrite.
+
+**Decision:** no separate secrets manager. App-wide secrets stay in Vercel environment variables for preview and production, and in `.env.local` for local work, synced with `vercel env pull`. CI uses placeholder values today, and GitHub Actions secrets if an E2E workflow is added (ADR-021). `DATABASE_URL` from Neon is set in Vercel like the other values, directly or through the Vercel marketplace integration.
+
+**Why:** I have about eight sandbox credentials, one developer, one host and no real funds. Doppler would add another vendor and account, a `doppler run` step in every command, and drift risk against Vercel, and I never checked its free-tier limits. What it offers is one source for local, preview, production and CI, an audit log, rollback and independence from the host. That doesn't outweigh the cost right now.
+
+**Revisit if** the project handles real funds, a second person joins, it moves to a second host, or I need an audit trail on secret changes.
+
+**What doesn't change:** the per-row encryption of `Bank.accessToken` and `Bank.fundingSourceUrl`, and Neon. The encryption key (`ACCOUNT_ID_ENCRYPTION_KEY`) now comes from Vercel and `.env.local` instead of Doppler. I left the original Doppler text in section 3, the "Local/CI workflow" paragraph and Consequences (Expected) as written, since it records what I decided at the time.
+
 ## Consequences (Actual)
 
-*To be filled in after implementation.* Provisioning Neon and Doppler requires account creation outside this session's reach — both need to exist, with connection details available, before the schema/migration code and the `encryption.ts` extension can actually be built and run.
+*To be filled in after implementation.* Provisioning Neon requires account creation outside this session's reach — it needs to exist, with connection details available, before the schema/migration code and the `encryption.ts` extension can actually be built and run.
+
+### Provider review, 2026-10-31
+
+I went back over the Neon choice after seeing Supabase listed in the Vercel marketplace, and I'm staying with Neon. Nothing is provisioned yet, so this is a review and not a change.
+
+- **The Supabase objection above is the weaker half of the reasoning.** Supabase can be used as plain Postgres, so "extra surface" isn't a strong reason by itself. The better reasons for Neon are branching per environment and the serverless fit. Either would have worked for this ledger.
+- **The two free tiers fail in different ways.** Neon's free plan scales compute to zero after five minutes idle, and it only suspends compute when a monthly quota runs out (100 CU-hours per project, with 1 GB of storage per project). Supabase's free plan pauses a project after a week of low activity, and has a 500 MB database. Paid Supabase projects don't pause for inactivity. A portfolio project that gets quiet traffic is more likely to hit the Supabase pause than the Neon quota. These numbers come from the vendors' pages on this date and will change.
+- **Quotas are per project.** The ledger should be its own Neon project, separate from anything the portfolio site uses, so it gets its own CU-hours and storage. Branches inside a project share that project's budget, so dev and preview branches count against the same CU-hours.
+- **Things that keep the database awake burn CU-hours.** Uptime monitors, polling and anything else that pings the database constantly should stay away from it. The nightly reconciliation job (ADR-019) and QStash deliveries (ADR-017) wake it briefly, which is fine.
+- **The Vercel marketplace question is settled by the amendment above.** Vercel environment variables own `DATABASE_URL`, so a marketplace integration that injects it is fine.
 
 ---
 

@@ -59,7 +59,7 @@ Phase 2 of `docs/security-backlog.md`, building directly on [ADR-016](ADR-016_Fi
 **Bad / Trade-offs:**
 
 - The client (the transfer form, and any future money-movement form) now has to generate and persist an idempotency key per submission attempt — a real, if small, change to existing form state management.
-- A third external vendor relationship (after Neon, Doppler) before any of Phase 1 is even provisioned.
+- A third external vendor relationship (after Neon, since Doppler was later dropped in the ADR-016 amendment) before any of Phase 1 is even provisioned.
 
 **Risks:**
 
