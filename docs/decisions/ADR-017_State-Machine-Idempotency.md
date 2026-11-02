@@ -1,7 +1,7 @@
 # ADR-017: Transaction State Machine, Idempotency & Async Processing
 
 **Date:** 2026-09-25
-**Status:** Accepted
+**Status:** Accepted (amended 2026-11-02, see Amendment below)
 **Author:** Epris R.
 
 ---
@@ -66,6 +66,52 @@ Phase 2 of `docs/security-backlog.md`, building directly on [ADR-016](ADR-016_Fi
 - None beyond the general new-vendor risk already logged in ADR-016.
 
 ---
+
+## Amendment, posting model and late returns (2026-11-02)
+
+While the state machine was being built, one question came up that this ADR never answered. It defines the states, but not which postings go with each one. It also treats `settled` as final, and ACH doesn't work that way. Both are settled here.
+
+### When a transfer posts
+
+A transfer posts through a **clearing account**, one of the internal accounts ADR-016 already allows for. Every posting step is its own journal entry.
+
+| Moment | Posting | Effect |
+|---|---|---|
+| Initiated | Sender → clearing | The money leaves the sender's ledger balance right away, so the forecast sees it as committed |
+| Settled | Clearing → receiver | It reaches the receiver only once Dwolla confirms |
+| Failed, or returned before settlement | Clearing → sender | A reversing entry gives it back. Nothing is edited or deleted |
+
+The ledger was double-entry all along. The question here was only whether money passes through a clearing account or goes straight from sender to receiver.
+
+| Option | Why not |
+|---|---|
+| **Post only at settlement** | A pending transfer is invisible to the ledger, so the forecast would have to ask Dwolla. That undercuts the reason for having a local ledger in ADR-015. |
+| **Post sender → receiver at initiation** | The receiver is credited before the money has arrived. That's the wrong way to be wrong in a cash-flow app. |
+
+### Idempotency key and status
+
+The unique idempotency key and the lifecycle status stay on the **initiating entry only**. The settlement and reversal entries carry a `parent_entry_id` that points back to it. This keeps the database constraint described above working, since a transfer now has two or three entries and a unique key can't live on all of them.
+
+### Late returns
+
+ACH returns can arrive after a transfer has settled. Most come within two banking days, and unauthorized consumer debits can come back up to 60 days later. So `settled` means settled so far, not irrevocable. The valid transitions are:
+
+- `initiated → pending_clearing` or `failed`
+- `pending_clearing → settled`, `returned` or `failed`
+- `settled → returned`
+
+`returned` and `failed` are terminal. The transition rules live in data, not in hardcoded checks.
+
+A return **before** settlement reverses clearing → sender. A return **after** settlement reverses receiver → sender, because the money has already left clearing. The receiver may have spent it, so that reversal can push their ledger balance negative. For this project I record it and route it to the `reconciliation_exceptions` table from [ADR-019](ADR-019_Reconciliation-FinOps.md) so the shortfall is visible. Who absorbs a loss like that is a real production question, and ADR-018's velocity limits are the early guard against it. I'm not building loss handling here.
+
+### What this adds
+
+- **A reconciliation check for free.** The clearing balance should always equal the sum of transfers Dwolla still shows as pending. A mismatch, or a transfer that sits in clearing too long, is the missed-webhook signal ADR-019 looks for.
+- **More rows.** Two or three entries per transfer instead of one. At this scale that doesn't matter.
+- **Transitions and postings share a transaction.** Every state change writes its postings in the same database transaction, including the webhook path. This ADR already ran transitions in a transaction, so no new mechanism is needed.
+- **The forecast shows "in transit."** Money in clearing, including a transfer between your own accounts, appears as in transit and not as a dip. This goes in the Stage 4 notes.
+
+I left the original text above as written, since it records what I decided at the time.
 
 ## Consequences (Actual)
 
